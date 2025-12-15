@@ -210,6 +210,10 @@ class LabelTemplate(models.Model):
     width_cm = models.DecimalField(max_digits=5, decimal_places=2)
     height_cm = models.DecimalField(max_digits=5, decimal_places=2)
     dpi = models.PositiveIntegerField(default=300)
+<<<<<<< HEAD
+=======
+    canvas_bg_color = models.CharField(max_length=7, default="#ffffff")
+>>>>>>> ff5e724 (new additions to formatting)
 
     category = models.CharField(
         max_length=30,
@@ -252,11 +256,28 @@ class LabelTemplateField(models.Model):
         related_name='fields',
         on_delete=models.CASCADE,
     )
+<<<<<<< HEAD
     name = models.CharField(max_length=100)
     key = models.CharField(max_length=100)
     field_type = models.CharField(
         max_length=20,
         choices=WorkspaceField.FIELD_TYPE_CHOICES,
+=======
+    
+    name = models.CharField(max_length=100)
+    key = models.CharField(max_length=100)
+    FIELD_STATIC_TEXT = "STATIC_TEXT"
+    FIELD_SHAPE = "SHAPE"
+
+    FIELD_TYPE_CHOICES = list(WorkspaceField.FIELD_TYPE_CHOICES) + [
+        (FIELD_STATIC_TEXT, "Static Text"),
+        (FIELD_SHAPE, "Shape"),
+    ]
+
+    field_type = models.CharField(
+        max_length=20,
+        choices=FIELD_TYPE_CHOICES,
+>>>>>>> ff5e724 (new additions to formatting)
         default=WorkspaceField.FIELD_TEXT,
     )
 
@@ -265,7 +286,11 @@ class LabelTemplateField(models.Model):
     y = models.IntegerField(default=0)
     width = models.IntegerField(default=100)
     height = models.IntegerField(default=24)
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> ff5e724 (new additions to formatting)
     # Optional reference back to workspace field (for variables defined at workspace level)
     workspace_field = models.ForeignKey(
         WorkspaceField,
@@ -277,6 +302,43 @@ class LabelTemplateField(models.Model):
 
     order = models.PositiveIntegerField(default=0)
 
+<<<<<<< HEAD
+=======
+     # NEW – basic text styling
+    font_bold = models.BooleanField(default=False)
+    font_italic = models.BooleanField(default=False)
+    font_underline = models.BooleanField(default=False)
+    font_size = models.PositiveIntegerField(default=12)
+    text_color = models.CharField(max_length=7, default="#000000")  # #RRGGBB
+    bg_color = models.CharField(
+        max_length=7, default="", blank=True
+    )  # empty = transparent
+
+    # NEW – static text vs variable
+    is_static = models.BooleanField(default=False)  # True => use static_text
+    static_text = models.TextField(blank=True, default="")
+
+    # NEW – simple shapes
+    SHAPE_NONE = ""
+    SHAPE_RECT = "RECT"
+    SHAPE_CIRCLE = "CIRCLE"
+    SHAPE_STAR = "STAR"
+    SHAPE_TRIANGLE = "TRIANGLE"
+
+    SHAPE_CHOICES = [
+        (SHAPE_NONE, "None"),
+        (SHAPE_RECT, "Rectangle"),
+        (SHAPE_CIRCLE, "Circle"),
+        (SHAPE_STAR, "Star"),
+        (SHAPE_TRIANGLE, "Triangle"),
+    ]
+
+    shape_type = models.CharField(
+        max_length=20, choices=SHAPE_CHOICES, default=SHAPE_NONE, blank=True
+    )
+    shape_color = models.CharField(max_length=7, default="#000000", blank=True)
+
+>>>>>>> ff5e724 (new additions to formatting)
     class Meta:
         ordering = ['order', 'id']
 

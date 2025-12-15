@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 {% extends "base.html" %} {% block title %}Preview Template – {{ template.name
 }}{% endblock %} {% block content %}
+=======
+{% extends "base.html" %}
+{% block title %}Preview Template – {{ template.name }}{% endblock %}
+{% block content %}
+>>>>>>> ff5e724 (new additions to formatting)
 <div class="row justify-content-center">
   <div class="col-lg-10">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -9,10 +15,14 @@
           Workspace: <strong>{{ workspace.name }}</strong> ({{ org.name }})
         </p>
       </div>
+<<<<<<< HEAD
       <a
         href="{% url 'label_template_canvas' template.id %}"
         class="btn btn-link btn-sm"
       >
+=======
+      <a href="{% url 'label_template_canvas' template.id %}" class="btn btn-link btn-sm">
+>>>>>>> ff5e724 (new additions to formatting)
         ← Back to Canvas
       </a>
     </div>
@@ -20,6 +30,7 @@
     <div class="card shadow-sm mb-4">
       <div class="card-body">
         <h2 class="h6 mb-3">Sample Values</h2>
+<<<<<<< HEAD
         <form method="post">
           {% csrf_token %}
 
@@ -49,10 +60,60 @@
               <div class="invalid-feedback d-block">{{ item.error }}</div>
               {% endif %}
             </div>
+=======
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="canvas_bg_color" value="{{ canvas_bg_color }}">
+
+          <div class="row g-3">
+            {% for item in layout %}
+              {% with ft=item.field_type|upper %}
+                {% if item.shape_type or item.is_static or ft == "BARCODE" or ft == "QRCODE" %}
+                  <div class="col-md-6">
+                    <label class="form-label small">{{ item.name }} ({{ item.key }})</label>
+                    <div class="text-muted small">
+                      {% if item.shape_type %}
+                        Shape field (configured on canvas)
+                      {% elif item.is_static %}
+                        Static text field (configured on canvas)
+                      {% else %}
+                        {% if ft == "BARCODE" %}Barcode is auto-generated during label generation{% endif %}
+                        {% if ft == "QRCODE" %}QR is auto-generated during label generation{% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="col-md-6">
+                    <label class="form-label small">
+                      {{ item.name }} ({{ item.key }})
+                    </label>
+
+                    {% if ft == "IMAGE_URL" %}
+                      <input type="text"
+                        name="sample_{{ item.key }}"
+                        value="{{ item.value }}"
+                        class="form-control form-control-sm {% if item.error %}is-invalid{% endif %}"
+                        placeholder="https://example.com/image.jpg" />
+                    {% else %}
+                      <input type="text"
+                        name="sample_{{ item.key }}"
+                        value="{{ item.value }}"
+                        class="form-control form-control-sm {% if item.error %}is-invalid{% endif %}" />
+                    {% endif %}
+
+                    {% if item.error %}
+                      <div class="invalid-feedback d-block">{{ item.error }}</div>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              {% endwith %}
+>>>>>>> ff5e724 (new additions to formatting)
             {% endfor %}
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-3">
+<<<<<<< HEAD
             <button
               type="submit"
               name="action"
@@ -67,6 +128,12 @@
               value="save"
               class="btn btn-primary"
             >
+=======
+            <button type="submit" name="action" value="preview" class="btn btn-outline-primary">
+              Update Preview
+            </button>
+            <button type="submit" name="action" value="save" class="btn btn-primary">
+>>>>>>> ff5e724 (new additions to formatting)
               Save Template
             </button>
           </div>
@@ -77,6 +144,7 @@
     <div class="card shadow-sm">
       <div class="card-body">
         <h2 class="h6 mb-3">Label Preview</h2>
+<<<<<<< HEAD
         <div
           class="border bg-light position-relative"
           style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
@@ -118,10 +186,105 @@
             <div class="mt-1">{{ item.value|default:"(no value)" }}</div>
             {% endif %}
           </div>
+=======
+
+        <div
+          class="border position-relative"
+          style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden; background: {{ canvas_bg_color }};"
+        >
+          {% for item in layout %}
+            {% with ft=item.field_type|upper %}
+            <div
+              class="position-absolute"
+              style="left: {{ item.x }}px; top: {{ item.y }}px; width: {{ item.width }}px; height: {{ item.height }}px;"
+            >
+              {# ---------- SHAPES ---------- #}
+              {% if item.shape_type %}
+                <div style="position:absolute; inset:0; background: {{ item.shape_color|default:'#000000' }};
+                  {% if item.shape_type == 'CIRCLE' %}
+                    border-radius: 50%;
+                  {% elif item.shape_type == 'TRIANGLE' %}
+                    -webkit-clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+                    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+                  {% elif item.shape_type == 'STAR' %}
+                    -webkit-clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+                    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+                  {% endif %}
+                "></div>
+
+              {# ---------- STATIC TEXT ---------- #}
+              {% elif item.is_static %}
+                <div
+                  style="
+                    position:absolute; inset:0;
+                    padding: 2px;
+                    overflow: hidden;
+                    color: {{ item.text_color|default:'#000000' }};
+                    background: {% if item.bg_color %}{{ item.bg_color }}{% else %}transparent{% endif %};
+                    font-size: {{ item.font_size|default:12 }}px;
+                    font-weight: {% if item.font_bold %}700{% else %}400{% endif %};
+                    font-style: {% if item.font_italic %}italic{% else %}normal{% endif %};
+                    text-decoration: {% if item.font_underline %}underline{% else %}none{% endif %};
+                    white-space: normal;
+                    word-wrap: break-word;
+                  "
+                >
+                  {{ item.value|safe }}
+                </div>
+
+              {# ---------- IMAGE ---------- #}
+              {% elif ft == "IMAGE_URL" %}
+                {% if item.value %}
+                  <img
+                    src="{{ item.value }}"
+                    alt="{{ item.name }}"
+                    style="max-width: 100%; max-height: 100%; object-fit: contain; display:block;"
+                  />
+                {% else %}
+                  <div class="text-muted small">(no image URL)</div>
+                {% endif %}
+
+              {# ---------- BARCODE/QR PLACEHOLDERS ---------- #}
+              {% elif ft == "BARCODE" %}
+                <div class="text-muted small">[Barcode will render during label generation]</div>
+
+              {% elif ft == "QRCODE" %}
+                <div class="text-muted small">[QR will render during label generation]</div>
+
+              {# ---------- NORMAL VARIABLE TEXT ---------- #}
+              {% else %}
+                <div
+                  style="
+                    position:absolute; inset:0;
+                    padding: 2px;
+                    color: {{ item.text_color|default:'#000000' }};
+                    background: {% if item.bg_color %}{{ item.bg_color }}{% else %}transparent{% endif %};
+                    font-size: {{ item.font_size|default:12 }}px;
+                    font-weight: {% if item.font_bold %}700{% else %}400{% endif %};
+                    font-style: {% if item.font_italic %}italic{% else %}normal{% endif %};
+                    text-decoration: {% if item.font_underline %}underline{% else %}none{% endif %};
+                    overflow: hidden;
+                    white-space: normal;
+                    word-wrap: break-word;
+                  "
+                >
+                  <div style="font-size: 10px; text-transform: uppercase; opacity: .7; margin-bottom: 2px;">
+                    {{ item.name }}
+                  </div>
+                  <div>{{ item.value|default:"(no value)" }}</div>
+                </div>
+              {% endif %}
+            </div>
+            {% endwith %}
+>>>>>>> ff5e724 (new additions to formatting)
           {% endfor %}
         </div>
       </div>
     </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> ff5e724 (new additions to formatting)
   </div>
 </div>
 {% endblock %}

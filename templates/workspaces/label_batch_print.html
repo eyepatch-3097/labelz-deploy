@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="container-fluid">
+<<<<<<< HEAD
   <div class="d-flex justify-content-between align-items-center my-3 no-print">
     <h1 class="h5 mb-0">Print Labels – {{ template.name }}</h1>
     <div>
@@ -83,10 +84,142 @@
     page-break-inside: avoid;
     break-inside: avoid;
     -webkit-region-break-inside: avoid;
+=======
+
+  <div class="d-flex justify-content-between align-items-center my-3 no-print">
+    <h1 class="h5 mb-0">Print Labels – {{ template.name }}</h1>
+    <div>
+      <a href="{% url 'label_generate_single_preview' workspace.id batch.id %}"
+         class="btn btn-outline-secondary btn-sm">Back</a>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+    </div>
+  </div>
+
+  {% for label in labels %}
+    <div class="print-label-wrapper mb-4">
+
+      <div class="d-flex justify-content-between align-items-center mb-2 no-print">
+        <span class="text-muted small">Label #{{ label.index }}</span>
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary download-label-btn"
+                data-label-id="label-{{ label.index }}">
+          Download
+        </button>
+      </div>
+
+      <div id="label-{{ label.index }}"
+           class="print-label border position-relative"
+           style="width: {{ canvas_width }}px;
+                  height: {{ canvas_height }}px;
+                  overflow: hidden;
+                  background: {{ canvas_bg_color|default:'#ffffff' }};">
+
+        {% for item in label.layout %}
+          <div class="position-absolute"
+               style="left: {{ item.x }}px;
+                      top: {{ item.y }}px;
+                      width: {{ item.width }}px;
+                      height: {{ item.height }}px;
+                      overflow: hidden;">
+
+            {# ---------- SHAPES ---------- #}
+            {% if item.shape_type %}
+              {% if item.shape_type == "CIRCLE" %}
+                <div style="width:100%;height:100%;
+                            background: {{ item.shape_color|default:'#000000' }};
+                            border-radius: 50%;"></div>
+              {% elif item.shape_type == "TRIANGLE" %}
+                <div style="width:100%;height:100%;
+                            background: {{ item.shape_color|default:'#000000' }};
+                            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></div>
+              {% elif item.shape_type == "STAR" %}
+                <div style="width:100%;height:100%;
+                            background: {{ item.shape_color|default:'#000000' }};
+                            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+              {% else %}
+                <div style="width:100%;height:100%;
+                            background: {{ item.shape_color|default:'#000000' }};"></div>
+              {% endif %}
+
+            {# ---------- STATIC TEXT ---------- #}
+            {% elif item.is_static %}
+              <div style="
+                width:100%;height:100%;
+                font-size: {{ item.font_size|default:12 }}px;
+                font-weight: {% if item.font_bold %}700{% else %}400{% endif %};
+                font-style: {% if item.font_italic %}italic{% else %}normal{% endif %};
+                text-decoration: {% if item.font_underline %}underline{% else %}none{% endif %};
+                color: {{ item.text_color|default:'#000000' }};
+                background-color: {% if item.bg_color %}{{ item.bg_color }}{% else %}transparent{% endif %};
+                line-height: 1.15;
+                overflow-wrap: anywhere;">
+{{ item.static_text|linebreaksbr }}
+              </div>
+
+            {# ---------- IMAGE ---------- #}
+            {% elif item.field_type == "IMAGE_URL" %}
+              {% if item.value %}
+                <img src="{{ item.value }}"
+                     alt="{{ item.name }}"
+                     style="max-width:100%;max-height:100%;object-fit:contain;">
+              {% endif %}
+
+            {# ---------- BARCODE ---------- #}
+            {% elif item.field_type == "BARCODE" %}
+              {% if item.image_data_url %}
+                <img src="{{ item.image_data_url }}"
+                     alt="Barcode"
+                     style="max-width:100%;max-height:100%;object-fit:contain;">
+              {% else %}
+                <span class="text-muted small">{{ item.value }}</span>
+              {% endif %}
+
+            {# ---------- QRCODE ---------- #}
+            {% elif item.field_type == "QRCODE" %}
+              {% if item.image_data_url %}
+                <img src="{{ item.image_data_url }}"
+                     alt="QR Code"
+                     style="max-width:100%;max-height:100%;object-fit:contain;">
+              {% else %}
+                <span class="text-muted small">{{ item.value }}</span>
+              {% endif %}
+
+            {# ---------- NORMAL TEXT (heading + value share same styling) ---------- #}
+            {% else %}
+              <div style="
+                width:100%;height:100%;
+                font-size: {{ item.font_size|default:12 }}px;
+                font-weight: {% if item.font_bold %}700{% else %}400{% endif %};
+                font-style: {% if item.font_italic %}italic{% else %}normal{% endif %};
+                text-decoration: {% if item.font_underline %}underline{% else %}none{% endif %};
+                color: {{ item.text_color|default:'#000000' }};
+                background-color: {% if item.bg_color %}{{ item.bg_color }}{% else %}transparent{% endif %};
+                line-height: 1.15;
+                overflow-wrap: anywhere;">
+                <div style="margin:0;padding:0;">{{ item.name }}</div>
+                <div style="margin:0;padding:0;">{{ item.value }}</div>
+              </div>
+            {% endif %}
+
+          </div>
+        {% endfor %}
+
+      </div>
+    </div>
+  {% endfor %}
+
+</div>
+
+<style>
+  .print-label-wrapper, .print-label {
+    page-break-inside: avoid;
+    break-inside: avoid;
+>>>>>>> ff5e724 (new additions to formatting)
     -webkit-column-break-inside: avoid;
   }
 
   @media print {
+<<<<<<< HEAD
     .no-print {
       display: none !important;
     }
@@ -109,6 +242,14 @@
 </style>
 
 <!-- html2canvas for per-label download -->
+=======
+    .no-print { display: none !important; }
+    body { margin: 0; }
+    @page { margin: 10mm; }
+  }
+</style>
+
+>>>>>>> ff5e724 (new additions to formatting)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -118,10 +259,14 @@
         const labelEl = document.getElementById(targetId);
         if (!labelEl) return;
 
+<<<<<<< HEAD
         html2canvas(labelEl, {
           scale: 2,      // higher scale ⇒ sharper png for printing
           useCORS: true,
         }).then((canvas) => {
+=======
+        html2canvas(labelEl, { scale: 2, useCORS: true }).then((canvas) => {
+>>>>>>> ff5e724 (new additions to formatting)
           const link = document.createElement("a");
           link.download = targetId + ".png";
           link.href = canvas.toDataURL("image/png");

@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 {% extends "base.html" %} {% block title %}Design Template – {{ template.name
 }}{% endblock %} {% block content %}
+=======
+{% extends "base.html" %} {% block title %} Design Template – {{ template.name}}
+{% endblock %} {% block content %}
+>>>>>>> ff5e724 (new additions to formatting)
 <div class="row justify-content-center">
   <div class="col-lg-11">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -101,6 +106,11 @@
                 <option value="SERIAL">Serial Number</option>
                 <option value="BARCODE">Barcode</option>
                 <option value="QRCODE">QR Code</option>
+<<<<<<< HEAD
+=======
+                <option value="STATIC_TEXT">Static Text</option>
+                <option value="SHAPE">Shape</option>
+>>>>>>> ff5e724 (new additions to formatting)
               </select>
             </div>
             <button
@@ -128,9 +138,39 @@
               {% csrf_token %}
               <div
                 id="labelCanvas"
+<<<<<<< HEAD
                 class="border position-relative bg-light"
                 style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
               ></div>
+=======
+                class="border position-relative"
+                style="
+    width: {{ canvas_width }}px;
+    height: {{ canvas_height }}px;
+    overflow: hidden;
+    background: {{ template.canvas_bg_color|default:'#ffffff' }};
+  "
+              ></div>
+              <div class="row mt-3">
+                <div class="col-md-4 mb-2">
+                  <label class="form-label small mb-1">Canvas Background</label>
+                  <div class="d-flex gap-2 align-items-center">
+                    <input
+                      type="color"
+                      id="canvasBgPicker"
+                      class="form-control form-control-color form-control-sm"
+                      value="{{ canvas_bg_color|default:'#ffffff' }}"
+                    />
+                    <input
+                      type="hidden"
+                      name="canvas_bg_color"
+                      id="canvasBgValue"
+                      value="{{ canvas_bg_color|default:'#ffffff' }}"
+                    />
+                  </div>
+                </div>
+              </div>
+>>>>>>> ff5e724 (new additions to formatting)
 
               <!-- Selected field size controls -->
               <div class="row mt-3">
@@ -157,6 +197,122 @@
                 </div>
               </div>
 
+<<<<<<< HEAD
+=======
+              <div class="row mt-3">
+                <div class="col-md-4 mb-2">
+                  <label class="form-label small mb-1">Text Style</label>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="fmtBold"
+                    />
+                    <label class="form-check-label small" for="fmtBold"
+                      >B</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="fmtItalic"
+                    />
+                    <label class="form-check-label small" for="fmtItalic"
+                      ><em>I</em></label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="fmtUnderline"
+                    />
+                    <label class="form-check-label small" for="fmtUnderline"
+                      ><u>U</u></label
+                    >
+                  </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                  <label class="form-label small mb-1">Font Size (px)</label>
+                  <input
+                    type="number"
+                    id="fmtFontSize"
+                    class="form-control form-control-sm"
+                    min="6"
+                    max="72"
+                  />
+                </div>
+
+                <div class="col-md-4 mb-2">
+                  <label class="form-label small mb-1"
+                    >Text / Background Color</label
+                  >
+                  <div class="d-flex gap-2">
+                    <input
+                      type="color"
+                      id="fmtTextColor"
+                      class="form-control form-control-color form-control-sm"
+                      value="#000000"
+                    />
+                    <input
+                      type="color"
+                      id="fmtBgColor"
+                      class="form-control form-control-color form-control-sm"
+                      value="#ffffff"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mt-3">
+                <div class="col-md-6 mb-2">
+                  <label class="form-label small mb-1"
+                    >Static Text (optional)</label
+                  >
+                  <textarea
+                    id="fmtStaticText"
+                    rows="2"
+                    class="form-control form-control-sm"
+                    placeholder="For non-variable text boxes only"
+                  ></textarea>
+                  <div class="form-text small">
+                    To create non-variable text, use “Add Custom Field” with a
+                    suitable name and choose field type
+                    <strong>Static Text</strong>.
+                  </div>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <label class="form-label small mb-1"
+                    >Shape Options (for shape fields)</label
+                  >
+                  <div class="d-flex gap-2 mb-2">
+                    <select
+                      id="fmtShapeType"
+                      class="form-select form-select-sm"
+                    >
+                      <option value="">None</option>
+                      <option value="RECT">Rectangle</option>
+                      <option value="CIRCLE">Circle</option>
+                      <option value="STAR">Star</option>
+                      <option value="TRIANGLE">Triangle</option>
+                    </select>
+                    <input
+                      type="color"
+                      id="fmtShapeColor"
+                      class="form-control form-control-color form-control-sm"
+                      value="#000000"
+                    />
+                  </div>
+                  <div class="form-text small">
+                    Shape fields ignore text; only the colored shape is
+                    rendered.
+                  </div>
+                </div>
+              </div>
+
+>>>>>>> ff5e724 (new additions to formatting)
               <input type="hidden" name="layout_data" id="layoutData" />
 
               <div class="d-flex justify-content-end gap-2 mt-3">
@@ -188,6 +344,7 @@
     const heightInput = document.getElementById("selectedHeight");
     const selectedLabel = document.getElementById("selectedFieldLabel");
 
+<<<<<<< HEAD
     let selectedBox = null;
 
     function selectBox(box) {
@@ -226,6 +383,219 @@
         </div>
       `;
 
+=======
+    const fmtBold = document.getElementById("fmtBold");
+    const fmtItalic = document.getElementById("fmtItalic");
+    const fmtUnderline = document.getElementById("fmtUnderline");
+    const fmtFontSize = document.getElementById("fmtFontSize");
+    const fmtTextColor = document.getElementById("fmtTextColor");
+    const fmtBgColor = document.getElementById("fmtBgColor");
+    const fmtStaticText = document.getElementById("fmtStaticText");
+    const fmtShapeType = document.getElementById("fmtShapeType");
+    const fmtShapeColor = document.getElementById("fmtShapeColor");
+
+    const canvasBgPicker = document.getElementById("canvasBgPicker");
+    const canvasBgValue = document.getElementById("canvasBgValue");
+
+    let selectedBox = null;
+
+    function isShape(data) {
+      return !!(data.shape_type && String(data.shape_type).trim());
+    }
+
+    function getData(box) {
+      try { return JSON.parse(box.dataset.fieldJson || "{}"); }
+      catch(e) { return {}; }
+    }
+
+    function setData(box, data) {
+      box.dataset.fieldJson = JSON.stringify(data);
+    }
+
+    function starClipPath() {
+      // simple 5-point star polygon
+      return "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)";
+    }
+
+    function triangleClipPath() {
+      return "polygon(50% 0%, 0% 100%, 100% 100%)";
+    }
+
+    function applyStyles(box) {
+      const data = getData(box);
+
+      // Always reset base styles
+      box.style.borderRadius = "0";
+      box.style.background = "transparent";
+      box.style.color = data.text_color || "#000000";
+      box.style.fontSize = (data.font_size || 12) + "px";
+      box.style.fontWeight = data.font_bold ? "700" : "400";
+      box.style.fontStyle = data.font_italic ? "italic" : "normal";
+      box.style.textDecoration = data.font_underline ? "underline" : "none";
+
+      // inner layers
+      const shapeLayer = box.querySelector(".shape-layer");
+      const textLayer = box.querySelector(".text-layer");
+
+      if (isShape(data)) {
+        // Shape mode: show shape layer, hide text
+        if (shapeLayer) {
+          shapeLayer.style.display = "block";
+          shapeLayer.style.background = data.shape_color || "#000000";
+          shapeLayer.style.borderRadius = (data.shape_type === "CIRCLE") ? "50%" : "0";
+          shapeLayer.style.clipPath = "";
+          shapeLayer.style.webkitClipPath = "";
+
+          if (data.shape_type === "TRIANGLE") {
+            shapeLayer.style.clipPath = triangleClipPath();
+            shapeLayer.style.webkitClipPath = triangleClipPath();
+          } else if (data.shape_type === "STAR") {
+            shapeLayer.style.clipPath = starClipPath();
+            shapeLayer.style.webkitClipPath = starClipPath();
+          }
+        }
+        if (textLayer) textLayer.style.display = "none";
+        // shapes ignore bg_color/text formatting visually
+        return;
+      }
+
+      // Non-shape: hide shape layer, show text
+      if (shapeLayer) shapeLayer.style.display = "none";
+      if (textLayer) textLayer.style.display = "block";
+
+      // background for text blocks
+      const bg = (data.bg_color || "").trim();
+      box.style.background = bg ? bg : "transparent";
+
+      // static text content
+      if (data.is_static && textLayer) {
+        textLayer.innerHTML = data.static_text || "";
+      }
+    }
+
+    function syncControls(box) {
+      if (!box) {
+        if (selectedLabel) selectedLabel.textContent = "No field selected.";
+        if (widthInput) widthInput.value = "";
+        if (heightInput) heightInput.value = "";
+        return;
+      }
+      const data = getData(box);
+      if (selectedLabel) selectedLabel.textContent = "Editing: " + (data.name || "") + " (" + (data.key || "") + ")";
+      if (widthInput) widthInput.value = box.offsetWidth;
+      if (heightInput) heightInput.value = box.offsetHeight;
+
+      if (fmtBold) fmtBold.checked = !!data.font_bold;
+      if (fmtItalic) fmtItalic.checked = !!data.font_italic;
+      if (fmtUnderline) fmtUnderline.checked = !!data.font_underline;
+      if (fmtFontSize) fmtFontSize.value = data.font_size || 12;
+      if (fmtTextColor) fmtTextColor.value = data.text_color || "#000000";
+      if (fmtBgColor) fmtBgColor.value = (data.bg_color && data.bg_color.trim()) ? data.bg_color : "#ffffff";
+      if (fmtStaticText) fmtStaticText.value = data.static_text || "";
+      if (fmtShapeType) fmtShapeType.value = data.shape_type || "";
+      if (fmtShapeColor) fmtShapeColor.value = data.shape_color || "#000000";
+    }
+
+    function selectBox(box) {
+      if (selectedBox && selectedBox !== box) selectedBox.classList.remove("border-primary");
+      selectedBox = box;
+      if (selectedBox) selectedBox.classList.add("border-primary");
+      syncControls(selectedBox);
+    }
+
+    function makeDraggable(el) {
+      let isDown = false;
+      let offset = [0, 0];
+
+      el.addEventListener("mousedown", function (e) {
+        if (e.target.classList.contains("btn-remove-field")) return;
+        isDown = true;
+        offset = [el.offsetLeft - e.clientX, el.offsetTop - e.clientY];
+        selectBox(el);
+      });
+
+      document.addEventListener("mouseup", function () { isDown = false; });
+
+      document.addEventListener("mousemove", function (e) {
+        if (!isDown) return;
+        e.preventDefault();
+
+        const rect = canvas.getBoundingClientRect();
+        const maxX = rect.width - el.offsetWidth;
+        const maxY = rect.height - el.offsetHeight;
+
+        let x = e.clientX + offset[0];
+        let y = e.clientY + offset[1];
+        x = Math.max(0, Math.min(x, maxX));
+        y = Math.max(0, Math.min(y, maxY));
+
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+
+        const data = getData(el);
+        data.x = x; data.y = y;
+        setData(el, data);
+      });
+    }
+
+    function createFieldBox(field) {
+      // Normalize + defaults (IMPORTANT)
+      const rawType = (field.field_type || "TEXT").toUpperCase();
+
+      const data = {
+        name: field.name || "Field",
+        key: field.key || "",
+        // Keep field_type within your existing ecosystem
+        field_type: (rawType === "STATIC_TEXT" || rawType === "SHAPE") ? "TEXT" : rawType,
+        workspace_field_id: field.workspace_field_id || null,
+
+        x: field.x ?? 10,
+        y: field.y ?? 10,
+        width: field.width ?? 140,
+        height: field.height ?? 32,
+
+        // ✅ these match your model + preview view
+        font_bold: !!field.font_bold,
+        font_italic: !!field.font_italic,
+        font_underline: !!field.font_underline,
+        font_size: field.font_size ? parseInt(field.font_size, 10) : 12,
+        text_color: field.text_color || "#000000",
+        bg_color: field.bg_color || "",
+
+        is_static: (rawType === "STATIC_TEXT") ? true : !!field.is_static,
+        static_text: field.static_text || (rawType === "STATIC_TEXT" ? (field.name || "") : ""),
+
+        // Shape is controlled ONLY by shape_type + shape_color
+        shape_type: field.shape_type || (rawType === "SHAPE" ? "RECT" : ""),
+        shape_color: field.shape_color || "#000000",
+      };
+
+      const box = document.createElement("div");
+      box.className = "field-box border px-2 py-1 small position-absolute";
+      box.style.left = data.x + "px";
+      box.style.top = data.y + "px";
+      box.style.width = data.width + "px";
+      box.style.height = data.height + "px";
+
+      setData(box, data);
+
+      // Keep remove button ALWAYS
+      box.innerHTML = `
+        <button type="button"
+          class="btn btn-sm btn-link text-danger p-0 position-absolute top-0 end-0 btn-remove-field"
+          style="line-height:1; z-index:5;">&times;</button>
+
+        <div class="shape-layer" style="position:absolute; inset:0;"></div>
+
+        <div class="text-layer d-flex align-items-center justify-content-center text-center"
+             style="position:absolute; inset:0; padding:2px;">
+          <span>${data.is_static ? (data.static_text || "") : (data.name || "")}</span>
+        </div>
+      `;
+
+      applyStyles(box);
+
+>>>>>>> ff5e724 (new additions to formatting)
       box.addEventListener("click", function (e) {
         if (e.target.classList.contains("btn-remove-field")) return;
         selectBox(box);
@@ -235,6 +605,7 @@
       canvas.appendChild(box);
     }
 
+<<<<<<< HEAD
     function makeDraggable(el) {
       let isDown = false;
       let offset = [0, 0];
@@ -354,12 +725,78 @@
     });
 
     // Resize selected box from inputs
+=======
+    // Load existing
+    try {
+      if (Array.isArray(existingLayout)) existingLayout.forEach(createFieldBox);
+    } catch (e) {
+      console.error("Failed to parse existing layout", e);
+    }
+
+    // Add existing variable/special fields
+    document.querySelectorAll(".btn-add-field").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const fieldType = (this.dataset.fieldType || "TEXT").toUpperCase();
+        const key = this.dataset.key || "";
+
+        let width = 140, height = 32;
+        if (key === "barcode" || fieldType === "BARCODE") { width = 250; height = 60; }
+        if (key === "qrcode" || fieldType === "QRCODE") { width = 100; height = 100; }
+
+        createFieldBox({
+          name: this.dataset.name || "Field",
+          key: key,
+          field_type: fieldType,
+          workspace_field_id: this.dataset.workspaceFieldId || null,
+          x: 10, y: 10, width, height
+        });
+      });
+    });
+
+    // Add custom fields
+    document.getElementById("btnAddCustomField").addEventListener("click", function () {
+      const name = (document.getElementById("newFieldName").value || "").trim() || "New Field";
+      const pick = (document.getElementById("newFieldType").value || "TEXT").toUpperCase();
+
+      let width = 140, height = 32;
+      if (pick === "BARCODE") { width = 250; height = 60; }
+      if (pick === "QRCODE") { width = 100; height = 100; }
+      if (pick === "SHAPE")  { width = 80; height = 80; }
+
+      createFieldBox({
+        name,
+        key: name.toLowerCase().replace(/\s+/g, "_"),
+        field_type: pick,
+        x: 10, y: 10, width, height,
+        // seed the special modes
+        is_static: pick === "STATIC_TEXT",
+        static_text: pick === "STATIC_TEXT" ? name : "",
+        shape_type: pick === "SHAPE" ? "RECT" : "",
+        shape_color: "#000000",
+      });
+
+      document.getElementById("newFieldName").value = "";
+    });
+
+    // Remove
+    canvas.addEventListener("click", function (e) {
+      if (!e.target.classList.contains("btn-remove-field")) return;
+      const box = e.target.closest(".field-box");
+      if (!box) return;
+      const wasSelected = (box === selectedBox);
+      box.remove();
+      if (wasSelected) selectBox(null);
+    });
+
+    // Resize controls
+>>>>>>> ff5e724 (new additions to formatting)
     function applySizeInputs() {
       if (!selectedBox) return;
       let w = parseInt(widthInput.value, 10);
       let h = parseInt(heightInput.value, 10);
       if (!w || w < 10) w = selectedBox.offsetWidth;
       if (!h || h < 10) h = selectedBox.offsetHeight;
+<<<<<<< HEAD
       selectedBox.style.width = w + "px";
       selectedBox.style.height = h + "px";
     }
@@ -391,6 +828,71 @@
       });
       layoutInput.value = JSON.stringify(layout);
     });
+=======
+
+      selectedBox.style.width = w + "px";
+      selectedBox.style.height = h + "px";
+
+      const data = getData(selectedBox);
+      data.width = w; data.height = h;
+      setData(selectedBox, data);
+      applyStyles(selectedBox);
+    }
+    if (widthInput) widthInput.addEventListener("change", applySizeInputs);
+    if (heightInput) heightInput.addEventListener("change", applySizeInputs);
+
+    // Formatting controls
+    function onStyleChange() {
+      if (!selectedBox) return;
+      const data = getData(selectedBox);
+
+      data.font_bold = !!fmtBold.checked;
+      data.font_italic = !!fmtItalic.checked;
+      data.font_underline = !!fmtUnderline.checked;
+      data.font_size = parseInt(fmtFontSize.value, 10) || 12;
+      data.text_color = fmtTextColor.value || "#000000";
+
+      // bg_color: allow "transparent" by letting user set white but store empty if they want later
+      data.bg_color = fmtBgColor.value || "";
+
+      data.static_text = fmtStaticText.value || "";
+      data.shape_type = fmtShapeType.value || "";
+      data.shape_color = fmtShapeColor.value || "#000000";
+
+      setData(selectedBox, data);
+      applyStyles(selectedBox);
+    }
+
+    [fmtBold, fmtItalic, fmtUnderline, fmtFontSize, fmtTextColor, fmtBgColor,
+     fmtStaticText, fmtShapeType, fmtShapeColor].forEach((el) => {
+      if (!el) return;
+      el.addEventListener("change", onStyleChange);
+      el.addEventListener("input", onStyleChange);
+    });
+
+    // Canvas bg
+    if (canvasBgPicker && canvasBgValue) {
+      canvasBgPicker.addEventListener("input", function () {
+        canvas.style.background = this.value;
+        canvasBgValue.value = this.value;
+      });
+    }
+
+    // Serialize (IMPORTANT: uses the correct keys)
+    document.getElementById("canvasForm").addEventListener("submit", function () {
+      const out = [];
+      canvas.querySelectorAll(".field-box").forEach((box) => {
+        const data = getData(box);
+        data.x = box.offsetLeft;
+        data.y = box.offsetTop;
+        data.width = box.offsetWidth;
+        data.height = box.offsetHeight;
+        out.push(data);
+      });
+      layoutInput.value = JSON.stringify(out);
+    });
+
+>>>>>>> ff5e724 (new additions to formatting)
   })();
 </script>
 {% endblock %}

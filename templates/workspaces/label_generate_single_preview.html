@@ -7,6 +7,10 @@ Preview Labels – {{ template.name }}
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-10">
+<<<<<<< HEAD
+=======
+
+>>>>>>> ff5e724 (new additions to formatting)
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
         <h1 class="h4 mb-1">Preview Label</h1>
@@ -17,10 +21,14 @@ Preview Labels – {{ template.name }}
         </p>
       </div>
       <div>
+<<<<<<< HEAD
         <a
           href="{% url 'label_generate_start' workspace.id %}"
           class="btn btn-link btn-sm"
         >
+=======
+        <a href="{% url 'label_generate_start' workspace.id %}" class="btn btn-link btn-sm">
+>>>>>>> ff5e724 (new additions to formatting)
           ← Back to Generation
         </a>
       </div>
@@ -28,6 +36,7 @@ Preview Labels – {{ template.name }}
 
     <div class="card shadow-sm mb-3">
       <div class="card-body">
+<<<<<<< HEAD
         <div
           class="border position-relative bg-white"
           style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
@@ -66,6 +75,94 @@ Preview Labels – {{ template.name }}
               <div>{{ item.value }}</div>
             {% endif %}
           </div>
+=======
+
+        <div class="border position-relative"
+             style="width: {{ canvas_width }}px;
+                    height: {{ canvas_height }}px;
+                    overflow: hidden;
+                    background: {{ template.canvas_bg_color|default:'#ffffff' }};">
+          {% for item in layout %}
+            <div class="position-absolute"
+                 style="left: {{ item.x }}px;
+                        top: {{ item.y }}px;
+                        width: {{ item.width }}px;
+                        height: {{ item.height }}px;
+                        overflow: hidden;">
+
+              {# ---------- SHAPES ---------- #}
+              {% if item.shape_type %}
+                {% if item.shape_type == "CIRCLE" %}
+                  <div style="width:100%;height:100%;
+                              background: {{ item.shape_color|default:'#000000' }};
+                              border-radius: 50%;"></div>
+                {% elif item.shape_type == "TRIANGLE" %}
+                  <div style="width:100%;height:100%;
+                              background: {{ item.shape_color|default:'#000000' }};
+                              clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></div>
+                {% elif item.shape_type == "STAR" %}
+                  <div style="width:100%;height:100%;
+                              background: {{ item.shape_color|default:'#000000' }};
+                              clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);"></div>
+                {% else %}
+                  <div style="width:100%;height:100%;
+                              background: {{ item.shape_color|default:'#000000' }};"></div>
+                {% endif %}
+
+              {# ---------- STATIC TEXT ---------- #}
+              {% elif item.is_static %}
+                <div style="
+                  width:100%;height:100%;
+                  font-size: {{ item.font_size|default:12 }}px;
+                  font-weight: {% if item.font_bold %}700{% else %}400{% endif %};
+                  font-style: {% if item.font_italic %}italic{% else %}normal{% endif %};
+                  text-decoration: {% if item.font_underline %}underline{% else %}none{% endif %};
+                  color: {{ item.text_color|default:'#000000' }};
+                  background-color: {% if item.bg_color %}{{ item.bg_color }}{% else %}transparent{% endif %};
+                  line-height: 1.15;
+                  
+                  overflow-wrap: anywhere;">
+{{ item.static_text|linebreaksbr }}
+                </div>
+
+              {# ---------- IMAGE ---------- #}
+              {% elif item.field_type == "IMAGE_URL" %}
+                {% if item.value %}
+                  <img src="{{ item.value }}"
+                       alt="{{ item.name }}"
+                       style="max-width:100%;max-height:100%;object-fit:contain;">
+                {% endif %}
+
+              {# ---------- BARCODE + QRCODE ---------- #}
+              {% elif item.field_type == "BARCODE" or item.field_type == "QRCODE" %}
+                {% if item.image_data_url %}
+                  <img src="{{ item.image_data_url }}"
+                       alt="{{ item.name }}"
+                       style="max-width:100%;max-height:100%;object-fit:contain;">
+                {% else %}
+                  <span class="text-muted small">{{ item.value }}</span>
+                {% endif %}
+
+              {# ---------- NORMAL TEXT (heading + value share same styling) ---------- #}
+              {% else %}
+                <div style="
+                  width:100%;height:100%;
+                  font-size: {{ item.font_size|default:12 }}px;
+                  font-weight: {% if item.font_bold %}700{% else %}400{% endif %};
+                  font-style: {% if item.font_italic %}italic{% else %}normal{% endif %};
+                  text-decoration: {% if item.font_underline %}underline{% else %}none{% endif %};
+                  color: {{ item.text_color|default:'#000000' }};
+                  background-color: {% if item.bg_color %}{{ item.bg_color }}{% else %}transparent{% endif %};
+                  line-height: 1.15;
+                  
+                  overflow-wrap: anywhere;">
+                  <div style="margin:0;padding:0;">{{ item.name }}</div>
+                  <div style="margin:0;padding:0;">{{ item.value }}</div>
+                </div>
+              {% endif %}
+
+            </div>
+>>>>>>> ff5e724 (new additions to formatting)
           {% endfor %}
         </div>
 
@@ -73,10 +170,15 @@ Preview Labels – {{ template.name }}
           Preview shows the first label in the batch. Batch print will generate
           {{ batch.quantity }} labels with unique QR codes if a QR field exists.
         </p>
+<<<<<<< HEAD
+=======
+
+>>>>>>> ff5e724 (new additions to formatting)
       </div>
     </div>
 
     <div class="d-flex justify-content-end gap-2">
+<<<<<<< HEAD
       <a
         href="{% url 'label_batch_history' workspace.id %}"
         class="btn btn-outline-secondary btn-sm"
@@ -90,6 +192,16 @@ Preview Labels – {{ template.name }}
         Print Batch
       </a>
     </div>
+=======
+      <a href="{% url 'label_batch_history' workspace.id %}" class="btn btn-outline-secondary btn-sm">
+        Label History
+      </a>
+      <a href="{% url 'label_batch_print' workspace.id batch.id %}" class="btn btn-primary btn-sm">
+        Print Batch
+      </a>
+    </div>
+
+>>>>>>> ff5e724 (new additions to formatting)
   </div>
 </div>
 {% endblock %}
