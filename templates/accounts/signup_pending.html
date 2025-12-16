@@ -3,28 +3,202 @@
 {% block title %}Pending Approval – Labelcraft{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-6">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-3 text-center">Organisation already exists</h1>
+<style>
+  /* --- Layout & Backgrounds --- */
+  body {
+    font-family: 'Inter', 'Roboto', sans-serif;
+    background-color: #F2F7FF;
+    overflow-x: hidden;
+  }
 
-        <p class="mb-2 text-center">
-          Your organisation <strong>{{ org.name }}</strong> is already using Labelcraft.
-        </p>
-        <p class="text-muted text-center mb-4">
-          We've created your account (<strong>{{ email }}</strong>)
-          and sent a request to the admin for approval.
-          You can use Labelcraft once your admin approves your access.
-        </p>
+  .split-screen-container {
+    min-height: 100vh;
+  }
 
-        <div class="d-grid">
-          <a class="btn btn-outline-primary" href="{% url 'login' %}">
-            Back to Login
-          </a>
+  /* --- Left Hero Section (Status Variant) --- */
+  .hero-panel {
+    background: linear-gradient(135deg, #004080 0%, #6A70FF 100%);
+    color: #FFFFFF;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Abstract 'Connection' background pattern */
+  .hero-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+  }
+
+  .hero-heading {
+    font-weight: 800;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtext {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    max-width: 500px;
+  }
+
+  /* --- Right Content Section --- */
+  .content-panel {
+    background-color: #F2F7FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .status-card {
+    width: 100%;
+    max-width: 450px;
+    padding: 3rem 2rem;
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(106, 112, 255, 0.08);
+    border: 1px solid #E5E7EB;
+    text-align: center;
+  }
+
+  /* Status Icon Wrapper */
+  .status-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background-color: #EEFEFF; /* Light Brand Blue */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    color: #6A70FF;
+  }
+
+  .status-heading {
+    color: #004080;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .status-details {
+    background-color: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    text-align: left;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+  .detail-row:last-child { margin-bottom: 0; }
+  
+  .detail-label { color: #6B7280; }
+  .detail-value { font-weight: 600; color: #111827; }
+
+  /* Button Styling */
+  .btn-outline-labelcraft {
+    color: #6A70FF;
+    border: 2px solid #6A70FF;
+    background-color: transparent;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: block;
+    width: 100%;
+    text-decoration: none;
+  }
+
+  .btn-outline-labelcraft:hover {
+    background-color: #6A70FF;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+
+  /* Responsive */
+  @media (max-width: 991.98px) {
+    .hero-panel { padding: 3rem 2rem; }
+    .content-panel { padding: 2rem 1rem; }
+    .split-screen-container { min-height: auto; }
+  }
+</style>
+
+<div class="container-fluid p-0 overflow-hidden">
+  <div class="row g-0 split-screen-container">
+    
+    <div class="col-lg-7 hero-panel order-2 order-lg-1">
+      <div class="ps-lg-5 pe-lg-5">
+        <h1 class="hero-heading">Hold tight, you're almost there.</h1>
+        <p class="hero-subtext">
+          Security is our priority. Since this organisation already exists, we need a quick verification from your admin to let you in.
+        </p>
+        
+        <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 1.5rem; border-left: 4px solid #fff;">
+            <p class="mb-0 text-white" style="font-size: 0.95rem; opacity: 0.9;">
+                <strong>What happens next?</strong><br>
+                Your admin will receive an email notification. Once they click 'Approve', you will receive a confirmation email and be able to log in instantly.
+            </p>
         </div>
       </div>
     </div>
+
+    <div class="col-lg-5 content-panel order-1 order-lg-2">
+      <div class="status-card">
+        
+        <div class="status-icon-wrapper">
+             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+        </div>
+
+        <h1 class="h4 status-heading">Request Sent</h1>
+
+        <p class="text-muted mb-0">
+          We've successfully created your account.
+        </p>
+
+        <div class="status-details">
+            <div class="detail-row">
+                <span class="detail-label">Organisation</span>
+                <span class="detail-value text-truncate" style="max-width: 180px;">{{ org.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Account</span>
+                <span class="detail-value text-truncate" style="max-width: 180px;">{{ email }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="badge bg-warning text-dark" style="font-weight: 500;">Pending Approval</span>
+            </div>
+        </div>
+
+        <div class="d-grid">
+          <a class="btn btn-outline-labelcraft" href="{% url 'login' %}">
+            Back to Login
+          </a>
+        </div>
+        
+        
+
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}
