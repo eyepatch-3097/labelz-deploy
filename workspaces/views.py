@@ -16,17 +16,9 @@ from .models import Workspace, WorkspaceField, WorkspaceMembership, OrgRoleChang
 from .forms import WorkspaceCreateStep1Form, ManualFieldsForm, LabelTemplateForm, TemplateDuplicateForm, GlobalTemplateForm
 import json
 from .utils.label_codes import make_barcode_png, make_qr_png
-<<<<<<< HEAD
 
 
 WIZARD_SESSION_KEY = 'workspace_wizard'
-=======
-import re
-
-
-WIZARD_SESSION_KEY = 'workspace_wizard'
-HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
->>>>>>> ff5e724 (new additions to formatting)
 
 def get_wizard(request):
     return request.session.get(WIZARD_SESSION_KEY, {})
@@ -733,31 +725,19 @@ def label_template_canvas(request, template_id):
         messages.error(request, "You are not linked to this organisation.")
         return redirect("dashboard")
 
-<<<<<<< HEAD
     # only admins can edit templates
-=======
->>>>>>> ff5e724 (new additions to formatting)
     if user.role != User.ROLE_ADMIN:
         messages.error(request, "Only admins can edit templates.")
         return redirect("label_template_list", workspace_id=workspace.id)
 
     session_key = f"template_layout_{template.id}"
-<<<<<<< HEAD
 
     if request.method == "POST":
         layout_json = request.POST.get("layout_data", "").strip()
-=======
-    session_bg_key = f"{session_key}_canvas_bg"
-
-    # ---------- POST ----------
-    if request.method == "POST":
-        layout_json = (request.POST.get("layout_data") or "").strip()
->>>>>>> ff5e724 (new additions to formatting)
         if not layout_json:
             messages.error(request, "No layout data submitted.")
             return redirect("label_template_canvas", template_id=template.id)
 
-<<<<<<< HEAD
         try:
             layout = json.loads(layout_json)
         except json.JSONDecodeError:
@@ -765,38 +745,14 @@ def label_template_canvas(request, template_id):
             return redirect("label_template_canvas", template_id=template.id)
 
         # 🔴 Barcode is mandatory
-=======
-        # Canvas background (persist on template + session)
-        posted_bg = (request.POST.get("canvas_bg_color") or "").strip()
-        if posted_bg and HEX_COLOR_RE.match(posted_bg):
-            template.canvas_bg_color = posted_bg
-            template.save(update_fields=["canvas_bg_color"])
-            request.session[session_bg_key] = posted_bg
-        else:
-            request.session[session_bg_key] = template.canvas_bg_color or "#ffffff"
-
-        try:
-            layout = json.loads(layout_json)
-            if not isinstance(layout, list):
-                raise ValueError("layout_data must be a JSON array")
-        except Exception:
-            messages.error(request, "Invalid layout data.")
-            return redirect("label_template_canvas", template_id=template.id)
-
-        # Barcode mandatory
->>>>>>> ff5e724 (new additions to formatting)
         has_barcode = any(
             (item.get("key") == "barcode")
             or (str(item.get("field_type") or "").upper() == "BARCODE")
             for item in layout
         )
-<<<<<<< HEAD
 
         if not has_barcode:
             # keep their layout so nothing is lost
-=======
-        if not has_barcode:
->>>>>>> ff5e724 (new additions to formatting)
             request.session[session_key] = layout_json
             messages.error(
                 request,
@@ -804,7 +760,6 @@ def label_template_canvas(request, template_id):
             )
             return redirect("label_template_canvas", template_id=template.id)
 
-<<<<<<< HEAD
         # ✅ Valid layout, with barcode → proceed to preview
         request.session[session_key] = layout_json
         return redirect("label_template_preview", template_id=template.id)
@@ -820,107 +775,31 @@ def label_template_canvas(request, template_id):
             LabelTemplateField.objects.filter(template=template)
             .order_by("order", "id")
         )
-=======
-        # Normalize defaults so preview/save always has all keys
-        normalized = []
-        for item in layout:
-            item = item or {}
-            normalized.append(
-                {
-                    "name": item.get("name", ""),
-                    "key": item.get("key", ""),
-                    "field_type": (item.get("field_type") or "").upper(),
-                    "workspace_field_id": item.get("workspace_field_id", None),
-                    "x": int(item.get("x", 0) or 0),
-                    "y": int(item.get("y", 0) or 0),
-                    "width": int(item.get("width", 140) or 140),
-                    "height": int(item.get("height", 32) or 32),
-
-                    # style
-                    "font_bold": bool(item.get("font_bold", False)),
-                    "font_italic": bool(item.get("font_italic", False)),
-                    "font_underline": bool(item.get("font_underline", False)),
-                    "font_size": int(item.get("font_size", 12) or 12),
-                    "text_color": item.get("text_color") or "#000000",
-                    "bg_color": item.get("bg_color") or "",
-
-                    # static/shapes
-                    "is_static": bool(item.get("is_static", False)),
-                    "static_text": item.get("static_text") or "",
-                    "shape_type": item.get("shape_type") or "",
-                    "shape_color": item.get("shape_color") or "#000000",
-                }
-            )
-
-        request.session[session_key] = json.dumps(normalized)
-        return redirect("label_template_preview", template_id=template.id)
-
-    # ---------- GET ----------
-    layout_json = request.session.get(session_key)
-
-    canvas_bg_color = (
-        request.session.get(session_bg_key)
-        or template.canvas_bg_color
-        or "#ffffff"
-    )
-
-    if not layout_json:
-        fields = LabelTemplateField.objects.filter(template=template).order_by("order", "id")
->>>>>>> ff5e724 (new additions to formatting)
         layout = []
         for f in fields:
             layout.append(
                 {
                     "name": f.name,
                     "key": f.key,
-<<<<<<< HEAD
                     "field_type": f.field_type,
                     "workspace_field_id": f.workspace_field.id
                     if f.workspace_field
                     else None,
-=======
-                    "field_type": (f.field_type or "").upper(),
-                    "workspace_field_id": f.workspace_field.id if f.workspace_field else None,
->>>>>>> ff5e724 (new additions to formatting)
                     "x": f.x,
                     "y": f.y,
                     "width": f.width,
                     "height": f.height,
-<<<<<<< HEAD
-=======
-
-                    # style
-                    "font_bold": getattr(f, "font_bold", False),
-                    "font_italic": getattr(f, "font_italic", False),
-                    "font_underline": getattr(f, "font_underline", False),
-                    "font_size": getattr(f, "font_size", 12) or 12,
-                    "text_color": getattr(f, "text_color", "#000000") or "#000000",
-                    "bg_color": getattr(f, "bg_color", "") or "",
-
-                    # static/shapes
-                    "is_static": getattr(f, "is_static", False),
-                    "static_text": getattr(f, "static_text", "") or "",
-                    "shape_type": getattr(f, "shape_type", "") or "",
-                    "shape_color": getattr(f, "shape_color", "#000000") or "#000000",
->>>>>>> ff5e724 (new additions to formatting)
                 }
             )
         layout_json = json.dumps(layout)
 
     existing_layout = layout_json or "[]"
 
-<<<<<<< HEAD
     # canvas sizing based on cm ratio (keep your existing logic)
-=======
->>>>>>> ff5e724 (new additions to formatting)
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
     max_side = max(width_cm, height_cm) or 1.0
     scale = 700.0 / max_side
-<<<<<<< HEAD
-
-=======
->>>>>>> ff5e724 (new additions to formatting)
     canvas_width = int(width_cm * scale)
     canvas_height = int(height_cm * scale)
 
@@ -937,10 +816,6 @@ def label_template_canvas(request, template_id):
             "existing_layout": existing_layout,
             "canvas_width": canvas_width,
             "canvas_height": canvas_height,
-<<<<<<< HEAD
-=======
-            "canvas_bg_color": canvas_bg_color,
->>>>>>> ff5e724 (new additions to formatting)
         },
     )
 
@@ -956,24 +831,15 @@ def label_template_preview(request, template_id):
         return redirect("dashboard")
 
     if user.role != User.ROLE_ADMIN:
-<<<<<<< HEAD
         has_access = WorkspaceMembership.objects.filter(
             workspace=workspace,
             user=user,
         ).exists()
-=======
-        has_access = WorkspaceMembership.objects.filter(workspace=workspace, user=user).exists()
->>>>>>> ff5e724 (new additions to formatting)
         if not has_access:
             messages.error(request, "You do not have access to this workspace.")
             return redirect("my_workspaces")
 
     session_key = f"template_layout_{template.id}"
-<<<<<<< HEAD
-=======
-    session_bg_key = f"{session_key}_canvas_bg"
-
->>>>>>> ff5e724 (new additions to formatting)
     layout_data = request.session.get(session_key)
     if not layout_data:
         messages.error(request, "No layout data found, please design your template first.")
@@ -985,41 +851,11 @@ def label_template_preview(request, template_id):
         messages.error(request, "Layout data is corrupted, please design again.")
         return redirect("label_template_canvas", template_id=template.id)
 
-<<<<<<< HEAD
     field_keys = [item.get("key") for item in layout]
-=======
-    # Canvas BG: from session (set on canvas), else from template model
-    canvas_bg_color = request.session.get(session_bg_key) or (template.canvas_bg_color or "#ffffff")
-
-    def is_shape(item: dict) -> bool:
-        return bool((item.get("shape_type") or "").strip())
-
-    def is_static(item: dict) -> bool:
-        return bool(item.get("is_static")) or (str(item.get("field_type") or "").upper() == "STATIC_TEXT")
-
-    def ft(item: dict) -> str:
-        return str(item.get("field_type") or "").upper()
-
-    # Only ask sample values for real variable fields (not barcode/qr, not shapes, not static)
-    sample_keys = []
-    for item in layout:
-        key = item.get("key")
-        if not key:
-            continue
-        if ft(item) in ("BARCODE", "QRCODE"):
-            continue
-        if is_shape(item):
-            continue
-        if is_static(item):
-            continue
-        sample_keys.append(key)
-
->>>>>>> ff5e724 (new additions to formatting)
     sample_values = {}
     errors = {}
 
     if request.method == "POST":
-<<<<<<< HEAD
         action = request.POST.get("action")
         # Collect sample values
         for key in field_keys:
@@ -1036,42 +872,10 @@ def label_template_preview(request, template_id):
         if not errors and action == "save":
             # Persist fields
             LabelTemplateField.objects.filter(template=template).delete()
-=======
-        action = request.POST.get("action")  # preview/save
-
-        # keep canvas bg if passed (optional), else session value remains
-        post_bg = (request.POST.get("canvas_bg_color") or "").strip()
-        if post_bg:
-            canvas_bg_color = post_bg
-            request.session[session_bg_key] = post_bg
-
-        # Collect sample values
-        for key in sample_keys:
-            sample_values[key] = (request.POST.get(f"sample_{key}") or "").strip()
-
-        # Validate image URLs for IMAGE_URL fields
-        for item in layout:
-            if ft(item) == "IMAGE_URL":
-                key = item.get("key")
-                if key in sample_keys:
-                    val = sample_values.get(key, "")
-                    if val and not (val.startswith("http://") or val.startswith("https://")):
-                        errors[key] = "Please enter a valid URL starting with http:// or https://"
-
-        if not errors and action == "save":
-            # Save template canvas bg color
-            template.canvas_bg_color = canvas_bg_color
-            template.save(update_fields=["canvas_bg_color", "updated_at"])
-
-            # Persist fields exactly as designed (INCLUDING styles, static text, shapes)
-            LabelTemplateField.objects.filter(template=template).delete()
-
->>>>>>> ff5e724 (new additions to formatting)
             for order_idx, item in enumerate(layout):
                 LabelTemplateField.objects.create(
                     template=template,
                     name=item.get("name") or item.get("key"),
-<<<<<<< HEAD
                     key=item.get("key"),
                     field_type=item.get("field_type", WorkspaceField.FIELD_TEXT),
                     x=item.get("x", 0),
@@ -1102,79 +906,14 @@ def label_template_preview(request, template_id):
         layout_enriched.append(enriched)
 
     # --- NEW: same canvas sizing logic as designer ---
-=======
-                    key=item.get("key") or "",
-                    field_type=item.get("field_type", WorkspaceField.FIELD_TEXT),
-                    x=int(item.get("x", 0)),
-                    y=int(item.get("y", 0)),
-                    width=int(item.get("width", 100)),
-                    height=int(item.get("height", 24)),
-                    workspace_field_id=item.get("workspace_field_id") or None,
-                    order=order_idx,
-
-                    # ✅ text styling
-                    font_bold=bool(item.get("font_bold", False)),
-                    font_italic=bool(item.get("font_italic", False)),
-                    font_underline=bool(item.get("font_underline", False)),
-                    font_size=int(item.get("font_size") or 12),
-                    text_color=item.get("text_color") or "#000000",
-                    bg_color=item.get("bg_color") or "",
-
-                    # ✅ static text
-                    is_static=bool(item.get("is_static", False)),
-                    static_text=item.get("static_text") or "",
-
-                    # ✅ shape
-                    shape_type=item.get("shape_type") or "",
-                    shape_color=item.get("shape_color") or "#000000",
-                )
-
-            # Clear session data
-            request.session.pop(session_key, None)
-            request.session.pop(session_bg_key, None)
-
-            messages.success(request, "Template saved successfully.")
-            return redirect("label_template_list", workspace_id=workspace.id)
-
-        # else: show preview with values/errors
-    else:
-        sample_values = {k: "" for k in sample_keys}
-
-    # Enrich layout for template rendering
-    layout_enriched = []
-    for item in layout:
-        key = item.get("key")
-
-        enriched = dict(item)
-        enriched["field_type"] = ft(item)
-        enriched["canvas_bg_color"] = canvas_bg_color
-
-        # If static text, preview uses static_text (not sample input)
-        if is_static(enriched):
-            enriched["value"] = enriched.get("static_text") or ""
-        elif key and key in sample_values:
-            enriched["value"] = sample_values.get(key, "")
-        else:
-            enriched["value"] = ""
-
-        enriched["error"] = errors.get(key, "")
-        layout_enriched.append(enriched)
-
-    # Canvas sizing
->>>>>>> ff5e724 (new additions to formatting)
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
     max_side = max(width_cm, height_cm) or 1.0
     scale = 700.0 / max_side
-<<<<<<< HEAD
 
     canvas_width = int(width_cm * scale)
     canvas_height = int(height_cm * scale)
     # --- END NEW ---
-=======
-    canvas_width = int(width_cm * scale)
-    canvas_height = int(height_cm * scale)
->>>>>>> ff5e724 (new additions to formatting)
 
     return render(
         request,
@@ -1186,10 +925,6 @@ def label_template_preview(request, template_id):
             "layout": layout_enriched,
             "canvas_width": canvas_width,
             "canvas_height": canvas_height,
-<<<<<<< HEAD
-=======
-            "canvas_bg_color": canvas_bg_color,
->>>>>>> ff5e724 (new additions to formatting)
         },
     )
 
@@ -1632,34 +1367,10 @@ def label_generate_single(request, workspace_id, template_id):
 
     # Fields to ask user for (everything except BARCODE / QRCODE)
     t_fields = LabelTemplateField.objects.filter(template=template).order_by("order", "id")
-<<<<<<< HEAD
     input_fields = [
         f for f in t_fields
         if (str(f.field_type) or "").upper() not in ("BARCODE", "QRCODE")
     ]
-=======
-    input_fields = []
-    for f in t_fields:
-        ft = (str(f.field_type) or "").upper()
-
-        # Always exclude codes (system-derived)
-        if ft in ("BARCODE", "QRCODE"):
-            continue
-
-        # Exclude static text blocks
-        if getattr(f, "is_static", False):
-            continue
-
-        # Exclude shapes (shape_type drives rendering)
-        if (getattr(f, "shape_type", "") or "").strip():
-            continue
-
-        # Extra safety if you ever store these in field_type
-        if ft in ("SHAPE", "STATIC_TEXT"):
-            continue
-
-        input_fields.append(f)
->>>>>>> ff5e724 (new additions to formatting)
 
     initial = {
         "quantity": 1,
@@ -1756,7 +1467,6 @@ def label_generate_single_preview(request, workspace_id, batch_id):
     batch = get_object_or_404(LabelBatch, id=batch_id, workspace=workspace)
     template = batch.template
 
-<<<<<<< HEAD
     # Layout from template fields
     t_fields = LabelTemplateField.objects.filter(template=template).order_by("order", "id")
 
@@ -1766,18 +1476,6 @@ def label_generate_single_preview(request, workspace_id, batch_id):
         ft = (f.field_type or "").upper()
         if ft == "QRCODE":
             has_qr = True
-=======
-    t_fields = LabelTemplateField.objects.filter(template=template).order_by("order", "id")
-
-    # Build layout with styling + shape/static metadata
-    layout = []
-    has_qr = False
-    for f in t_fields:
-        ft = (str(f.field_type) or "").upper()
-        if ft == "QRCODE":
-            has_qr = True
-
->>>>>>> ff5e724 (new additions to formatting)
         layout.append(
             {
                 "name": f.name,
@@ -1787,23 +1485,6 @@ def label_generate_single_preview(request, workspace_id, batch_id):
                 "y": f.y,
                 "width": f.width,
                 "height": f.height,
-<<<<<<< HEAD
-=======
-
-                # styling
-                "font_bold": getattr(f, "font_bold", False),
-                "font_italic": getattr(f, "font_italic", False),
-                "font_underline": getattr(f, "font_underline", False),
-                "font_size": getattr(f, "font_size", 12) or 12,
-                "text_color": getattr(f, "text_color", "#000000") or "#000000",
-                "bg_color": getattr(f, "bg_color", "") or "",
-
-                # static + shapes
-                "is_static": getattr(f, "is_static", False),
-                "static_text": getattr(f, "static_text", "") or "",
-                "shape_type": (getattr(f, "shape_type", "") or "").strip(),
-                "shape_color": getattr(f, "shape_color", "#000000") or "#000000",
->>>>>>> ff5e724 (new additions to formatting)
             }
         )
 
@@ -1811,24 +1492,16 @@ def label_generate_single_preview(request, workspace_id, batch_id):
     gs1 = batch.gs1_code or ""
     barcode_value = f"{base_ean}{gs1}".strip()
 
-<<<<<<< HEAD
     serial_str = f"{1:03d}"  # preview = first label
-=======
-    serial_str = f"{1:03d}"
->>>>>>> ff5e724 (new additions to formatting)
     qr_value = f"{barcode_value}{serial_str}" if has_qr and barcode_value else ""
 
     user_values = batch.field_values or {}
 
-<<<<<<< HEAD
     # Generate images once for preview
-=======
->>>>>>> ff5e724 (new additions to formatting)
     barcode_img_data = make_barcode_png(barcode_value) if barcode_value else None
     qr_img_data = make_qr_png(qr_value) if qr_value else None
 
     for item in layout:
-<<<<<<< HEAD
         key = item["key"]
         ft = item["field_type"]
         if ft == "BARCODE":
@@ -1841,34 +1514,6 @@ def label_generate_single_preview(request, workspace_id, batch_id):
             item["value"] = user_values.get(key, "")
 
     # canvas size same as template canvas
-=======
-        ft = item["field_type"]
-
-        # barcode/qr render as images
-        if ft == "BARCODE":
-            item["value"] = barcode_value
-            item["image_data_url"] = barcode_img_data
-            continue
-        if ft == "QRCODE":
-            item["value"] = qr_value
-            item["image_data_url"] = qr_img_data
-            continue
-
-        # shapes: no value, no label shown in HTML
-        if item.get("shape_type"):
-            item["value"] = ""
-            continue
-
-        # static text: use saved static_text
-        if item.get("is_static"):
-            item["value"] = item.get("static_text") or ""
-            continue
-
-        # regular variable field
-        item["value"] = user_values.get(item["key"], "")
-
-    # Canvas size
->>>>>>> ff5e724 (new additions to formatting)
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
     max_side = max(width_cm, height_cm) or 1.0
@@ -1886,10 +1531,6 @@ def label_generate_single_preview(request, workspace_id, batch_id):
             "layout": layout,
             "canvas_width": canvas_width,
             "canvas_height": canvas_height,
-<<<<<<< HEAD
-=======
-            "canvas_bg_color": template.canvas_bg_color or "#ffffff",
->>>>>>> ff5e724 (new additions to formatting)
         },
     )
 
@@ -1931,28 +1572,14 @@ def label_batch_print(request, workspace_id, batch_id):
     batch = get_object_or_404(LabelBatch, id=batch_id, workspace=workspace)
     template = batch.template
 
-<<<<<<< HEAD
-=======
-    # ✅ canvas bg (important for print + preview consistency)
-    canvas_bg_color = (template.canvas_bg_color or "#ffffff").strip() or "#ffffff"
-
->>>>>>> ff5e724 (new additions to formatting)
     t_fields = LabelTemplateField.objects.filter(template=template).order_by("order", "id")
 
     base_layout = []
     has_qr = False
-<<<<<<< HEAD
-=======
-
->>>>>>> ff5e724 (new additions to formatting)
     for f in t_fields:
         ft = (f.field_type or "").upper()
         if ft == "QRCODE":
             has_qr = True
-<<<<<<< HEAD
-=======
-
->>>>>>> ff5e724 (new additions to formatting)
         base_layout.append(
             {
                 "name": f.name,
@@ -1962,33 +1589,11 @@ def label_batch_print(request, workspace_id, batch_id):
                 "y": f.y,
                 "width": f.width,
                 "height": f.height,
-<<<<<<< HEAD
             }
         )
 
     base_ean = batch.ean_code or ""
     gs1 = batch.gs1_code or ""
-=======
-
-                # styles
-                "font_bold": bool(getattr(f, "font_bold", False)),
-                "font_italic": bool(getattr(f, "font_italic", False)),
-                "font_underline": bool(getattr(f, "font_underline", False)),
-                "font_size": int(getattr(f, "font_size", 12) or 12),
-                "text_color": getattr(f, "text_color", "#000000") or "#000000",
-                "bg_color": getattr(f, "bg_color", "") or "",
-
-                # static/shapes
-                "is_static": bool(getattr(f, "is_static", False)),
-                "static_text": getattr(f, "static_text", "") or "",
-                "shape_type": getattr(f, "shape_type", "") or "",
-                "shape_color": getattr(f, "shape_color", "#000000") or "#000000",
-            }
-        )
-
-    base_ean = (batch.ean_code or "").strip()
-    gs1 = (batch.gs1_code or "").strip()
->>>>>>> ff5e724 (new additions to formatting)
     barcode_value = f"{base_ean}{gs1}".strip()
     user_values = batch.field_values or {}
 
@@ -1996,11 +1601,7 @@ def label_batch_print(request, workspace_id, batch_id):
     barcode_img_data = make_barcode_png(barcode_value) if barcode_value else None
 
     labels = []
-<<<<<<< HEAD
     for i in range(1, batch.quantity + 1):
-=======
-    for i in range(1, (batch.quantity or 0) + 1):
->>>>>>> ff5e724 (new additions to formatting)
         serial_str = f"{i:03d}"
         qr_value = f"{barcode_value}{serial_str}" if has_qr and barcode_value else ""
         qr_img_data = make_qr_png(qr_value) if qr_value else None
@@ -2008,7 +1609,6 @@ def label_batch_print(request, workspace_id, batch_id):
         label_layout = []
         for item in base_layout:
             itm = item.copy()
-<<<<<<< HEAD
             ft = itm["field_type"]
             key = itm["key"]
 
@@ -2030,41 +1630,6 @@ def label_batch_print(request, workspace_id, batch_id):
             }
         )
 
-=======
-            ft = (itm.get("field_type") or "").upper()
-            key = itm.get("key") or ""
-
-    # ✅     SHAPES: ignore values completely
-            if (itm.get("shape_type") or "").strip():
-                itm["value"] = ""
-                itm["image_data_url"] = None
-
-    # ✅ STATIC TEXT: always comes from static_text
-            elif itm.get("is_static"):
-                itm["value"] = itm.get("static_text") or ""
-                itm["image_data_url"] = None
-
-    # ✅ BARCODE / QR
-            elif ft == "BARCODE":
-                itm["value"] = barcode_value
-                itm["image_data_url"] = barcode_img_data
-
-            elif ft == "QRCODE":
-                itm["value"] = qr_value
-                itm["image_data_url"] = qr_img_data
-
-    # ✅ NORMAL FIELDS (including IMAGE_URL)
-            else:
-                itm["value"] = user_values.get(key, "")
-                itm["image_data_url"] = None
-
-            label_layout.append(itm)
-
-
-        labels.append({"index": i, "layout": label_layout})
-
-    # canvas size (same scaling you already use)
->>>>>>> ff5e724 (new additions to formatting)
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
     max_side = max(width_cm, height_cm) or 1.0
@@ -2082,10 +1647,6 @@ def label_batch_print(request, workspace_id, batch_id):
             "labels": labels,
             "canvas_width": canvas_width,
             "canvas_height": canvas_height,
-<<<<<<< HEAD
-=======
-            "canvas_bg_color": template.canvas_bg_color,   # ✅ ADD THIS
->>>>>>> ff5e724 (new additions to formatting)
         },
     )
 

@@ -12,14 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
-<<<<<<< HEAD
-<<<<<<< HEAD
 import dj_database_url
-=======
->>>>>>> ff5e724 (new additions to formatting)
-=======
 import dj_database_url
->>>>>>> 71513a0 (new settings)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,10 +28,6 @@ SECRET_KEY = 'django-insecure-fpva&iz-i1d81u#xa!e@@iu!jm&8zo=sp6p72!p*o0z0lk1mv%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 71513a0 (new settings)
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -47,12 +37,6 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://label3.onrender.com",
 ]
-<<<<<<< HEAD
-=======
-ALLOWED_HOSTS = []
->>>>>>> ff5e724 (new additions to formatting)
-=======
->>>>>>> 71513a0 (new settings)
 
 
 # Application definition
@@ -70,14 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-<<<<<<< HEAD
-<<<<<<< HEAD
     'whitenoise.middleware.WhiteNoiseMiddleware',
-=======
->>>>>>> ff5e724 (new additions to formatting)
-=======
-    'whitenoise.middleware.WhiteNoiseMiddleware',
->>>>>>> 71513a0 (new settings)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -110,8 +87,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
@@ -130,35 +105,12 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-=======
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
->>>>>>> ff5e724 (new additions to formatting)
-=======
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
-    # Fallback for local dev if you don't set DATABASE_URL
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
->>>>>>> 71513a0 (new settings)
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -200,11 +152,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 71513a0 (new settings)
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -212,23 +159,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-<<<<<<< HEAD
-=======
-STATIC_URL = 'static/'
->>>>>>> ff5e724 (new additions to formatting)
-=======
->>>>>>> 71513a0 (new settings)
 
 #media
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-=======
->>>>>>> ff5e724 (new additions to formatting)
-=======
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
->>>>>>> 71513a0 (new settings)
