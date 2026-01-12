@@ -3,61 +3,210 @@
 {% block title %}My Workspaces – {{ org.name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="h4 mb-0">My Workspaces</h1>
-      <a href="{% url 'dashboard' %}" class="btn btn-link btn-sm">← Back to Dashboard</a>
+<style>
+    /* --- WORKSPACE PAGE STYLES --- */
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+    }
+
+    /* Workspace Grid */
+    .workspace-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 24px;
+    }
+
+    /* Workspace Card */
+    .workspace-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 24px;
+        transition: all 0.3s var(--ease-elastic);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .workspace-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-glow);
+    }
+
+    .ws-header {
+        margin-bottom: 12px;
+    }
+
+    .ws-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.2s;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .ws-name:hover { color: var(--color-primary); }
+
+    .ws-desc {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 16px;
+        flex-grow: 1; /* Pushes footer down */
+    }
+
+    .ws-meta {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 20px;
+        font-family: monospace;
+        background: rgba(255,255,255,0.03);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    /* Action Buttons Row */
+    .ws-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        border-top: 1px solid var(--color-border);
+        padding-top: 16px;
+        margin-top: auto;
+    }
+
+    .action-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid transparent;
+        color: var(--color-text);
+        border-radius: 12px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-size: 1.1rem;
+    }
+
+    /* Specific Action Colors */
+    .btn-design:hover { background: rgba(167, 105, 237, 0.2); color: var(--color-primary); border-color: var(--color-primary); }
+    .btn-generate:hover { background: rgba(255, 125, 0, 0.2); color: var(--color-accent-orange); border-color: var(--color-accent-orange); }
+    .btn-history:hover { background: rgba(194, 224, 255, 0.2); color: var(--color-accent-blue); border-color: var(--color-accent-blue); }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        background: var(--color-surface);
+        border-radius: var(--radius-card);
+        border: 1px dashed var(--color-border);
+    }
+    .empty-icon { font-size: 3rem; color: var(--color-muted); margin-bottom: 20px; opacity: 0.5; }
+
+</style>
+
+<div class="container-fluid" style="max-width: 1400px;">
+    
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">My Workspaces</h1>
+            <p class="text mb-0">Manage label environments for {{ org.name }}</p>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-custom btn-ghost">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back
+            </a>
+            <a href="{% url 'workspace_create_step1' %}" class="btn btn-custom btn-primary-glow">
+                <i class="fa-solid fa-plus me-2"></i> New Workspace
+            </a>
+        </div>
     </div>
 
     {% if workspaces %}
-      <div class="row row-cols-1 row-cols-md-2 g-3">
-        {% for ws in workspaces %}
-          <div class="col">
-            <div class="card shadow-sm h-100">
-              <div class="card-body d-flex flex-column">
-                <h2 class="h5 mb-1">
-                  <a href="{% url 'my_workspace_detail' ws.id %}" class="text-decoration-none">
-                    {{ ws.name }}
-                  </a>
-                </h2>
-                <p class="text-muted small mb-2">
-                  {{ ws.description|default:"No description provided." }}
-                </p>
-                <p class="text-muted small mb-3">
-                  Workspace ID:
-                  <code>{{ ws.workspace_code }}</code><br>
-                  Created at {{ ws.created_at }}
-                </p>
-
-                {% if not is_admin %}
-                  {# Optional: show their workspace role if we have it #}
-                  {% with m=membership_by_ws.ws.id %}
-                  {% endwith %}
-                {% endif %}
-
-                <div class="mt-auto">
-                  <a href="{% url 'my_workspace_detail' ws.id %}"
-                     class="btn btn-sm btn-outline-primary">
-                    Open Workspace
-                  </a>
+        <div class="workspace-grid">
+            {% for ws in workspaces %}
+            <div class="workspace-card">
+                <div class="ws-header">
+                    <a href="{% url 'my_workspace_detail' ws.id %}" class="ws-name">{{ ws.name }}</a>
                 </div>
-              </div>
+                
+                <div class="ws-desc">
+                    {{ ws.description|default:"No description provided."|truncatechars:100 }}
+                </div>
+
+                <div class="ws-meta">
+                    <i class="fa-solid fa-fingerprint me-1"></i> ID: {{ ws.workspace_code }}<br>
+                    <i class="fa-regular fa-calendar me-1"></i> {{ ws.created_at|date:"M d, Y" }}
+                </div>
+
+                <div class="ws-actions">
+                    <a href="{% url 'label_template_list' ws.id %}" class="action-btn btn-design" 
+                       data-bs-toggle="tooltip" data-bs-placement="top" title="Design Labels">
+                        <i class="fa-solid fa-pen-ruler"></i>
+                    </a>
+                    <a href="{% url 'label_generate_start' ws.id %}" class="action-btn btn-generate"
+                       data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Labels">
+                        <i class="fa-solid fa-print"></i>
+                    </a>
+                    <a href="{% url 'label_batch_history' ws.id %}" class="action-btn btn-history"
+                       data-bs-toggle="tooltip" data-bs-placement="top" title="Label History">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </a>
+                </div>
             </div>
-          </div>
-        {% endfor %}
-      </div>
+            {% endfor %}
+        </div>
     {% else %}
-      <div class="alert alert-info">
-        {% if is_admin %}
-          No workspaces found for your organisation yet.
-          <a href="{% url 'workspace_create_step1' %}">Create your first workspace</a>.
-        {% else %}
-          You don’t have access to any workspaces yet.
-          Please contact your organisation admin.
-        {% endif %}
-      </div>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <h3 class="text-white mb-3">No workspaces found</h3>
+            <p class="text-muted mb-4">
+                {% if is_admin %}
+                    Get started by creating your first workspace for your organization.
+                {% else %}
+                    You don't have access to any workspaces yet. Please contact your admin.
+                {% endif %}
+            </p>
+            {% if is_admin %}
+                <a href="{% url 'workspace_create_step1' %}" class="btn btn-custom btn-primary-glow">
+                    Create Workspace
+                </a>
+            {% endif %}
+        </div>
     {% endif %}
-  </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Bootstrap Tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
 {% endblock %}
