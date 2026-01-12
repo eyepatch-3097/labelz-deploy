@@ -146,7 +146,7 @@
             {% for ws in workspaces %}
             <div class="workspace-card">
                 <div class="ws-header">
-                    <a href="{% url 'my_workspace_detail' ws.id %}" class="ws-name">{{ ws.name }}</a>
+                    <a href="{% url 'my_workspaces' %}" class="ws-name">{{ ws.name }}</a>
                 </div>
                 
                 <div class="ws-desc">
