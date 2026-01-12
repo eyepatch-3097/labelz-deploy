@@ -134,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'dashboard'   # we’ll stub this view later
+LOGIN_REDIRECT_URL = '/dashboard/'   # we’ll stub this view later
 LOGOUT_REDIRECT_URL = 'login'
 
 

@@ -2,46 +2,438 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Labelcraft{% endblock %}</title>
+    <title>{% block title %}Labelz | Dashboard{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap 5 CSS (CDN) -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    >
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <style>
+        /* --- LABELZ DESIGN SYSTEM TOKENS --- */
+        :root {
+            --color-primary: #A769ED;
+            --color-accent-blue: #C2E0FF;
+            --color-accent-orange: #FF7D00;
+            --color-bg: #050505;
+            --color-surface: #111111;
+            --color-surface-light: #1A1A1A;
+            --color-text: #E0E0E0;
+            --color-muted: #9CA3AF;
+            --color-border: #333333;
+            
+            --font-main: "Zalando Sans", sans-serif;
+            --radius-nav: 50px;
+            --radius-card: 24px;
+            /* Enhanced Glow Token */
+            --shadow-glow: 0 0 30px rgba(167, 105, 237, 0.5);
+            
+            --ease-elastic: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            overflow-x: hidden;
+            padding-top: 100px; /* Space for fixed navbar */
+        }
+
+        /* --- FLOATING NAVBAR --- */
+        .navbar-floating {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 1200px;
+            background: rgba(17, 17, 17, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-nav);
+            padding: 12px 30px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.4s var(--ease-elastic);
+        }
+
+        /* State when sidebar is open: Navbar disappears up */
+        .navbar-floating.hidden {
+            transform: translate(-50%, -150%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .navbar-brand {
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #fff !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand i {
+            color: var(--color-primary);
+            text-shadow: 0 0 20px rgba(167, 105, 237, 0.8); /* Stronger logo glow */
+        }
+
+        .nav-link {
+            color: var(--color-muted) !important;
+            font-weight: 600;
+            transition: color 0.2s;
+            margin: 0 10px;
+        }
+        
+        .nav-link:hover {
+            color: #fff !important;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1040;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 400px; /* Increased Width from 360px */
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            z-index: 1050;
+            padding: 24px;
+            transform: translateX(-100%);
+            transition: transform 0.4s var(--ease-elastic);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 10px 0 40px rgba(0,0,0,0.7);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .close-sidebar-btn {
+            background: transparent;
+            border: none;
+            color: var(--color-muted);
+            font-size: 1.2rem;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .close-sidebar-btn:hover { color: #fff; }
+
+        /* User Info in Sidebar */
+        .user-card {
+            background: var(--color-surface-light);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--color-border);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .user-email { font-weight: 700; color: #fff; word-break: break-all; margin-bottom: 4px; }
+        .user-org { font-size: 0.9rem; color: var(--color-muted); display: flex; align-items: center; gap: 6px; }
+        .role-badge {
+            display: inline-block;
+            background: rgba(167, 105, 237, 0.2);
+            color: var(--color-primary);
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-top: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(167, 105, 237, 0.3);
+            box-shadow: 0 0 10px rgba(167, 105, 237, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-menu {
+            list-style: none;
+            padding: 10px; /* Add padding to prevent hover clip */
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden; 
+        }
+        
+        .sidebar-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--color-muted);
+            opacity: 0.6;
+            margin: 24px 0 10px 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            color: var(--color-text);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s var(--ease-elastic);
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        
+        .sidebar-link i {
+            width: 24px;
+            text-align: center;
+            color: var(--color-muted);
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        .sidebar-link:hover {
+            background: var(--color-surface-light);
+            color: #fff;
+            transform: translateX(5px);
+            border-color: rgba(167, 105, 237, 0.3); /* Subtle purple border on hover */
+            box-shadow: 0 0 15px rgba(167, 105, 237, 0.05);
+        }
+        .sidebar-link:hover i { 
+            transform: scale(1.1); 
+            color: var(--color-primary);
+            text-shadow: 0 0 8px rgba(167, 105, 237, 0.6);
+        }
+
+        .logout-link { color: #ff5555; }
+        .logout-link i { color: #ff5555; }
+        .logout-link:hover { background: rgba(255, 85, 85, 0.1); color: #ff7777; border-color: rgba(255, 85, 85, 0.2); box-shadow: none; }
+        .logout-link:hover i { text-shadow: none; }
+
+        /* --- BUTTONS --- */
+        .btn-custom {
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            transition: all 0.3s var(--ease-elastic);
+            border: 1px solid transparent;
+        }
+
+        .btn-primary-glow {
+            background: linear-gradient(135deg, var(--color-primary), #8E4EC6);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(167, 105, 237, 0.5); /* Stronger button glow */
+        }
+        
+        .btn-primary-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 35px rgba(167, 105, 237, 0.7);
+            color: #fff;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+        }
+        
+        .btn-ghost:hover {
+            border-color: var(--color-primary);
+            color: #fff;
+            background: rgba(167, 105, 237, 0.1);
+            box-shadow: 0 0 15px rgba(167, 105, 237, 0.2);
+        }
+
+        /* --- ALERTS --- */
+        .alert {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            border-radius: 12px;
+            box-shadow: var(--shadow-glow);
+        }
+        .alert-success { border-color: var(--color-primary); color: #fff; }
+        .alert-info { border-color: var(--color-accent-blue); color: #fff; }
+        .btn-close { filter: invert(1); }
+
+        /* --- USER INFO NAVBAR --- */
+        .user-pill {
+            background: rgba(255,255,255,0.05);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .user-pill span { color: var(--color-primary); font-weight: 700; text-shadow: 0 0 10px rgba(167, 105, 237, 0.4); }
+
+        /* Sidebar Toggle Button in Navbar */
+        .sidebar-toggle {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: #fff;
+            width: 40px; 
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: all 0.2s;
+        }
+        .sidebar-toggle:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background: rgba(167, 105, 237, 0.1);
+            box-shadow: 0 0 15px rgba(167, 105, 237, 0.3);
+        }
+
+        /* Mobile Toggler */
+        .navbar-toggler { border: none; color: #fff; }
+        .navbar-toggler:focus { box-shadow: none; }
+
+    </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'dashboard' %}">Labelcraft</a>
+<!-- Sidebar Structure (Authenticated Only) -->
+{% if user.is_authenticated %}
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="appSidebar">
+    <div class="sidebar-header">
+        <div class="navbar-brand" style="font-size: 1.3rem;">
+            <i class="fa-solid fa-barcode"></i> Labelz
+        </div>
+        <button class="close-sidebar-btn" onclick="toggleSidebar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- User Info Card -->
+    <div class="user-card">
+        <div class="user-email">{{ user.email }}</div>
+        {% if user.org %}
+            <div class="user-org"><i class="fa-regular fa-building me-1"></i> {{ user.org.name }}</div>
+        {% endif %}
+        <div class="role-badge">
+            {{ user.get_role_display|default:"Member" }}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <ul class="sidebar-menu">
+        <li>
+            <a href="{% url 'my_workspaces' %}" class="sidebar-link">
+                <i class="fa-solid fa-laptop-file"></i> My Workspaces
+            </a>
+        </li>
+
+        <li class="sidebar-label">Access Control</li>
+        <li>
+            <a href="{% url 'org_join_requests' %}" class="sidebar-link">
+                <i class="fa-solid fa-user-clock"></i> Pending Requests
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'workspace_manage_access' %}" class="sidebar-link">
+                <i class="fa-solid fa-shield-halved"></i> Workspaces Access
+            </a>
+        </li>
+
+        <li class="sidebar-label">Account</li>
+        <li>
+            <a href="#" class="sidebar-link">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Billing & Invoices
+            </a>
+        </li>
+        <li>
+            <a href="#" class="sidebar-link">
+                <i class="fa-solid fa-clock-rotate-left"></i> Label History
+            </a>
+        </li>
+    </ul>
+
+    <!-- Footer Logout -->
+    <div style="margin-top: 20px; border-top: 1px solid var(--color-border); padding-top: 20px;">
+        <a href="{% url 'logout' %}" class="sidebar-link logout-link">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</aside>
+{% endif %}
+
+
+<!-- Floating Navbar -->
+<nav class="navbar navbar-expand-lg navbar-floating" id="mainNavbar">
+  <div class="container-fluid">
+    
+    <div class="d-flex align-items-center">
+        <!-- Sidebar Toggle (Authenticated Only) -->
+        {% if user.is_authenticated %}
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        {% endif %}
+
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <i class="fa-solid fa-barcode"></i> Labelz
+        </a>
+    </div>
+    
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+      <i class="fa-solid fa-bars" style="font-size: 1.5rem;"></i>
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
         {% if user.is_authenticated %}
-          <li class="nav-item">
-            <span class="navbar-text me-3">
-              {{ user.email }}{% if user.org %} · {{ user.org.name }}{% endif %}
-            </span>
+          <li class="nav-item mb-2 mb-lg-0">
+            <div class="user-pill me-3">
+              <i class="fa-regular fa-user me-2"></i>
+              {{ user.email }}
+            </div>
           </li>
+          <!-- Navbar logout shortcut -->
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            <a class="btn btn-custom btn-ghost btn-sm" href="{% url 'logout' %}">Logout</a>
           </li>
         {% else %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'login' %}">Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'signup' %}">Sign up</a>
+            <a class="btn btn-custom btn-primary-glow btn-sm ms-2" href="{% url 'signup' %}">Sign up</a>
           </li>
         {% endif %}
       </ul>
@@ -52,11 +444,11 @@
 <main class="container">
     <!-- Django messages -->
     {% if messages %}
-      <div class="row">
-        <div class="col-lg-6 mx-auto">
+      <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
           {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show" role="alert">
-              {{ message }}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           {% endfor %}
@@ -64,15 +456,29 @@
       </div>
     {% endif %}
 
-    {% block content %}{% endblock %}
+    <!-- Main Content Block -->
+    <div class="py-4">
+        {% block content %}{% endblock %}
+    </div>
 </main>
 
-<!-- Bootstrap JS (for alerts, navbar etc.) -->
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-  crossorigin="anonymous"
-></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('appSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const navbar = document.getElementById('mainNavbar');
+        
+        if (sidebar && overlay && navbar) {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            // Toggle visibility of navbar
+            navbar.classList.toggle('hidden');
+        }
+    }
+</script>
 
 {% block extra_js %}{% endblock %}
 </body>
