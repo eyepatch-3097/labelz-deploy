@@ -3,52 +3,376 @@
 {% block title %}Create Workspace – Step 1{% endblock %}
 
 {% block content %}
+<style>
+    /* --- CREATE WORKSPACE STYLES --- */
+    
+    .split-layout {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 40px;
+        align-items: start;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Top Progress Bar */
+    .step-indicator {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: var(--color-primary);
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    .form-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+
+    .form-desc {
+        color: var(--color-muted);
+        margin-bottom: 30px;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    /* Form Controls */
+    .form-label {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #fff;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-icon {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        cursor: help;
+        transition: color 0.2s;
+    }
+    .info-icon:hover { color: var(--color-accent-blue); }
+
+    .form-control-dark {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        width: 100%;
+        transition: all 0.2s;
+    }
+    
+    .form-control-dark:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
+
+    /* File Upload Styling */
+    .file-upload-wrapper {
+        position: relative;
+        border: 2px dashed var(--color-border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.02);
+    }
+    .file-upload-wrapper:hover {
+        border-color: var(--color-primary);
+        background: rgba(167, 105, 237, 0.05);
+    }
+    .file-upload-wrapper input[type="file"] {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .upload-icon {
+        font-size: 2rem;
+        color: var(--color-muted);
+        margin-bottom: 10px;
+    }
+    .upload-text {
+        font-size: 0.9rem;
+        color: var(--color-text);
+        font-weight: 600;
+    }
+    .upload-hint {
+        font-size: 0.8rem;
+        color: var(--color-muted);
+        margin-top: 4px;
+    }
+
+    /* --- FLOW CHART (RIGHT SIDE) --- */
+    .flow-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        position: sticky;
+        top: 120px; /* Sticky scroll */
+    }
+
+    .flow-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .hierarchy-tree {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+    }
+
+    /* Connecting Lines */
+    .hierarchy-node::after {
+        content: '';
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        width: 2px;
+        height: 20px;
+        background: var(--color-border);
+        transform: translateX(-50%);
+    }
+    .hierarchy-node:last-child::after { display: none; }
+
+    .hierarchy-node {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 16px;
+        width: 100%;
+        position: relative;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .node-icon {
+        width: 40px; height: 40px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--color-muted);
+    }
+
+    /* Active Node Styling */
+    .hierarchy-node.active {
+        border-color: var(--color-primary);
+        background: rgba(167, 105, 237, 0.1);
+        box-shadow: 0 0 20px rgba(167, 105, 237, 0.15);
+        transform: scale(1.02);
+    }
+    .hierarchy-node.active .node-icon {
+        background: var(--color-primary);
+        color: #fff;
+    }
+    
+    /* Child Connector Logic */
+    .hierarchy-connector {
+        width: 2px;
+        height: 24px;
+        background: var(--color-border);
+    }
+    .hierarchy-connector.active {
+        background: linear-gradient(to bottom, var(--color-border), var(--color-primary));
+    }
+
+    @media (max-width: 992px) {
+        .split-layout { grid-template-columns: 1fr; }
+        .flow-card { display: none; /* Hide visual on mobile to save space */ }
+    }
+
+</style>
+
 <div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-3">Create Workspace – Details</h1>
-        <p class="text-muted mb-4">
-          Define a workspace under your organisation. You can optionally upload a label template file
-          you currently use (CSV format).
-        </p>
+    <div class="col-lg-11" style="max-width: 1200px;">
+        
+        <div class="split-layout">
+            
+            <!-- LEFT: FORM -->
+            <div class="form-card">
+                <span class="step-indicator">Step 1 of 2</span>
+                <h1 class="form-title">Workspace Details</h1>
+                <p class="form-desc">
+                    Workspaces allow you to isolate different product lines or sub-brands. 
+                    Set a name and optionally import your existing template structure.
+                </p>
 
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          {{ form.non_field_errors }}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger mb-4">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
 
-          <div class="mb-3">
-            <label class="form-label">{{ form.name.label }}</label>
-            {{ form.name }}
-            {% if form.name.errors %}
-              <div class="text-danger small">{{ form.name.errors|striptags }}</div>
-            {% endif %}
-          </div>
+                    <!-- Name Field -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            {{ form.name.label }}
+                            <i class="fa-solid fa-circle-info info-icon" data-bs-toggle="tooltip" title="A unique name for this workspace (e.g., 'Summer Collection' or 'US Warehouse')"></i>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
 
-          <div class="mb-3">
-            <label class="form-label">{{ form.description.label }}</label>
-            {{ form.description }}
-            {% if form.description.errors %}
-              <div class="text-danger small">{{ form.description.errors|striptags }}</div>
-            {% endif %}
-          </div>
+                    <!-- Description Field -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
 
-          <div class="mb-3">
-            <label class="form-label">{{ form.template_file.label }}</label>
-            {{ form.template_file }}
-            <div class="form-text">Optional. Upload the CSV file you currently use for labels.(you can export from Excel or Google Sheets).</div>
-            {% if form.template_file.errors %}
-              <div class="text-danger small">{{ form.template_file.errors|striptags }}</div>
-            {% endif %}
-          </div>
+                    <!-- File Upload Field -->
+                    <div class="mb-5">
+                        <label class="form-label">
+                            {{ form.template_file.label }}
+                            <span class="badge bg-secondary ms-2" style="font-size:0.7em;">OPTIONAL</span>
+                            <i class="fa-solid fa-circle-info info-icon" data-bs-toggle="tooltip" title="Upload a CSV file containing your label headers. We will parse this to create your base template automatically."></i>
+                        </label>
+                        
+                        <div class="file-upload-wrapper">
+                            {{ form.template_file }}
+                            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                            <div class="upload-text">Click or Drag CSV file here</div>
+                            <div class="upload-hint">Supported formats: .csv, .xlsx</div>
+                        </div>
+                        
+                        {% if form.template_file.errors %}
+                            <div class="text-danger small mt-2">{{ form.template_file.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
 
-          <div class="d-flex justify-content-between">
-            <a href="{% url 'workspace_list' %}" class="btn btn-link">← Back to Workspaces</a>
-            <button type="submit" class="btn btn-primary">Next</button>
-          </div>
-        </form>
-      </div>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                        <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-ghost">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-custom btn-primary-glow px-5">
+                            Next Step <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RIGHT: VISUAL HIERARCHY -->
+            <div class="flow-card">
+                <h3 class="flow-title">How Workspaces Work</h3>
+                
+                <div class="hierarchy-tree">
+                    
+                    <!-- Organization -->
+                    <div class="hierarchy-node">
+                        <div class="node-icon"><i class="fa-regular fa-building"></i></div>
+                        <div>
+                            <div class="fw-bold text-white">Organization</div>
+                            <div class="small text">Your company account</div>
+                        </div>
+                    </div>
+
+                    <div class="hierarchy-connector active"></div>
+
+                    <!-- Workspace (Active) -->
+                    <div class="hierarchy-node active">
+                        <div class="node-icon"><i class="fa-solid fa-laptop-file"></i></div>
+                        <div>
+                            <div class="fw-bold text-white">Workspace</div>
+                            <div class="small text-white opacity-75">You are creating this</div>
+                        </div>
+                        <div style="position:absolute; right:10px; top:10px; color:var(--color-primary); font-size:0.8rem;">
+                            <i class="fa-solid fa-asterisk"></i>
+                        </div>
+                    </div>
+
+                    <div class="hierarchy-connector"></div>
+
+                    <!-- Operators -->
+                    <div class="hierarchy-node">
+                        <div class="node-icon"><i class="fa-solid fa-users"></i></div>
+                        <div>
+                            <div class="fw-bold text-white">Operators</div>
+                            <div class="small text">Access limited to workspace</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 p-3 rounded" style="background:rgba(194, 224, 255, 0.05); border:1px solid rgba(194, 224, 255, 0.1);">
+                    <div class="d-flex gap-2">
+                        <i class="fa-solid fa-lightbulb text-warning mt-1"></i>
+                        <p class="small mb-0">
+                            <strong>Tip:</strong> Create separate workspaces for "Retail" and "Wholesale" to keep your label templates organized.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Add class to inputs manually if Django widget doesn't render them
+        const inputs = document.querySelectorAll('input[type="text"], textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control-dark');
+        });
+        
+        // File input change handler for better UX
+        const fileInput = document.querySelector('input[type="file"]');
+        const uploadText = document.querySelector('.upload-text');
+        
+        if(fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if(e.target.files.length > 0) {
+                    uploadText.innerHTML = `<i class="fa-solid fa-check text-success"></i> ${e.target.files[0].name}`;
+                    uploadText.style.color = '#fff';
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
