@@ -3,144 +3,396 @@
 {% block title %}Create Workspace – Manual Fields{% endblock %}
 
 {% block content %}
+<style>
+    /* --- MANUAL FIELDS PAGE STYLES --- */
+    
+    .split-layout {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 40px;
+        align-items: start;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .step-indicator {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: var(--color-primary);
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    .form-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+
+    .form-desc {
+        color: var(--color-muted);
+        margin-bottom: 30px;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    /* Custom Table Styling */
+    .fields-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        margin-bottom: 20px;
+    }
+    
+    .fields-table th {
+        color: var(--color-muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 0 10px 5px;
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .fields-table td {
+        background: rgba(255,255,255,0.02);
+        padding: 10px;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .fields-table td:first-child { border-left: 1px solid var(--color-border); border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+    .fields-table td:last-child { border-right: 1px solid var(--color-border); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+
+    .form-control-dark, .form-select-dark {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        width: 100%;
+        transition: all 0.2s;
+    }
+    
+    .form-control-dark:focus, .form-select-dark:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
+
+    /* Add Button */
+    .btn-add-field {
+        width: 100%;
+        border: 2px dashed var(--color-border);
+        background: transparent;
+        color: var(--color-muted);
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-add-field:hover {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        background: rgba(167, 105, 237, 0.05);
+    }
+
+    /* --- FLOW CHART (RIGHT SIDE) --- */
+    .flow-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(167, 105, 237, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        position: sticky;
+        top: 120px;
+    }
+
+    .flow-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    .hierarchy-tree {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+    }
+
+    .hierarchy-node {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 16px;
+        width: 100%;
+        position: relative;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .node-icon {
+        width: 40px; height: 40px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--color-muted);
+    }
+
+    /* Active Node Styling */
+    .hierarchy-node.active {
+        border-color: var(--color-primary);
+        background: rgba(167, 105, 237, 0.1);
+        box-shadow: 0 0 20px rgba(167, 105, 237, 0.15);
+        transform: scale(1.02);
+    }
+    .hierarchy-node.active .node-icon {
+        background: var(--color-primary);
+        color: #fff;
+    }
+    
+    .hierarchy-connector {
+        width: 2px; height: 24px;
+        background: var(--color-border);
+    }
+    .hierarchy-connector.active {
+        background: linear-gradient(to bottom, var(--color-border), var(--color-primary));
+    }
+
+    /* Fork Connector for Custom Templates */
+    .fork-connector {
+        position: absolute;
+        top: 50%; right: -20px;
+        width: 20px; height: 50px;
+        border-top: 2px solid var(--color-border);
+        border-right: 2px solid var(--color-border);
+        border-top-right-radius: 10px;
+        z-index: 0;
+    }
+
+    @media (max-width: 992px) {
+        .split-layout { grid-template-columns: 1fr; }
+        .flow-card { display: none; }
+    }
+
+</style>
+
 <div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-3">Define Fields Manually</h1>
-        <p class="text-muted mb-3">
-          You can define some label variables now (like SKU, Size, MRP, Image URL, etc.).
-          You may skip this and create the workspace directly.
-        </p>
+    <div class="col-lg-11" style="max-width: 1200px;">
+        
+        <div class="split-layout">
+            
+            <!-- LEFT: FORM -->
+            <div class="form-card">
+                <span class="step-indicator">Step 2 of 2</span>
+                <h1 class="form-title">Define Base Fields</h1>
+                <p class="form-desc">
+                    These fields will form your <strong>Base Template</strong>. They are the core data points (e.g., SKU, Price) common to all labels in this workspace.
+                </p>
 
-        <form method="post">
-          {% csrf_token %}
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="table-responsive">
+                        <table class="fields-table">
+                            <thead>
+                                <tr>
+                                    <th width="50%">
+                                        Field Name 
+                                        <i class="fa-solid fa-circle-info ms-1" style="cursor:help;" data-bs-toggle="tooltip" title="The label for this data point (e.g., 'Product SKU', 'MRP')"></i>
+                                    </th>
+                                    <th width="50%">
+                                        Field Type
+                                        <i class="fa-solid fa-circle-info ms-1" style="cursor:help;" data-bs-toggle="tooltip" title="What kind of data does this field accept? (Text, Number, Barcode, Image URL)"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="fields-body">
+                                {% if existing_fields %}
+                                    {% for f in existing_fields %}
+                                        <tr>
+                                            <td>
+                                                <input type="text" name="field_name_{{ forloop.counter0 }}" class="form-control-dark" value="{{ f.name }}" placeholder="e.g. SKU">
+                                            </td>
+                                            <td>
+                                                <select name="field_type_{{ forloop.counter0 }}" class="form-select-dark">
+                                                    <option value="">--- Select type ---</option>
+                                                    {% for value, label in field_type_choices %}
+                                                        <option value="{{ value }}" {% if value == f.field_type %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <!-- Initial Empty Row -->
+                                    <tr>
+                                        <td>
+                                            <input type="text" name="field_name_0" class="form-control-dark" placeholder="e.g. SKU">
+                                        </td>
+                                        <td>
+                                            <select name="field_type_0" class="form-select-dark">
+                                                <option value="">--- Select type ---</option>
+                                                {% for value, label in field_type_choices %}
+                                                    <option value="{{ value }}">{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
 
-          <div class="table-responsive mb-3">
-            <table class="table table-sm align-middle">
-              <thead>
-                <tr>
-                  <th>Field Name</th>
-                  <th>Field Type</th>
-                </tr>
-              </thead>
-              <tbody id="fields-body">
-                {% if existing_fields %}
-                  {% for f in existing_fields %}
-                    <tr>
-                      <td>
-                        <input type="text"
-                               name="field_name_{{ forloop.counter0 }}"
-                               class="form-control form-control-sm"
-                               value="{{ f.name }}">
-                      </td>
-                      <td>
-                        <select name="field_type_{{ forloop.counter0 }}"
-                                class="form-select form-select-sm">
-                          <option value="">--- Select type ---</option>
-                          {% for value, label in field_type_choices %}
-                            <option value="{{ value }}"
-                              {% if value == f.field_type %}selected{% endif %}>
-                              {{ label }}
-                            </option>
-                          {% endfor %}
-                        </select>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                {% else %}
-                  <!-- Start with a single empty row -->
-                  <tr>
-                    <td>
-                      <input type="text"
-                             name="field_name_0"
-                             class="form-control form-control-sm"
-                             placeholder="e.g. SKU">
-                    </td>
-                    <td>
-                      <select name="field_type_0" class="form-select form-select-sm">
-                        <option value="">--- Select type ---</option>
-                        {% for value, label in field_type_choices %}
-                          <option value="{{ value }}">{{ label }}</option>
-                        {% endfor %}
-                      </select>
-                    </td>
-                  </tr>
-                {% endif %}
-              </tbody>
-            </table>
-          </div>
+                    <button type="button" id="add-field-btn" class="btn-add-field mb-5">
+                        <i class="fa-solid fa-plus me-2"></i> Add Another Field
+                    </button>
 
-          <button type="button" id="add-field-btn" class="btn btn-outline-secondary btn-sm mb-3">
-            + Add another field
-          </button>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                        <button type="submit" name="back" value="1" class="btn btn-custom btn-ghost">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Back
+                        </button>
 
-          <div class="d-flex justify-content-between">
-            <button type="submit" name="back" value="1" class="btn btn-link">← Back</button>
-
-            <div class="d-flex gap-2">
-              <button type="submit" name="action" value="skip" class="btn btn-outline-secondary">
-                Skip &amp; Create Workspace
-              </button>
-              <button type="submit" name="action" value="next" class="btn btn-primary">
-                Continue to Sample
-              </button>
+                        <div class="d-flex gap-3">
+                            <button type="submit" name="action" value="skip" class="btn btn-custom btn-ghost" style="border-color: transparent;">
+                                Skip & Create
+                            </button>
+                            <button type="submit" name="action" value="next" class="btn btn-custom btn-primary-glow px-4">
+                                Continue to Sample <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-          </div>
-        </form>
-      </div>
+
+            <!-- RIGHT: VISUAL HIERARCHY -->
+            <div class="flow-card">
+                <div class="text-center mb-4">
+                    <div style="font-size: 2rem; color: var(--color-primary); margin-bottom: 10px;">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <h3 class="flow-title">How Templates Work in Workspace</h3>
+                    <p class="small text">Information Guide</p>
+                </div>
+                
+                <div class="hierarchy-tree">
+                    
+                    <!-- Workspace -->
+                    <div class="hierarchy-node">
+                        <div class="node-icon"><i class="fa-solid fa-laptop-file"></i></div>
+                        <div>
+                            <div class="fw-bold text-white">Workspace</div>
+                            <div class="small text">Root Container</div>
+                        </div>
+                        <!-- Connector for fork -->
+                        <div style="position:absolute; bottom:-20px; left:50%; width:2px; height:20px; background:var(--color-border);"></div>
+                    </div>
+
+                    <!-- Base Template (Active) -->
+                    <div class="hierarchy-node active" style="margin-top: 20px;">
+                        <div class="node-icon"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <div class="fw-bold text-white">Base Template</div>
+                            <div class="small text-white opacity-75">Configuring Now...</div>
+                        </div>
+                        <div style="position:absolute; right:10px; top:10px; color:var(--color-primary); font-size:0.8rem;">
+                            <i class="fa-solid fa-pen"></i>
+                        </div>
+                    </div>
+
+                    <!-- Custom Templates (Visual Branch) -->
+                    <div style="position: relative; width: 100%; margin-top: 20px; padding-left: 20px; opacity: 0.5;">
+                        <div style="position:absolute; top:-20px; left:50%; width:2px; height:20px; background:var(--color-border); transform:translateX(-50%);"></div>
+                        
+                        <div class="hierarchy-node" style="border-style: dashed;">
+                            <div class="node-icon"><i class="fa-regular fa-copy"></i></div>
+                            <div>
+                                <div class="fw-bold text-white">Custom Templates</div>
+                                <div class="small text">Created later</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 p-3 rounded" style="background:rgba(194, 224, 255, 0.05); border:1px solid rgba(194, 224, 255, 0.1);">
+                    <div class="d-flex gap-2">
+                        <i class="fa-solid fa-lightbulb text-warning mt-1"></i>
+                        <p class="small text mb-0">
+                            <strong>Note:</strong> Fields defined here are locked to the Base Template. Custom templates inherit these but can add their own unique fields later.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Hidden prototype row for JS cloning -->
 <table style="display: none;">
-  <tbody>
-    <tr id="field-row-template">
-      <td>
-        <input type="text"
-               name="field_name___INDEX__"
-               class="form-control form-control-sm"
-               placeholder="e.g. SKU">
-      </td>
-      <td>
-        <select name="field_type___INDEX__" class="form-select form-select-sm">
-          <option value="">--- Select type ---</option>
-          {% for value, label in field_type_choices %}
-            <option value="{{ value }}">{{ label }}</option>
-          {% endfor %}
-        </select>
-      </td>
-    </tr>
-  </tbody>
+    <tbody>
+        <tr id="field-row-template">
+            <td>
+                <input type="text" name="field_name___INDEX__" class="form-control-dark" placeholder="e.g. Color">
+            </td>
+            <td>
+                <select name="field_type___INDEX__" class="form-select-dark">
+                    <option value="">--- Select type ---</option>
+                    {% for value, label in field_type_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+    </tbody>
 </table>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const body = document.getElementById('fields-body');
-  const addBtn = document.getElementById('add-field-btn');
-  const templateRow = document.getElementById('field-row-template');
+    // Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
 
-  if (!body || !addBtn || !templateRow) return;
+    // Add Field Logic
+    const body = document.getElementById('fields-body');
+    const addBtn = document.getElementById('add-field-btn');
+    const templateRow = document.getElementById('field-row-template');
 
-  // Determine starting index based on existing rows
-  let nextIndex = body.querySelectorAll('tr').length;
-  if (nextIndex === 0) {
-    nextIndex = 1;
-  }
+    if (!body || !addBtn || !templateRow) return;
 
-  addBtn.addEventListener('click', function () {
-    const clone = templateRow.cloneNode(true);
-    clone.removeAttribute('id');
+    let nextIndex = body.querySelectorAll('tr').length;
+    if (nextIndex === 0) nextIndex = 1;
 
-    // Replace __INDEX__ placeholder with current index
-    clone.innerHTML = clone.innerHTML.replace(/__INDEX__/g, String(nextIndex));
-
-    body.appendChild(clone);
-    nextIndex += 1;
-  });
+    addBtn.addEventListener('click', function () {
+        const clone = templateRow.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.innerHTML = clone.innerHTML.replace(/__INDEX__/g, String(nextIndex));
+        body.appendChild(clone);
+        nextIndex += 1;
+    });
 });
 </script>
 {% endblock %}

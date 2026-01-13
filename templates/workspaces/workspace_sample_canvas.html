@@ -3,172 +3,426 @@
 {% block title %}Create Workspace – Sample Canvas{% endblock %}
 
 {% block content %}
+<style>
+    /* --- CANVAS PAGE STYLES --- */
+    
+    .split-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    /* Left Side: Canvas & Controls */
+    .canvas-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-title { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+    
+    /* Un-muted text for better visibility */
+    .form-desc { color: #e0e0e0; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6; }
+
+    /* The Interactive Canvas */
+    #label-canvas {
+        background-color: #1a1a1a;
+        background-image: radial-gradient(#333 1px, transparent 1px);
+        background-size: 20px 20px; /* Grid effect */
+        border: 2px solid var(--color-border);
+        border-radius: 12px;
+        position: relative;
+        height: 400px;
+        width: 100%;
+        overflow: hidden;
+        margin-bottom: 30px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    /* Draggable Item */
+    .field-block {
+        position: absolute;
+        background: rgba(167, 105, 237, 0.1);
+        border: 1px solid var(--color-primary);
+        color: #fff;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: grab;
+        user-select: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: box-shadow 0.2s, background 0.2s;
+    }
+    
+    .field-block:hover {
+        background: rgba(167, 105, 237, 0.2);
+        box-shadow: 0 0 15px rgba(167, 105, 237, 0.3);
+        z-index: 10;
+    }
+    
+    .field-block.dragging {
+        cursor: grabbing;
+        opacity: 0.8;
+    }
+
+    /* Resize Handle */
+    .resize-handle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: var(--color-accent-orange);
+        bottom: 0;
+        right: 0;
+        cursor: nwse-resize;
+        border-radius: 2px 0 4px 0;
+        z-index: 11;
+    }
+
+    /* Data Table / Numeric Controls Styling */
+    .controls-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: var(--color-accent-blue);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table-wrapper {
+        background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 16px;
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+    
+    .data-table th { 
+        color: var(--color-muted); 
+        font-weight: 700; 
+        font-size: 0.75rem; 
+        text-transform: uppercase;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .data-table td { 
+        color: #fff; 
+        padding: 8px 4px; 
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.02); 
+    }
+    
+    .form-control-xs {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 6px;
+        width: 70px;
+        font-family: monospace;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    
+    .form-control-xs:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(167, 105, 237, 0.15);
+    }
+
+    /* --- RIGHT SIDE: GUIDE --- */
+    .guide-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(194, 224, 255, 0.05) 100%);
+        border: 1px solid rgba(194, 224, 255, 0.1);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        position: sticky;
+        top: 120px;
+    }
+
+    .guide-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+    
+    /* Animation Container */
+    .anim-container {
+        height: 150px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        position: relative;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    
+    /* Animated Elements */
+    .anim-block {
+        width: 60px; height: 40px;
+        background: rgba(167, 105, 237, 0.3);
+        border: 1px solid var(--color-primary);
+        position: absolute;
+        top: 50px; left: 30px;
+        border-radius: 4px;
+    }
+    
+    .anim-cursor {
+        width: 0; 
+        height: 0; 
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 15px solid #fff;
+        position: absolute;
+        top: 80px; left: 80px;
+        transform: rotate(-45deg);
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+        animation: demo-drag 4s infinite;
+    }
+    
+    @keyframes demo-drag {
+        0% { top: 80px; left: 80px; } /* Start */
+        20% { top: 60px; left: 50px; } /* Move to block */
+        25% { transform: rotate(-45deg) scale(0.9); } /* Click */
+        50% { top: 30px; left: 120px; } /* Drag */
+        55% { transform: rotate(-45deg) scale(1); } /* Release */
+        100% { top: 80px; left: 80px; } /* Reset */
+    }
+    
+    /* Sync block movement with cursor */
+    .anim-block {
+        animation: block-move 4s infinite;
+    }
+    
+    @keyframes block-move {
+        0%, 20% { top: 50px; left: 30px; width: 60px; height: 40px; }
+        50%, 70% { top: 20px; left: 100px; width: 60px; height: 40px; } /* Moved */
+        80% { top: 20px; left: 100px; width: 90px; height: 60px; } /* Resized (simulated) */
+        100% { top: 50px; left: 30px; width: 60px; height: 40px; }
+    }
+
+    @media (max-width: 992px) {
+        .split-layout { grid-template-columns: 1fr; }
+        .guide-card { display: none; }
+    }
+
+</style>
+
 <div class="row justify-content-center">
-  <div class="col-lg-9">
-    <div class="card shadow-sm mb-3">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-3">Arrange Sample Label</h1>
-        <p class="text-muted mb-3">
-          This is a simple base label template for your workspace. Drag fields around the canvas
-          and adjust sizes as needed. You can refine templates further later.
-        </p>
+    <div class="col-lg-12" style="max-width: 1300px;">
+        
+        <div class="split-layout">
+            
+            <!-- LEFT: CANVAS INTERACTION -->
+            <div class="canvas-card">
+                <span class="badge bg-primary mb-2">Final Step</span>
+                <h1 class="form-title">Arrange Base Layout</h1>
+                <p class="form-desc">
+                    Drag fields to position them on the label. Drag the bottom-right corner (orange handle) to resize.
+                    <br>This sets the default position for all future labels.
+                </p>
 
-        <form method="post">
-          {% csrf_token %}
+                <form method="post">
+                    {% csrf_token %}
 
-          <!-- WYSIWYG canvas -->
-          <div id="label-canvas"
-               class="border bg-white mb-3"
-               style="position: relative; height: 300px; overflow: auto;">
-            {% for item in layout %}
-              <div
-                class="border rounded bg-light p-1 small position-absolute field-block"
-                data-index="{{ forloop.counter0 }}"
-                style="
-                  left: {{ item.x }}px;
-                  top: {{ item.y }}px;
-                  width: {{ item.width }}px;
-                  height: {{ item.height }}px;
-                  cursor: move;
-                "
-              >
-                {{ item.name }}<br>
-                <span class="text-muted">{{ item.field_type }}</span>
-              </div>
-            {% endfor %}
-          </div>
+                    <!-- WYSIWYG Canvas -->
+                    <div id="label-canvas">
+                        {% for item in layout %}
+                            <div class="field-block"
+                                 data-index="{{ forloop.counter0 }}"
+                                 style="left: {{ item.x }}px; top: {{ item.y }}px; width: {{ item.width }}px; height: {{ item.height }}px;">
+                                
+                                <strong>{{ item.name }}</strong>
+                                <span style="font-size:0.7em; opacity:0.7;">{{ item.field_type }}</span>
+                                
+                                <!-- Resize Handle -->
+                                <div class="resize-handle"></div>
+                            </div>
+                        {% endfor %}
+                    </div>
 
-          <p class="text-muted small mb-2">
-            Drag the blocks on the canvas to change their position.
-            You can fine-tune X/Y and Width/Height below.
-          </p>
+                    <!-- Numeric Controls -->
+                    <div class="controls-header">
+                        <i class="fa-solid fa-sliders"></i> Manual Adjustments
+                        <i class="fa-solid fa-circle-info text-muted ms-1" style="cursor:help;" data-bs-toggle="tooltip" title="Use these fields to fine-tune the exact X/Y position and Width/Height dimensions (in pixels) if dragging isn't precise enough for your needs."></i>
+                    </div>
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Field Name</th>
+                                    <th>Pos X</th>
+                                    <th>Pos Y</th>
+                                    <th>Width</th>
+                                    <th>Height</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in layout %}
+                                    <tr>
+                                        <td class="fw-bold">{{ item.name }}</td>
+                                        <td><input type="number" class="form-control-xs coord-x" name="x_{{ forloop.counter0 }}" value="{{ item.x }}"></td>
+                                        <td><input type="number" class="form-control-xs coord-y" name="y_{{ forloop.counter0 }}" value="{{ item.y }}"></td>
+                                        <td><input type="number" class="form-control-xs coord-w" name="width_{{ forloop.counter0 }}" value="{{ item.width }}"></td>
+                                        <td><input type="number" class="form-control-xs coord-h" name="height_{{ forloop.counter0 }}" value="{{ item.height }}"></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-          <!-- Numeric controls that will be submitted -->
-          <div class="table-responsive mb-3">
-            <table class="table table-sm align-middle">
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>X</th>
-                  <th>Y</th>
-                  <th>Width</th>
-                  <th>Height</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in layout %}
-                  <tr>
-                    <td>{{ item.name }}</td>
-                    <td>
-                      <input type="number" class="form-control form-control-sm"
-                             name="x_{{ forloop.counter0 }}" value="{{ item.x }}">
-                    </td>
-                    <td>
-                      <input type="number" class="form-control form-control-sm"
-                             name="y_{{ forloop.counter0 }}" value="{{ item.y }}">
-                    </td>
-                    <td>
-                      <input type="number" class="form-control form-control-sm"
-                             name="width_{{ forloop.counter0 }}" value="{{ item.width }}">
-                    </td>
-                    <td>
-                      <input type="number" class="form-control form-control-sm"
-                             name="height_{{ forloop.counter0 }}" value="{{ item.height }}">
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+                    <div class="d-flex justify-content-between pt-3 border-top border-secondary">
+                        <button type="submit" name="back" value="1" class="btn btn-custom btn-ghost">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-custom btn-primary-glow px-5">
+                            Create Workspace <i class="fa-solid fa-check ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
 
-          <div class="d-flex justify-content-between">
-            <button type="submit" name="back" value="1" class="btn btn-link">← Back</button>
-            <button type="submit" class="btn btn-primary">
-              Create Workspace
-            </button>
-          </div>
-        </form>
-      </div>
+            <!-- RIGHT: GUIDE & ANIMATION -->
+            <div class="guide-card">
+                <div class="guide-title"><i class="fa-solid fa-hand-pointer text-primary"></i> How to Design</div>
+                
+                <div class="anim-container">
+                    <div class="anim-block"></div>
+                    <div class="anim-cursor"></div>
+                </div>
+
+                <ul class="list-unstyled text small">
+                    <li class="mb-3"><i class="fa-solid fa-arrows-up-down-left-right text-primary me-2"></i> <strong>Move:</strong> Click anywhere on a block and drag to reposition.</li>
+                    <li class="mb-3"><i class="fa-solid fa-expand text-warning me-2"></i> <strong>Resize:</strong> Grab the orange corner handle to change dimensions.</li>
+                    <li><i class="fa-solid fa-ruler-combined text-info me-2"></i> <strong>Precision:</strong> Use the "Manual Adjustments" panel below the canvas for pixel-perfect adjustments.</li>
+                </ul>
+            </div>
+
+        </div>
     </div>
-
-    <a href="{% url 'workspace_list' %}" class="btn btn-link">
-      ← Back to Workspaces
-    </a>
-  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const canvas = document.getElementById('label-canvas');
-  if (!canvas) return;
-
-  const blocks = canvas.querySelectorAll('.field-block');
-  let activeBlock = null;
-  let startX, startY, origLeft, origTop;
-
-  function getInputsForIndex(idx) {
-    const xInput = document.querySelector('input[name="x_' + idx + '"]');
-    const yInput = document.querySelector('input[name="y_' + idx + '"]');
-    return { xInput, yInput };
-  }
-
-  blocks.forEach(block => {
-    block.addEventListener('mousedown', function (e) {
-      if (e.button !== 0) return; // left click only
-      activeBlock = block;
-
-      startX = e.clientX;
-      startY = e.clientY;
-
-      // current left/top from inline style
-      origLeft = parseInt(block.style.left, 10) || 0;
-      origTop  = parseInt(block.style.top, 10) || 0;
-
-      document.body.classList.add('dragging');
-      e.preventDefault();
+    // Initialize Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
     });
-  });
 
-  document.addEventListener('mousemove', function (e) {
-    if (!activeBlock) return;
+    const canvas = document.getElementById('label-canvas');
+    if (!canvas) return;
 
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    // --- DRAG & RESIZE LOGIC ---
+    let activeElement = null;
+    let isResizing = false;
+    let startX, startY;
+    let startLeft, startTop, startWidth, startHeight;
 
-    let newLeft = origLeft + dx;
-    let newTop  = origTop + dy;
-
-    // Constrain to canvas
-    const canvasRect = canvas.getBoundingClientRect();
-    const blockRect  = activeBlock.getBoundingClientRect();
-
-    const maxLeft = canvas.clientWidth - blockRect.width;
-    const maxTop  = canvas.clientHeight - blockRect.height;
-
-    if (newLeft < 0) newLeft = 0;
-    if (newTop  < 0) newTop  = 0;
-    if (newLeft > maxLeft) newLeft = maxLeft;
-    if (newTop  > maxTop)  newTop  = maxTop;
-
-    // Apply to block
-    activeBlock.style.left = newLeft + 'px';
-    activeBlock.style.top  = newTop + 'px';
-
-    // Sync into X/Y inputs so POST has updated values
-    const idx = activeBlock.dataset.index;
-    const { xInput, yInput } = getInputsForIndex(idx);
-    if (xInput) xInput.value = Math.round(newLeft);
-    if (yInput) yInput.value = Math.round(newTop);
-  });
-
-  document.addEventListener('mouseup', function () {
-    if (activeBlock) {
-      activeBlock = null;
-      document.body.classList.remove('dragging');
+    // Helper: Update Input Fields
+    function updateInputs(index, x, y, w, h) {
+        document.querySelector(`input[name="x_${index}"]`).value = Math.round(x);
+        document.querySelector(`input[name="y_${index}"]`).value = Math.round(y);
+        document.querySelector(`input[name="width_${index}"]`).value = Math.round(w);
+        document.querySelector(`input[name="height_${index}"]`).value = Math.round(h);
     }
-  });
+
+    // 1. Mouse Down Handler
+    canvas.addEventListener('mousedown', function(e) {
+        const target = e.target;
+        
+        // Check if handle or block
+        if (target.classList.contains('resize-handle')) {
+            isResizing = true;
+            activeElement = target.parentElement; // The block
+        } else if (target.closest('.field-block')) {
+            isResizing = false;
+            activeElement = target.closest('.field-block');
+        } else {
+            return;
+        }
+
+        e.preventDefault();
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        // Parse current styles
+        startLeft = parseInt(activeElement.style.left) || 0;
+        startTop = parseInt(activeElement.style.top) || 0;
+        startWidth = parseInt(activeElement.style.width) || 100;
+        startHeight = parseInt(activeElement.style.height) || 50;
+
+        activeElement.classList.add('dragging');
+        document.body.style.cursor = isResizing ? 'nwse-resize' : 'grabbing';
+    });
+
+    // 2. Mouse Move Handler (Global)
+    document.addEventListener('mousemove', function(e) {
+        if (!activeElement) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const index = activeElement.dataset.index;
+
+        if (isResizing) {
+            // Resize Logic
+            let newW = startWidth + dx;
+            let newH = startHeight + dy;
+            
+            // Min dimensions
+            if (newW < 40) newW = 40;
+            if (newH < 20) newH = 20;
+
+            activeElement.style.width = newW + 'px';
+            activeElement.style.height = newH + 'px';
+            
+            updateInputs(index, startLeft, startTop, newW, newH);
+
+        } else {
+            // Move Logic
+            let newX = startLeft + dx;
+            let newY = startTop + dy;
+
+            // Boundaries
+            const maxX = canvas.clientWidth - activeElement.offsetWidth;
+            const maxY = canvas.clientHeight - activeElement.offsetHeight;
+
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX > maxX) newX = maxX;
+            if (newY > maxY) newY = maxY;
+
+            activeElement.style.left = newX + 'px';
+            activeElement.style.top = newY + 'px';
+
+            updateInputs(index, newX, newY, activeElement.offsetWidth, activeElement.offsetHeight);
+        }
+    });
+
+    // 3. Mouse Up Handler (Global)
+    document.addEventListener('mouseup', function() {
+        if (activeElement) {
+            activeElement.classList.remove('dragging');
+            activeElement = null;
+            document.body.style.cursor = 'default';
+        }
+    });
 });
 </script>
 {% endblock %}

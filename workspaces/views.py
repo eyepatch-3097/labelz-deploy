@@ -417,7 +417,7 @@ def workspace_sample_canvas(request):
             request,
             f"Workspace '{workspace.name}' created with a base label template.",
         )
-        return redirect("workspace_list")
+        return redirect("my_workspaces")
 
     return render(
         request,
@@ -428,11 +428,6 @@ def workspace_sample_canvas(request):
         },
     )
 
-
-    return render(request, 'workspaces/workspace_sample_canvas.html', {
-        "layout": layout,
-        "wizard": wizard,
-    })
 
 @login_required
 def manage_access(request):

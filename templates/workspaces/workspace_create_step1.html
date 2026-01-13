@@ -122,8 +122,9 @@
 
     /* --- FLOW CHART (RIGHT SIDE) --- */
     .flow-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid var(--color-border);
+        /* Updated background for distinction */
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(167, 105, 237, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: var(--radius-card);
         padding: 30px;
         position: sticky;
@@ -134,7 +135,7 @@
         font-size: 1.1rem;
         font-weight: 700;
         color: #fff;
-        margin-bottom: 20px;
+        margin-bottom: 5px;
         text-align: center;
     }
 
@@ -280,7 +281,7 @@
 
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
                         <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-ghost">
-                            <i class="fa-solid fa-arrow-left me-2"></i> Cancel
+                            <i class="fa-solid fa-arrow-left me-2"></i> Back
                         </a>
                         <button type="submit" class="btn btn-custom btn-primary-glow px-5">
                             Next Step <i class="fa-solid fa-arrow-right ms-2"></i>
@@ -291,7 +292,13 @@
 
             <!-- RIGHT: VISUAL HIERARCHY -->
             <div class="flow-card">
-                <h3 class="flow-title">How Workspaces Work</h3>
+                <div class="text-center mb-4">
+                    <div style="font-size: 2rem; color: var(--color-primary); margin-bottom: 10px;">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <h3 class="flow-title">How Workspaces Work</h3>
+                    <p class="small text">Information Guide</p>
+                </div>
                 
                 <div class="hierarchy-tree">
                     
@@ -334,7 +341,7 @@
                 <div class="mt-4 p-3 rounded" style="background:rgba(194, 224, 255, 0.05); border:1px solid rgba(194, 224, 255, 0.1);">
                     <div class="d-flex gap-2">
                         <i class="fa-solid fa-lightbulb text-warning mt-1"></i>
-                        <p class="small mb-0">
+                        <p class="small text mb-0">
                             <strong>Tip:</strong> Create separate workspaces for "Retail" and "Wholesale" to keep your label templates organized.
                         </p>
                     </div>
