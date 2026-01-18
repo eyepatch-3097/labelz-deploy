@@ -1,66 +1,250 @@
 {% extends "base.html" %}
-{% block title %}Bulk Label Generation{% endblock %}
+
+{% block title %}Bulk Generation – {{ template.name }}{% endblock %}
+
 {% block content %}
+<style>
+    /* --- BULK GENERATION STYLES --- */
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h1 class="h4 mb-1">Multiple Generation (Bulk Import)</h1>
-    <div class="text-muted small">
-      Template: <b>{{ template.name }}</b> · Download the file, fill rows, and upload to generate labels.
-    </div>
-  </div>
-  <a class="btn btn-outline-secondary" href="{% url 'label_generate_start' workspace.id %}">← Back</a>
-</div>
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+        line-height: 1.1;
+    }
 
-<div class="row g-3">
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">1) Download Import Template</h5>
-        <p class="text-muted small mb-2">
-          Columns include EAN_CODE (required), GS1_CODE (optional), and all variable fields from the template.
+    /* Cards */
+    .action-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .step-number {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+        color: var(--color-primary);
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 16px;
+    }
+
+    /* Download Buttons */
+    .download-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .btn-download {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        color: var(--color-text);
+        text-decoration: none;
+        transition: all 0.2s;
+        text-align: center;
+    }
+
+    .btn-download:hover {
+        background: rgba(167, 105, 237, 0.1);
+        border-color: var(--color-primary);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .download-icon { font-size: 2rem; margin-bottom: 10px; color: var(--color-muted); }
+    .btn-download:hover .download-icon { color: var(--color-primary); }
+
+    /* Code Block */
+    .code-block {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 16px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.85rem;
+        color: var(--color-accent-blue);
+        overflow-x: auto;
+    }
+
+    /* File Upload */
+    .file-dropzone {
+        border: 2px dashed var(--color-border);
+        border-radius: 16px;
+        padding: 40px 20px;
+        text-align: center;
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.02);
+        cursor: pointer;
+        position: relative;
+    }
+
+    .file-dropzone:hover {
+        border-color: var(--color-primary);
+        background: rgba(167, 105, 237, 0.05);
+    }
+    
+    .file-dropzone input[type="file"] {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: var(--color-muted);
+        margin-bottom: 16px;
+        transition: color 0.2s;
+    }
+    .file-dropzone:hover .upload-icon { color: var(--color-primary); }
+
+    .btn-upload {
+        width: 100%;
+        padding: 14px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border-radius: 50px;
+        margin-top: 20px;
+    }
+
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-lg-10" style="max-width: 1200px;">
+    
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Bulk Label Generation</h1>
+        <p class="text mb-0">
+          Template: <strong class="text-white">{{ template.name }}</strong> <span style="color:var(--color-primary)">●</span> {{ workspace.name }}
         </p>
-
-        <div class="d-flex gap-2">
-          <a class="btn btn-dark"
-             href="{% url 'label_generate_multi_export_template' workspace.id template.id %}?format=csv">
-            Download CSV
-          </a>
-          <a class="btn btn-outline-dark"
-             href="{% url 'label_generate_multi_export_template' workspace.id template.id %}?format=xlsx">
-            Download XLSX
-          </a>
-        </div>
-
-        <hr>
-
-        <div class="text-muted small">
-          <div class="mb-1"><b>Expected columns</b>:</div>
-          <div style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;">
-            {{ headers|join:", " }}
-          </div>
-        </div>
       </div>
+      <a href="{% url 'label_generate_start' workspace.id %}" class="btn btn-custom btn-ghost">
+        <i class="fa-solid fa-arrow-left me-2"></i> Back
+      </a>
     </div>
-  </div>
 
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">2) Upload Filled File</h5>
-        <form method="POST" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="mb-2">
-            <input class="form-control" type="file" name="import_file" accept=".csv,.xlsx" required>
-          </div>
-          <div class="text-muted small mb-3">
-            Rules: file must have at least 1 row · headers must match · EAN_CODE cannot be empty.
-          </div>
-          <button class="btn btn-primary w-100" type="submit">Upload & Preview Row 1</button>
-        </form>
-      </div>
+    <div class="row g-4">
+        
+        <!-- LEFT: DOWNLOAD -->
+        <div class="col-lg-6">
+            <div class="action-card">
+                <span class="step-number">Step 1</span>
+                <h2 class="card-title">Download Template</h2>
+                <p class="text mb-4">
+                    Get the pre-formatted file with all required columns for this label design. Fill it with your product data.
+                </p>
+
+                <div class="download-group">
+                    <a href="{% url 'label_generate_multi_export_template' workspace.id template.id %}?format=csv" class="btn-download">
+                        <i class="fa-solid fa-file-csv download-icon"></i>
+                        <span class="fw-bold">CSV Format</span>
+                        <small class="text">Best for simple data</small>
+                    </a>
+                    <a href="{% url 'label_generate_multi_export_template' workspace.id template.id %}?format=xlsx" class="btn-download">
+                        <i class="fa-regular fa-file-excel download-icon"></i>
+                        <span class="fw-bold">Excel Format</span>
+                        <small class="text">Best for formatting</small>
+                    </a>
+                </div>
+
+                <div class="mt-auto">
+                    <label class="small text fw-bold mb-2 text-uppercase">Expected Columns</label>
+                    <div class="code-block">
+                        {{ headers|join:", " }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: UPLOAD -->
+        <div class="col-lg-6">
+            <div class="action-card">
+                <span class="step-number">Step 2</span>
+                <h2 class="card-title">Upload Data</h2>
+                <p class="text mb-4">
+                    Upload your filled file to generate labels. We'll preview the first row before confirming.
+                </p>
+
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    
+                    <div class="file-dropzone" id="dropzone">
+                        <input type="file" name="import_file" id="fileInput" accept=".csv,.xlsx" required>
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <h4 class="h6 text-white mb-1" id="fileName">Click or Drag file here</h4>
+                        <p class="small text-muted mb-0">Supports .csv and .xlsx</p>
+                    </div>
+
+                    <div class="alert alert-info mt-3 d-flex align-items-center gap-2" style="background:rgba(194, 224, 255, 0.1); border-color:rgba(194, 224, 255, 0.2); color:var(--color-accent-blue);">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span class="small">Ensure <strong>EAN_CODE</strong> column is not empty.</span>
+                    </div>
+
+                    <button class="btn btn-custom btn-primary-glow btn-upload" type="submit">
+                        Upload & Preview <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const dropzone = document.getElementById('dropzone');
+        const uploadIcon = dropzone.querySelector('.upload-icon');
+
+        if(fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const name = e.target.files[0].name;
+                    fileNameDisplay.textContent = name;
+                    fileNameDisplay.style.color = 'var(--color-primary)';
+                    uploadIcon.style.color = 'var(--color-primary)';
+                    uploadIcon.className = 'fa-solid fa-file-circle-check upload-icon';
+                    dropzone.style.borderColor = 'var(--color-primary)';
+                    dropzone.style.background = 'rgba(167, 105, 237, 0.1)';
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

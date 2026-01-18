@@ -3,108 +3,236 @@
 
 {% block content %}
 <style>
-  
+    /* --- SINGLE GENERATION STYLES --- */
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        overflow: hidden;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .section-desc {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Inputs */
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+    
+    .form-control-dark {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    
+    .form-control-dark:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
+
+    /* Checkbox Card */
+    .checkbox-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .checkbox-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: #666;
+    }
+    .form-check-input {
+        background-color: #222;
+        border-color: #555;
+        width: 1.2em;
+        height: 1.2em;
+        cursor: pointer;
+    }
+    .form-check-input:checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    /* Quantity Box */
+    .qty-box {
+        background: rgba(167, 105, 237, 0.05);
+        border: 1px solid rgba(167, 105, 237, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+    }
+    .qty-label { color: var(--color-primary); font-weight: 800; }
+
 </style>
+
 <div class="row justify-content-center">
-  <div class="col-lg-9">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="col-lg-9" style="max-width: 1000px;">
+    
+    <!-- Header -->
+    <div class="page-header">
       <div>
-        <h1 class="h4 mb-1" style="color: #9E63DF">Generate Labels (Single SKU)</h1>
-        <p class="text-muted small mb-0">
-          Workspace: {{ workspace.name }} · Template: {{ template.name }}
+        <h1 class="page-title">Generate Single Label</h1>
+        <p class="text mb-0">
+          Template: <strong class="text-white">{{ template.name }}</strong> <span style="color:var(--color-primary)">●</span> {{ workspace.name }}
         </p>
       </div>
-      <a href="{% url 'label_generate_start' workspace.id %}"
-         class="btn btn-link btn-sm" style="padding: 10px 14px; border: 2px solid #9E63DF; background-color: #9E63DF; text-decoration: none; color: white; font-size: 14px;">← Back</a>
+      <a href="{% url 'label_generate_start' workspace.id %}" class="btn btn-custom btn-ghost">
+        <i class="fa-solid fa-arrow-left me-2"></i> Back
+      </a>
     </div>
 
-    <form method="post" class="card shadow-sm">
+    <form method="post" class="form-card">
       {% csrf_token %}
-      <div class="card-body">
+      
+      <!-- Section 1: Template Fields -->
+      <h3 class="section-title"><i class="fa-solid fa-pen-to-square text-primary"></i> Template Data</h3>
+      <p class="section-desc">
+        Fill in the variable fields defined in your template design. Barcodes and shapes are handled automatically.
+      </p>
 
-        <h6 class="mb-2">Template Fields</h6>
-        <p class="text-muted small">
-          Fill values for all fields except Barcode / QR. Image fields expect an image URL.
-        </p>
-
-        <div class="row">
-          {% for f in input_fields %}
-          <div class="col-md-6 mb-3">
-            <label class="form-label small">
-              {{ f.name }} ({{ f.key }})
-              <span class="text-muted">
-                – {{ f.field_type }}
-              </span>
+      <div class="row g-4 mb-5">
+        {% for f in input_fields %}
+        <div class="col-md-6">
+            <label class="form-label">
+                {{ f.name }} <span style="font-family:monospace; opacity:0.5; font-weight:400;">({{ f.key }})</span>
             </label>
-            <input
-              style="border: 2px solid #9E63DF"
-              type="text"
-              name="field_{{ f.key }}"
-              class="form-control form-control-sm"
-              value="{{ field_values.f.key }}"
-            />
-          </div>
-          {% endfor %}
+            <input type="text" 
+                   name="field_{{ f.key }}" 
+                   value="{{ field_values.f.key }}" 
+                   class="form-control-dark"
+                   placeholder="Enter {{ f.name }}..." />
+            <div class="small text mt-1" style="font-size:0.75rem;">Type: {{ f.field_type }}</div>
         </div>
-
-        <hr>
-
-        <h6 class="mb-2">Product Codes</h6>
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label small">EAN Code <span class="text-danger">*</span></label>
-            <input style="border: 2px solid #9E63DF" type="text" name="ean_code"
-                   class="form-control form-control-sm"
-                   value="{{ ean_code }}">
-          </div>
-          <div class="col-md-6 mb-3">
-            <div class="form-check mt-4">
-              <input style="border: 2px solid #9E63DF" class="form-check-input" type="checkbox" id="hasGs1Check"
-                     name="has_gs1" {% if has_gs1 %}checked{% endif %}>
-              <label class="form-check-label small" for="hasGs1Check">
-                Do you have GS1 Codes?
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="row" id="gs1Row" {% if not has_gs1 %}style="display:none"{% endif %}>
-          <div class="col-md-6 mb-3">
-            <label class="form-label small">GS1 Code</label>
-            <input style="border: 2px solid #9E63DF" type="text" name="gs1_code"
-                   class="form-control form-control-sm"
-                   value="{{ gs1_code }}">
-          </div>
-        </div>
-
-        <hr>
-
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <label class="form-label small">Quantity (max 500)</label>
-            <input style="border: 2px solid #9E63DF" type="number" name="quantity"
-                   class="form-control form-control-sm"
-                   min="1" max="500"
-                   value="{{ quantity }}">
-          </div>
-        </div>
-
+        {% endfor %}
       </div>
-      <div class="card-footer d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary">Generate</button>
+
+      <!-- Section 2: Product Codes -->
+      <h3 class="section-title"><i class="fa-solid fa-barcode" style="color:var(--color-accent-orange)"></i> Identification Codes</h3>
+      <div class="section-desc mb-4" style="border-bottom:none; padding-bottom:0;">
+          Essential tracking identifiers for retail and inventory systems.
       </div>
+
+      <div class="row g-4 align-items-start mb-5">
+          <div class="col-md-6">
+              <label class="form-label">EAN Code <span class="text-danger">*</span></label>
+              <input type="text" name="ean_code" value="{{ ean_code }}" class="form-control-dark" placeholder="e.g. 1234567890123" required>
+          </div>
+          
+          <div class="col-md-6">
+              <div class="checkbox-card" id="gs1Card">
+                  <input class="form-check-input" type="checkbox" id="hasGs1Check" name="has_gs1" {% if has_gs1 %}checked{% endif %}>
+                  <div>
+                      <div style="font-weight:700; color:#fff;">Enable GS1 Code</div>
+                      <div class="small text">Check this if your product requires global standard encoding.</div>
+                  </div>
+              </div>
+              
+              <div id="gs1Row" class="mt-3" {% if not has_gs1 %}style="display:none"{% endif %}>
+                  <label class="form-label">GS1 Code</label>
+                  <input type="text" name="gs1_code" value="{{ gs1_code }}" class="form-control-dark" placeholder="e.g. (01)01234567890128">
+              </div>
+          </div>
+      </div>
+
+      <!-- Section 3: Quantity & Action -->
+      <div class="qty-box d-flex flex-wrap align-items-end justify-content-between gap-4">
+          <div style="flex:1; min-width:200px;">
+              <label class="form-label qty-label">Quantity to Generate</label>
+              <input type="number" name="quantity" value="{{ quantity|default:1 }}" min="1" max="500" class="form-control-dark" style="border-color:rgba(167, 105, 237, 0.4);">
+              <div class="small text mt-1">Max 500 per single batch. Use Bulk for more.</div>
+          </div>
+          
+          <div>
+              <button type="submit" class="btn btn-custom btn-primary-glow px-5 py-2" style="height:46px;">
+                  <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate Labels
+              </button>
+          </div>
+      </div>
+
     </form>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-  (function () {
-    const chk = document.getElementById("hasGs1Check");
-    const row = document.getElementById("gs1Row");
-    if (!chk || !row) return;
-    chk.addEventListener("change", function () {
-      row.style.display = this.checked ? "" : "none";
+    document.addEventListener('DOMContentLoaded', function() {
+        const chk = document.getElementById("hasGs1Check");
+        const row = document.getElementById("gs1Row");
+        const card = document.getElementById("gs1Card");
+        
+        // Handle Card Click (Delegates to checkbox)
+        if (card && chk) {
+            card.addEventListener('click', function(e) {
+                // Prevent double toggle if clicking the checkbox directly
+                if (e.target !== chk) {
+                    chk.click(); 
+                }
+            });
+        }
+
+        // Handle Checkbox Change (Toggles visibility)
+        if (chk && row) {
+            chk.addEventListener("change", function () {
+                if(this.checked) {
+                    row.style.display = "block";
+                    // Small animation effect
+                    row.style.opacity = 0;
+                    setTimeout(() => { row.style.transition = "opacity 0.3s"; row.style.opacity = 1; }, 10);
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
     });
-  })();
 </script>
 {% endblock %}
