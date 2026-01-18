@@ -29,6 +29,7 @@ from .utils.bulk_import import (
     make_xlsx_template_bytes,
     validate_and_normalize_rows,
 )
+from .utils.qr_payload import build_qr_payload
 
 WIZARD_SESSION_KEY = 'workspace_wizard'
 UI_MAX_SIDE_PX = 700.0  # single source of truth
@@ -2134,7 +2135,7 @@ def label_generate_single_preview(request, workspace_id, batch_id):
 
     # If you want serial always appended (like print), keep this:
     barcode_value = f"{base}{serial}" if base else ""
-    qr_value = barcode_value
+    qr_value = build_qr_payload(ean, gs1, user_values, items)
 
     barcode_img = make_barcode_png(barcode_value) if barcode_value else None
     qr_img = make_qr_png(qr_value) if qr_value else None
@@ -2309,7 +2310,7 @@ def label_batch_print(request, workspace_id, batch_id):
                 serial = str(j).zfill(serial_digits)
 
                 barcode_value = f"{base}{serial}" if base else ""
-                qr_value = barcode_value
+                qr_value = build_qr_payload(row.ean_code, row.gs1_code, row_values, items_ui)
 
                 barcode_img = make_barcode_png(barcode_value) if barcode_value else None
                 qr_img = make_qr_png(qr_value) if qr_value else None
@@ -2348,7 +2349,7 @@ def label_batch_print(request, workspace_id, batch_id):
 
             # In SINGLE flow EAN is mandatory, so base should exist, but keep fallback safe
             barcode_value = f"{base}{serial}" if base else serial
-            qr_value = barcode_value
+            qr_value = build_qr_payload(batch.ean_code, batch.gs1_code, user_values, items_ui)
 
             barcode_img = make_barcode_png(barcode_value) if barcode_value else None
             qr_img = make_qr_png(qr_value) if qr_value else None
