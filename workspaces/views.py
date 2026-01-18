@@ -30,6 +30,7 @@ from .utils.bulk_import import (
     validate_and_normalize_rows,
 )
 from .utils.qr_payload import build_qr_payload
+from django.db.models import Count
 
 WIZARD_SESSION_KEY = 'workspace_wizard'
 UI_MAX_SIDE_PX = 700.0  # single source of truth
@@ -2198,8 +2199,11 @@ def label_batch_history(request, workspace_id):
         return redirect("dashboard")
 
     batches = (
-        LabelBatch.objects.filter(workspace=workspace)
+        LabelBatch.objects
+        .filter(workspace=workspace)
         .select_related("template", "created_by")
+        .annotate(row_count=Count("items"))   # <-- LabelBatchItem related_name="items"
+        .order_by("-created_at")
     )
 
     return render(
@@ -2434,61 +2438,149 @@ def label_batch_export_csv(request, workspace_id, batch_id):
     batch = get_object_or_404(LabelBatch, id=batch_id, workspace=workspace)
     template = batch.template
 
-    # Get template fields in order
-    t_fields = LabelTemplateField.objects.filter(
-        template=template
-    ).order_by("order", "id")
+    # Layout (single source of truth for what fields exist)
+    stored = load_layout_from_template(template)
+    items = stored.get("items") or []
 
-    # Figure out which special fields exist
-    has_barcode = any((f.field_type or "").upper() == "BARCODE" for f in t_fields)
-    has_qr = any((f.field_type or "").upper() == "QRCODE" for f in t_fields)
+    # Variable columns (exclude shapes/static/barcode/qr/serial etc)
+    # Your helper now includes QUANTITY, EAN_CODE, GS1_CODE etc — but for export we’ll build a nicer sheet.
+    _, var_keys = build_expected_headers(items)
 
-    base_ean = batch.ean_code or ""
-    gs1 = batch.gs1_code or ""
-    barcode_value = f"{base_ean}{gs1}".strip()
+    # Determine if barcode/qr exist in template
+    has_barcode = any((it.get("field_type") or "").upper() == "BARCODE" for it in items)
+    has_qr = any((it.get("field_type") or "").upper() == "QRCODE" for it in items)
 
-    user_values = batch.field_values or {}
+    # Build a stable mapping key -> display name (prefer item.name)
+    key_to_name = {}
+    for it in items:
+        k = (it.get("key") or "").strip()
+        ft = (it.get("field_type") or "").upper()
+        if not k:
+            continue
+        # only map user-input keys
+        if ft in ("SHAPE", "STATIC_TEXT", "BARCODE", "QRCODE", "SERIAL"):
+            continue
+        key_to_name[k] = (it.get("name") or k).strip() or k
 
-    # Build rows: one row per label in the batch
+    # Variable columns in template order
+    var_cols = [key_to_name.get(k, k) for k in var_keys]
+
+    # CSV headers
+    # We export one row per printed label so history export stays useful for BOTH modes.
+    fieldnames = [
+        "Label Index",
+        "Row Index",
+        "Row Quantity",
+        "Row Serial",
+        "EAN Code",
+        "GS1 Code",
+    ]
+    if has_barcode:
+        fieldnames.append("Barcode Encoded")
+    if has_qr:
+        fieldnames.append("QR Encoded")
+
+    fieldnames += var_cols
+
     rows = []
-    for i in range(1, batch.quantity + 1):
-        serial_str = f"{i:03d}"
-        qr_value = f"{barcode_value}{serial_str}" if has_qr and barcode_value else ""
 
-        row = {
-            "Label Index": i,
-            "EAN Code": base_ean,
-            "GS1 Code": gs1,
-            "Barcode Encoded": barcode_value if has_barcode else "",
-            "QR Encoded": qr_value if has_qr else "",
-        }
+    def serial_digits_for(n: int) -> int:
+        return max(3, len(str(max(1, int(n or 1)))))
 
-        # Add all non-barcode/QR fields used in the template
-        for f in t_fields:
-            ft = (f.field_type or "").upper()
-            key = f.key
-            if ft in ("BARCODE", "QRCODE"):
-                continue  # handled in the special columns above
-            col_name = f.name or key
-            row[col_name] = user_values.get(key, "")
+    if batch.mode == LabelBatch.MODE_MULTI:
+        # MULTI: expand each imported row by its own quantity
+        label_index_global = 0
 
-        rows.append(row)
+        for row in batch.items.order_by("row_index"):
+            row_i = int(getattr(row, "row_index", 1) or 1)
+            row_qty = int(getattr(row, "quantity", 1) or 1)
+            row_qty = max(1, row_qty)
 
-    # Even if quantity is somehow 0, return a CSV with just headers
-    if rows:
-        fieldnames = list(rows[0].keys())
+            ean = (row.ean_code or "").strip()
+            gs1 = (row.gs1_code or "").strip()
+            base = f"{ean}{gs1}".strip()
+
+            fv = row.field_values or {}
+
+            sd = serial_digits_for(row_qty)
+
+            for j in range(1, row_qty + 1):
+                label_index_global += 1
+                row_serial = str(j).zfill(sd)
+
+                barcode_value = f"{base}{row_serial}" if base else ""
+                qr_value = barcode_value  # keep same as print logic
+
+                out = {
+                    "Label Index": label_index_global,
+                    "Row Index": row_i,
+                    "Row Quantity": row_qty,
+                    "Row Serial": row_serial,
+                    "EAN Code": ean,
+                    "GS1 Code": gs1,
+                }
+
+                if has_barcode:
+                    out["Barcode Encoded"] = barcode_value
+                if has_qr:
+                    out["QR Encoded"] = qr_value
+
+                # variable columns
+                for k in var_keys:
+                    col = key_to_name.get(k, k)
+                    out[col] = (fv.get(k, "") or "")
+
+                rows.append(out)
+
     else:
-        fieldnames = ["Label Index", "EAN Code", "GS1 Code", "Barcode Encoded", "QR Encoded"]
+        # SINGLE: expand by batch.quantity
+        qty = int(batch.quantity or 1)
+        qty = max(1, qty)
 
-    response = HttpResponse(content_type="text/csv")
+        ean = (batch.ean_code or "").strip()
+        gs1 = (batch.gs1_code or "").strip()
+        base = f"{ean}{gs1}".strip()
+
+        fv = batch.field_values or {}
+
+        sd = serial_digits_for(qty)
+
+        for i in range(1, qty + 1):
+            row_serial = str(i).zfill(sd)
+
+            barcode_value = f"{base}{row_serial}" if base else ""
+            qr_value = barcode_value
+
+            out = {
+                "Label Index": i,
+                "Row Index": 1,
+                "Row Quantity": qty,
+                "Row Serial": row_serial,
+                "EAN Code": ean,
+                "GS1 Code": gs1,
+            }
+
+            if has_barcode:
+                out["Barcode Encoded"] = barcode_value
+            if has_qr:
+                out["QR Encoded"] = qr_value
+
+            for k in var_keys:
+                col = key_to_name.get(k, k)
+                out[col] = (fv.get(k, "") or "")
+
+            rows.append(out)
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="label_batch_{batch.id}.csv"'
 
     writer = csv.DictWriter(response, fieldnames=fieldnames)
     writer.writeheader()
-    for row in rows:
-        writer.writerow(row)
+    for r in rows:
+        writer.writerow(r)
 
     return response
+
 
 @login_required
 def label_generate_multi_export_template(request, workspace_id, template_id):
