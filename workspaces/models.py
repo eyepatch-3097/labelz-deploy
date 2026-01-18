@@ -426,8 +426,8 @@ class LabelBatch(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     # Product codes
-    ean_code = models.CharField(max_length=64)
-    gs1_code = models.CharField(max_length=64, blank=True)
+    ean_code = models.CharField(max_length=64, blank=True, default="")
+    gs1_code = models.CharField(max_length=64, blank=True, default="")
     quantity = models.PositiveIntegerField(default=1)
 
     # User-supplied values for non-barcode/QR fields (by field.key)
@@ -438,3 +438,23 @@ class LabelBatch(models.Model):
 
     def __str__(self):
         return f"Batch #{self.id} – {self.template.name} ({self.quantity} labels)"
+
+class LabelBatchItem(models.Model):
+    batch = models.ForeignKey(
+        "LabelBatch",
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+
+    row_index = models.PositiveIntegerField(default=1)  # 1..N
+    ean_code = models.CharField(max_length=64)
+    gs1_code = models.CharField(max_length=64, blank=True, default="")
+
+    # variable values for this row (by template field key)
+    field_values = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["row_index", "id"]
+
+    def __str__(self):
+        return f"Batch #{self.batch_id} Row {self.row_index}"

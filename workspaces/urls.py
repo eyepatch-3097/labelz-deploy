@@ -87,4 +87,14 @@ urlpatterns = [
         views.label_batch_export_csv,
         name="label_batch_export_csv",
     ),
+    path(
+        "workspaces/<int:workspace_id>/templates/<int:template_id>/generate/multi/",
+        views.label_generate_multi,
+        name="label_generate_multi",
+    ),
+    path(
+        "workspaces/<int:workspace_id>/templates/<int:template_id>/generate/multi/export/",
+        views.label_generate_multi_export_template,
+        name="label_generate_multi_export_template",
+    ),
 ]

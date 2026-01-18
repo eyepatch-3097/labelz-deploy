@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 from accounts.models import User
-from .models import Workspace, WorkspaceField, WorkspaceMembership, OrgRoleChangeLog, LabelTemplate, LabelTemplateField, GlobalTemplate, GlobalTemplateField, LabelBatch
+from .models import Workspace, WorkspaceField, WorkspaceMembership, OrgRoleChangeLog, LabelTemplate, LabelTemplateField, GlobalTemplate, GlobalTemplateField, LabelBatch, LabelBatchItem
 from .forms import WorkspaceCreateStep1Form, ManualFieldsForm, LabelTemplateForm, TemplateDuplicateForm, GlobalTemplateForm
 import json
 from .utils.label_codes import make_barcode_png, make_qr_png
@@ -21,6 +21,14 @@ from .utils.layout_engine import save_layout_to_template, load_layout_from_templ
 from django.db import transaction
 import math
 from django.utils.safestring import mark_safe
+from .utils.bulk_import import (
+    build_expected_headers,
+    parse_csv_bytes,
+    parse_xlsx_bytes,
+    make_csv_template_bytes,
+    make_xlsx_template_bytes,
+    validate_and_normalize_rows,
+)
 
 WIZARD_SESSION_KEY = 'workspace_wizard'
 UI_MAX_SIDE_PX = 700.0  # single source of truth
@@ -1931,7 +1939,7 @@ def label_generate_start(request, workspace_id):
                     template_id=template_id,
                 )
             else:
-                messages.info(request, "Multi-SKU label generation is coming soon.")
+                return redirect("label_generate_multi", workspace_id=workspace.id, template_id=template_id)
 
     return render(
         request,
@@ -2083,15 +2091,48 @@ def label_generate_single_preview(request, workspace_id, batch_id):
 
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
-
     ui_px_per_cm = float(meta.get("ui_px_per_cm") or get_ui_px_per_cm(width_cm, height_cm))
     canvas_width, canvas_height = canvas_ui_size(width_cm, height_cm, ui_px_per_cm)
 
     canvas_bg = (template.canvas_bg_color or "#ffffff").strip() or "#ffffff"
-    user_values = batch.field_values or {}
 
+    # ----------------------------
+    # Pick the preview "row"
+    # ----------------------------
+    user_values = {}
+    ean = ""
+    gs1 = ""
     serial = "001"
-    base = ((batch.ean_code or "").strip()) + ((batch.gs1_code or "").strip())
+
+    if batch.mode == LabelBatch.MODE_MULTI:
+        first = batch.items.order_by("row_index").first()
+        if not first:
+            messages.error(request, "This bulk batch has no rows.")
+            return redirect("label_generate_multi", workspace_id=workspace.id, template_id=template.id)
+
+        user_values = first.field_values or {}
+        ean = (first.ean_code or "").strip()
+        gs1 = (first.gs1_code or "").strip()
+
+        # serial based on row_index if present (keeps preview aligned with print)
+        try:
+            total = batch.items.count()
+            serial_digits = max(3, len(str(total)))
+            row_i = int(getattr(first, "row_index", 1) or 1)
+            serial = str(row_i).zfill(serial_digits)
+        except Exception:
+            serial = "001"
+
+    else:
+        user_values = batch.field_values or {}
+        ean = (batch.ean_code or "").strip()
+        gs1 = (batch.gs1_code or "").strip()
+        serial = "001"
+
+    # ✅ IMPORTANT: base must come from the chosen data (row or batch)
+    base = f"{ean}{gs1}".strip()
+
+    # If you want serial always appended (like print), keep this:
     barcode_value = f"{base}{serial}" if base else ""
     qr_value = barcode_value
 
@@ -2109,7 +2150,7 @@ def label_generate_single_preview(request, workspace_id, batch_id):
 
         out = dict(it)
 
-        # ✅ normalize for renderer stability
+        # normalize for renderer stability
         out["field_type"] = ft
         out["text_align"] = norm_align(out.get("text_align"))
         out["show_label"] = bool(out.get("show_label", True))
@@ -2186,6 +2227,8 @@ def label_batch_print(request, workspace_id, batch_id):
     meta = stored.get("_meta") or {}
     items_ui = stored.get("items") or []
 
+    labels_payload = []
+
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
 
@@ -2240,36 +2283,93 @@ def label_batch_print(request, workspace_id, batch_id):
 
     base_items_mm = [item_to_mm(it) for it in items_ui]
 
-    # Build labels list (each label has its own barcode/qr images)
+    canvas_bg = (template.canvas_bg_color or "#ffffff").strip() or "#ffffff"
+
+    is_multi = (batch.mode == LabelBatch.MODE_MULTI)
+
+    # Build labels list (each label has its own values + barcode/qr images)
     labels = []
-    for i in range(1, qty + 1):
-        serial = str(i).zfill(serial_digits)
-        barcode_value = f"{base}{serial}" if base else serial
-        qr_value = barcode_value
 
-        barcode_img = make_barcode_png(barcode_value) if barcode_value else None
-        qr_img = make_qr_png(qr_value) if qr_value else None
+    if is_multi:
+        rows = list(batch.items.order_by("row_index"))
+        qty = len(rows)
 
-        label_items = []
-        for it in base_items_mm:
-            out = dict(it)
-            ft = out["field_type"]
-            key = (out.get("key") or "").strip()
+        # serial padding: at least 3 digits (based on number of rows)
+        serial_digits = max(3, len(str(qty or 1)))
 
-            if ft == "BARCODE":
-                out["value"] = barcode_value
-                out["image_data_url"] = barcode_img
-            elif ft == "QRCODE":
-                out["value"] = qr_value
-                out["image_data_url"] = qr_img
-            elif ft == "STATIC_TEXT":
-                out["value"] = out.get("static_value") or out.get("name") or ""
-            else:
-                out["value"] = user_values.get(key, "") if key else ""
+        for row in rows:
+            i = int(row.row_index or 1)
+            serial = str(i).zfill(serial_digits)
 
-            label_items.append(out)
+            row_values = row.field_values or {}
+            base = ((row.ean_code or "").strip()) + ((row.gs1_code or "").strip())
 
-        labels.append({"index": i, "serial": serial, "items": label_items})
+            # Since your import validation enforces EAN_CODE, base should exist.
+            barcode_value = f"{base}{serial}" if base else ""
+            qr_value = barcode_value
+
+            barcode_img = make_barcode_png(barcode_value) if barcode_value else None
+            qr_img = make_qr_png(qr_value) if qr_value else None
+
+            label_items = []
+            for it in base_items_mm:
+                out = dict(it)
+                ft = out["field_type"]
+                key = (out.get("key") or "").strip()
+
+                if ft == "BARCODE":
+                    out["value"] = barcode_value
+                    out["image_data_url"] = barcode_img
+                elif ft == "QRCODE":
+                    out["value"] = qr_value
+                    out["image_data_url"] = qr_img
+                elif ft == "STATIC_TEXT":
+                    out["value"] = out.get("static_value") or out.get("name") or ""
+                else:
+                    out["value"] = row_values.get(key, "") if key else ""
+
+                label_items.append(out)
+
+            labels.append({"index": i, "serial": serial, "items": label_items})
+
+    else:
+        user_values = batch.field_values or {}
+        base = ((batch.ean_code or "").strip()) + ((batch.gs1_code or "").strip())
+        qty = int(batch.quantity or 1)
+
+        # serial padding: at least 3 digits
+        serial_digits = max(3, len(str(qty)))
+
+        for i in range(1, qty + 1):
+            serial = str(i).zfill(serial_digits)
+
+            # In SINGLE flow EAN is mandatory, so base should exist, but keep fallback safe
+            barcode_value = f"{base}{serial}" if base else serial
+            qr_value = barcode_value
+
+            barcode_img = make_barcode_png(barcode_value) if barcode_value else None
+            qr_img = make_qr_png(qr_value) if qr_value else None
+
+            label_items = []
+            for it in base_items_mm:
+                out = dict(it)
+                ft = out["field_type"]
+                key = (out.get("key") or "").strip()
+
+                if ft == "BARCODE":
+                    out["value"] = barcode_value
+                    out["image_data_url"] = barcode_img
+                elif ft == "QRCODE":
+                    out["value"] = qr_value
+                    out["image_data_url"] = qr_img
+                elif ft == "STATIC_TEXT":
+                    out["value"] = out.get("static_value") or out.get("name") or ""
+                else:
+                    out["value"] = user_values.get(key, "") if key else ""
+
+                label_items.append(out)
+
+            labels.append({"index": i, "serial": serial, "items": label_items})
 
     # Print defaults (optional)
     d = template.print_defaults or {}
@@ -2385,3 +2485,116 @@ def label_batch_export_csv(request, workspace_id, batch_id):
         writer.writerow(row)
 
     return response
+
+@login_required
+def label_generate_multi_export_template(request, workspace_id, template_id):
+    user = request.user
+    workspace = get_object_or_404(Workspace, id=workspace_id)
+    org = workspace.org
+
+    if not user.org or user.org != org:
+        return HttpResponse("Unauthorized", status=403)
+
+    template = get_object_or_404(LabelTemplate, id=template_id, workspace=workspace)
+
+    stored = load_layout_from_template(template)
+    items = stored.get("items") or []
+    headers, _ = build_expected_headers(items)
+
+    fmt = (request.GET.get("format") or "csv").lower().strip()
+
+    if fmt == "xlsx":
+        content = make_xlsx_template_bytes(headers)
+        resp = HttpResponse(content, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        resp["Content-Disposition"] = f'attachment; filename="label_import_template_{template.id}.xlsx"'
+        return resp
+
+    # default CSV
+    content = make_csv_template_bytes(headers)
+    resp = HttpResponse(content, content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = f'attachment; filename="label_import_template_{template.id}.csv"'
+    return resp
+
+@login_required
+def label_generate_multi(request, workspace_id, template_id):
+    user = request.user
+    workspace = get_object_or_404(Workspace, id=workspace_id)
+    org = workspace.org
+
+    if not user.org or user.org != org:
+        messages.error(request, "You are not linked to this organisation.")
+        return redirect("dashboard")
+
+    template = get_object_or_404(LabelTemplate, id=template_id, workspace=workspace)
+
+    # membership check for non-admins
+    if user.role != user.ROLE_ADMIN:
+        if not WorkspaceMembership.objects.filter(workspace=workspace, user=user).exists():
+            messages.error(request, "You do not have access to this workspace.")
+            return redirect("my_workspaces")
+
+    stored = load_layout_from_template(template)
+    items = stored.get("items") or []
+    headers, var_keys = build_expected_headers(items)
+
+    if request.method == "POST":
+        f = request.FILES.get("import_file")
+        if not f:
+            messages.error(request, "Please upload a CSV or XLSX file.")
+            return redirect("label_generate_multi", workspace_id=workspace.id, template_id=template.id)
+
+        content = f.read()
+        name = (f.name or "").lower()
+
+        try:
+            if name.endswith(".xlsx"):
+                file_headers, rows = parse_xlsx_bytes(content)
+            else:
+                file_headers, rows = parse_csv_bytes(content)
+        except Exception:
+            messages.error(request, "Could not read the file. Please upload a valid CSV/XLSX.")
+            return redirect("label_generate_multi", workspace_id=workspace.id, template_id=template.id)
+
+        normalized_rows, errors = validate_and_normalize_rows(headers, var_keys, file_headers, rows)
+        if errors:
+            for e in errors[:10]:
+                messages.error(request, e)
+            if len(errors) > 10:
+                messages.error(request, f"...and {len(errors)-10} more issues.")
+            return redirect("label_generate_multi", workspace_id=workspace.id, template_id=template.id)
+
+        # Create MULTI batch + items
+        with transaction.atomic():
+            batch = LabelBatch.objects.create(
+                workspace=workspace,
+                template=template,
+                created_by=user,
+                mode=LabelBatch.MODE_MULTI,
+                quantity=len(normalized_rows),
+                ean_code="",
+                gs1_code="",
+                field_values={},  # unused in MULTI
+            )
+
+            for idx, r in enumerate(normalized_rows, start=1):
+                LabelBatchItem.objects.create(
+                    batch=batch,
+                    row_index=idx,
+                    ean_code=r["ean_code"],
+                    gs1_code=r.get("gs1_code") or "",
+                    field_values=r.get("field_values") or {},
+                )
+
+        messages.success(request, f"Imported {len(normalized_rows)} rows successfully.")
+        return redirect("label_generate_single_preview", workspace_id=workspace.id, batch_id=batch.id)
+
+    return render(
+        request,
+        "workspaces/label_generate_multi.html",
+        {
+            "workspace": workspace,
+            "template": template,
+            "headers": headers,
+            "var_keys": var_keys,
+        },
+    )

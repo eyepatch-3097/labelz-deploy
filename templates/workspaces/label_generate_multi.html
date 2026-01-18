@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Bulk Label Generation{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">Multiple Generation (Bulk Import)</h1>
+    <div class="text-muted small">
+      Template: <b>{{ template.name }}</b> · Download the file, fill rows, and upload to generate labels.
+    </div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'label_generate_start' workspace.id %}">← Back</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">1) Download Import Template</h5>
+        <p class="text-muted small mb-2">
+          Columns include EAN_CODE (required), GS1_CODE (optional), and all variable fields from the template.
+        </p>
+
+        <div class="d-flex gap-2">
+          <a class="btn btn-dark"
+             href="{% url 'label_generate_multi_export_template' workspace.id template.id %}?format=csv">
+            Download CSV
+          </a>
+          <a class="btn btn-outline-dark"
+             href="{% url 'label_generate_multi_export_template' workspace.id template.id %}?format=xlsx">
+            Download XLSX
+          </a>
+        </div>
+
+        <hr>
+
+        <div class="text-muted small">
+          <div class="mb-1"><b>Expected columns</b>:</div>
+          <div style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;">
+            {{ headers|join:", " }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">2) Upload Filled File</h5>
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-2">
+            <input class="form-control" type="file" name="import_file" accept=".csv,.xlsx" required>
+          </div>
+          <div class="text-muted small mb-3">
+            Rules: file must have at least 1 row · headers must match · EAN_CODE cannot be empty.
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Upload & Preview Row 1</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
