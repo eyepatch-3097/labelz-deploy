@@ -1,134 +1,562 @@
 {% extends "base.html" %}
-{% block title %}Print Labels – {{ template.name }}{% endblock %}
+{% block title %}Print Batch #{{ batch.id }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center my-3 no-print">
-    <h1 class="h5 mb-0">Print Labels – {{ template.name }}</h1>
+<style>
+  .bp-wrap{ max-width: 1320px; margin:0 auto; }
+  .bp-top{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:14px; }
+  .bp-meta{ color:#6b7280; font-size:13px; }
+  .bp-grid{ display:grid; grid-template-columns: 360px 1fr; gap:14px; align-items:start; }
+  .bp-panel{ background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:14px; }
+  .bp-row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .bp-row label{ font-size:12px; color:#6b7280; margin-bottom:5px; display:block; }
+  .bp-row input, .bp-row select{
+    width:100%;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:13px;
+    background:#fff;
+  }
+  .bp-actions{ display:flex; gap:10px; }
+  .bp-warn{ font-size:12px; color:#b45309; margin-top:8px; display:none; }
+  .bp-stat{ font-size:12px; color:#6b7280; margin-top:10px; }
+
+  /* Preview area */
+  #pagesViewport{
+    background:#0b0b0b;
+    border-radius:14px;
+    padding:14px;
+    overflow:auto;
+    height: calc(100vh - 210px);
+  }
+  #pagesWrap{
+    transform-origin: top left;
+  }
+
+  /* Paper pages */
+  .paper{
+    background:#fff;
+    position:relative;
+    margin: 0 0 14px 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,.25);
+  }
+  .paper.screen-outline{
+    outline: 1px dashed rgba(255,255,255,.35);
+    outline-offset: 4px;
+  }
+
+  .grid{
+    position:absolute;
+    display:grid;
+  }
+
+  /* Label itself */
+  .label{
+    width: calc(var(--label-w-mm) * 1mm);
+    height: calc(var(--label-h-mm) * 1mm);
+    background: var(--label-bg);
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* elements inside label */
+  .pl-el{ position:absolute; overflow:hidden; }
+  .pl-txt{
+    width:100%; height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    /* match UI padding but scaled */
+    padding:
+      calc(6 * var(--mm-per-px) * 1mm)
+      calc(8 * var(--mm-per-px) * 1mm);
+    gap: calc(4 * var(--mm-per-px) * 1mm);
+    overflow:hidden;
+  }
+  .pl-txt.center{ align-items:center; justify-content:center; font-weight:700; opacity:.65; }
+  .pl-lbl{ opacity:.9; font-size:0.85em; line-height:1.1; }
+  .pl-val{ line-height:1.1; word-break:break-word; }
+
+  .pl-img{ width:100%; height:100%; display:block; }
+  .pl-img.contain{ object-fit:contain; }
+  .pl-img.cover{ object-fit:cover; }
+
+  .pl-shape{ width:100%; height:100%; }
+  .pl-shape-CIRCLE{ border-radius:9999px; }
+  .pl-shape-TRIANGLE{ clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .pl-shape-STAR{ clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+  /* Print rules */
+  @media print{
+  @page{ margin: 0mm !important; }
+
+  html, body{
+    margin:0 !important;
+    padding:0 !important;
+    background:#fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force browsers to keep backgrounds/colors when allowed */
+  *{
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide app chrome coming from base.html */
+  nav, header, footer,
+  .navbar, .navbar * ,
+  .sidebar, .offcanvas, .toast, .toast-container,
+  .modal, .modal-backdrop{
+    display:none !important;
+    visibility:hidden !important;
+  }
+
+  .no-print{ display:none !important; }
+
+  #pagesViewport{
+    background:#fff !important;
+    padding:0 !important;
+    height:auto !important;
+    overflow:visible !important;
+  }
+
+  #pagesWrap{ transform:none !important; }
+
+  .paper{
+    box-shadow:none !important;
+    margin:0 !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .paper.screen-outline{ outline:none !important; }
+
+  /* Ensure label backgrounds render (when background graphics ON) */
+  .label, .pl-el, .pl-shape{
+    background-clip: padding-box !important;
+  }
+}
+</style>
+
+<style id="pageStyle"></style>
+
+<div class="bp-wrap">
+  <div class="bp-top">
     <div>
-      <a
-        href="{% url 'label_generate_single_preview' workspace.id batch.id %}"
-        class="btn btn-outline-secondary btn-sm"
-      >
-        Back
-      </a>
-      <button class="btn btn-primary btn-sm" onclick="window.print()">
-        Print
-      </button>
-    </div>
-  </div>
-
-  {# Each label is rendered in its own box #}
-  {% for label in labels %}
-  <div class="print-label-wrapper mb-4">
-    <!-- Top row per label (not printed) -->
-    <div class="d-flex justify-content-between align-items-center mb-2 no-print">
-      <span class="text-muted small">Label #{{ label.index }}</span>
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-secondary download-label-btn"
-        data-label-id="label-{{ label.index }}"
-      >
-        Download
-      </button>
-    </div>
-
-    <!-- The actual printable label area -->
-    <div
-      id="label-{{ label.index }}"
-      class="print-label border position-relative bg-white"
-      style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
-    >
-      {% for item in label.layout %}
-      <div
-        class="position-absolute small"
-        style="left: {{ item.x }}px; top: {{ item.y }}px;
-               width: {{ item.width }}px; height: {{ item.height }}px;"
-      >
-        {% if item.field_type == 'IMAGE_URL' %}
-          {% if item.value %}
-            <img
-              src="{{ item.value }}"
-              alt="{{ item.name }}"
-              style="max-width: 100%; max-height: 100%; object-fit: contain;"
-            />
-          {% endif %}
-        {% elif item.field_type == 'BARCODE' or item.field_type == 'QRCODE' %}
-          {% if item.image_data_url %}
-            <img
-              src="{{ item.image_data_url }}"
-              alt="{{ item.name }}"
-              style="max-width: 100%; max-height: 100%; object-fit: contain;"
-            />
-          {% else %}
-            <span class="text-muted">{{ item.value }}</span>
-          {% endif %}
-        {% else %}
-          <div class="text-uppercase" style="font-size: 10px; margin-bottom: 2px;">
-            {{ item.name }}
-          </div>
-          <div>{{ item.value }}</div>
-        {% endif %}
+      <h3 style="margin:0 0 6px 0;">Print Batch #{{ batch.id }}</h3>
+      <div class="bp-meta">
+        Qty: <b>{{ batch.quantity }}</b> · Template: <b>{{ template.name }}</b> · Label: <b>{{ label_w_mm|floatformat:1 }}×{{ label_h_mm|floatformat:1 }} mm</b>
       </div>
-      {% endfor %}
+      <div class="bp-meta" style="margin-top:4px;">
+        Tip: In print dialog keep <b>Scale = 100%</b> and disable “Fit to page”.
+      </div>
+    </div>
+    <div class="bp-actions no-print" style="align-items:center;">
+  <a class="btn btn-outline-secondary" href="{% url 'label_generate_single_preview' workspace.id batch.id %}">← Back</a>
+
+  <button class="btn btn-outline-secondary" type="button" id="fitWidthBtn">Fit Width</button>
+  <button class="btn btn-outline-secondary" type="button" id="fitPageBtn">Fit Page</button>
+
+  <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #2a2a2a;border-radius:12px;">
+    <span style="font-size:12px;opacity:.8;">Zoom</span>
+    <input id="zoomRange" type="range" min="0.3" max="2.5" step="0.05" value="1.2" />
+    <span id="zoomLabel" style="font-size:12px;opacity:.8;min-width:48px;text-align:right;">120%</span>
+  </div>
+
+  <button class="btn btn-primary" id="printBtn" type="button">Print</button>
+</div>
+
+  </div>
+
+  <div class="bp-grid">
+    <!-- Settings -->
+    <div class="bp-panel no-print">
+      <h5 style="margin:0 0 10px 0;color:#9E63DF">Print Settings</h5>
+
+      <div class="bp-row">
+        <div>
+          <label>Stock Type</label>
+          <select id="stockType">
+            <option value="SHEET">Sheet</option>
+            <option value="ROLL">Thermal Roll (continuous)</option>
+          </select>
+        </div>
+        <div>
+          <label>Orientation</label>
+          <select id="orientation">
+            <option value="PORTRAIT">Portrait</option>
+            <option value="LANDSCAPE">Landscape</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="height:10px;"></div>
+
+      <div class="bp-row">
+        <div>
+          <label>Page Size (Sheet)</label>
+          <select id="pageSize">
+            <option value="A4">A4</option>
+            <option value="LETTER">Letter</option>
+            <option value="CUSTOM">Custom</option>
+          </select>
+        </div>
+        <div>
+          <label>Labels per Row</label>
+          <input id="labelsPerRow" type="number" min="1" max="10" value="2">
+        </div>
+      </div>
+
+      <div class="bp-row" id="customSizeRow" style="display:none; margin-top:10px;">
+        <div>
+          <label>Custom Page Width (mm)</label>
+          <input id="customW" type="number" min="50" value="210">
+        </div>
+        <div>
+          <label>Custom Page Height (mm)</label>
+          <input id="customH" type="number" min="50" value="297">
+        </div>
+      </div>
+
+      <div style="height:10px;"></div>
+
+      <div class="bp-row">
+        <div>
+          <label>Gap X (mm)</label>
+          <input id="gapX" type="number" min="0" step="0.1" value="3">
+        </div>
+        <div>
+          <label>Gap Y (mm)</label>
+          <input id="gapY" type="number" min="0" step="0.1" value="3">
+        </div>
+      </div>
+
+      <div style="height:10px;"></div>
+
+      <div class="bp-row">
+        <div>
+          <label>Margins L / T (mm)</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <input id="mLeft" type="number" min="0" step="0.1" value="5">
+            <input id="mTop" type="number" min="0" step="0.1" value="5">
+          </div>
+          <div class="bp-meta" style="margin-top:4px;">Left, Top</div>
+        </div>
+        <div>
+          <label>Margins R / B (mm)</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <input id="mRight" type="number" min="0" step="0.1" value="5">
+            <input id="mBottom" type="number" min="0" step="0.1" value="5">
+          </div>
+          <div class="bp-meta" style="margin-top:4px;">Right, Bottom</div>
+        </div>
+      </div>
+
+      <div style="height:10px;"></div>
+
+      <div class="bp-row">
+        <div>
+          <label>Start Offset X (mm)</label>
+          <input id="offX" type="number" step="0.1" value="0">
+        </div>
+        <div>
+          <label>Start Offset Y (mm)</label>
+          <input id="offY" type="number" step="0.1" value="0">
+        </div>
+      </div>
+
+      <div class="bp-warn" id="warnBox"></div>
+      <div class="bp-stat" id="stats"></div>
+    </div>
+
+    <!-- Preview -->
+    <div id="pagesViewport">
+      <div id="pagesWrap"></div>
     </div>
   </div>
+</div>
+
+{# hidden label pool (we paginate by moving nodes into pages) #}
+<div id="allLabels" style="display:none;" style="--label-w-mm: {{ label_w_mm }}; --label-h-mm: {{ label_h_mm }};">
+  {% for L in labels %}
+    <div class="label"
+         data-idx="{{ L.index }}"
+         style="--label-w-mm: {{ label_w_mm }}; --label-h-mm: {{ label_h_mm }}; --label-bg: {{ canvas_bg_color }};">
+      {% include "workspaces/_label_print_label.html" with items=L.items mm_per_px=mm_per_px %}
+    </div>
   {% endfor %}
 </div>
 
-<style>
-  /* Try hard to keep each label on a single printed page */
-  .print-label-wrapper,
-  .print-label {
-    page-break-inside: avoid;
-    break-inside: avoid;
-    -webkit-region-break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-  }
-
-  @media print {
-    .no-print {
-      display: none !important;
-    }
-
-    .print-label-wrapper,
-    .print-label {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-
-    body {
-      margin: 0;
-    }
-
-    /* Optional: control page margins for nicer fit */
-    @page {
-      margin: 10mm;
-    }
-  }
-</style>
-
-<!-- html2canvas for per-label download -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".download-label-btn").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        const targetId = this.dataset.labelId;
-        const labelEl = document.getElementById(targetId);
-        if (!labelEl) return;
+  const PAGE_SIZES = {{ page_sizes_json|safe }};
 
-        html2canvas(labelEl, {
-          scale: 2,      // higher scale ⇒ sharper png for printing
-          useCORS: true,
-        }).then((canvas) => {
-          const link = document.createElement("a");
-          link.download = targetId + ".png";
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-        });
-      });
-    });
+  const defaults = {{ defaults|safe }};
+  const qty = {{ batch.quantity|default:1 }};
+
+  const labelW = {{ label_w_mm|floatformat:4 }};
+  const labelH = {{ label_h_mm|floatformat:4 }};
+
+  const allLabels = Array.from(document.querySelectorAll("#allLabels .label"));
+
+  const pagesWrap = document.getElementById("pagesWrap");
+  const warnBox = document.getElementById("warnBox");
+  const stats = document.getElementById("stats");
+  const pageStyle = document.getElementById("pageStyle");
+
+  // inputs
+  const stockType = document.getElementById("stockType");
+  const orientation = document.getElementById("orientation");
+  const pageSize = document.getElementById("pageSize");
+  const customSizeRow = document.getElementById("customSizeRow");
+  const customW = document.getElementById("customW");
+  const customH = document.getElementById("customH");
+
+  const labelsPerRow = document.getElementById("labelsPerRow");
+  const gapX = document.getElementById("gapX");
+  const gapY = document.getElementById("gapY");
+
+  const mLeft = document.getElementById("mLeft");
+  const mTop = document.getElementById("mTop");
+  const mRight = document.getElementById("mRight");
+  const mBottom = document.getElementById("mBottom");
+
+  const offX = document.getElementById("offX");
+  const offY = document.getElementById("offY");
+
+  function setDefaults(){
+    stockType.value = defaults.stock_type || "SHEET";
+    orientation.value = defaults.orientation || "PORTRAIT";
+    pageSize.value = defaults.page_size || "A4";
+    customW.value = defaults.custom_w_mm || 210;
+    customH.value = defaults.custom_h_mm || 297;
+    labelsPerRow.value = defaults.labels_per_row || 2;
+    gapX.value = defaults.gap_x_mm ?? 3;
+    gapY.value = defaults.gap_y_mm ?? 3;
+    mLeft.value = defaults.margin_left_mm ?? 5;
+    mTop.value = defaults.margin_top_mm ?? 5;
+    mRight.value = defaults.margin_right_mm ?? 5;
+    mBottom.value = defaults.margin_bottom_mm ?? 5;
+    offX.value = defaults.offset_x_mm ?? 0;
+    offY.value = defaults.offset_y_mm ?? 0;
+  }
+
+  function getPageWH(){
+    let w, h;
+
+    if (stockType.value === "ROLL"){
+      // One label per page on roll
+      return { w: labelW, h: labelH };
+    }
+
+    // SHEET
+    let sizeKey = pageSize.value;
+    if (sizeKey === "CUSTOM"){
+      w = parseFloat(customW.value || "210");
+      h = parseFloat(customH.value || "297");
+    } else {
+      w = PAGE_SIZES[sizeKey].w;
+      h = PAGE_SIZES[sizeKey].h;
+    }
+
+    // orientation
+    if (orientation.value === "LANDSCAPE"){
+      return { w: h, h: w };
+    }
+    return { w, h };
+  }
+
+  function updatePageCss(w, h){
+    // This drives browser print preview page size
+    pageStyle.textContent =
+      `@page{ size: ${w}mm ${h}mm; margin: 0mm; }`;
+  }
+
+  function clearPages(){
+    // move all labels back to pool
+    const pool = document.getElementById("allLabels");
+    allLabels.forEach(n => pool.appendChild(n));
+    pagesWrap.innerHTML = "";
+  }
+
+  function paginate(){
+    clearPages();
+
+    const { w: pageW, h: pageH } = getPageWH();
+    updatePageCss(pageW, pageH);
+
+    const cols = (stockType.value === "ROLL") ? 1 : Math.max(1, parseInt(labelsPerRow.value || "1", 10));
+    const gx = (stockType.value === "ROLL") ? 0 : Math.max(0, parseFloat(gapX.value || "0"));
+    const gy = (stockType.value === "ROLL") ? 0 : Math.max(0, parseFloat(gapY.value || "0"));
+
+    const ml = Math.max(0, parseFloat(mLeft.value || "0"));
+    const mt = Math.max(0, parseFloat(mTop.value || "0"));
+    const mr = Math.max(0, parseFloat(mRight.value || "0"));
+    const mb = Math.max(0, parseFloat(mBottom.value || "0"));
+
+    const ox = Math.max(0, parseFloat(offX.value || "0"));
+    const oy = Math.max(0, parseFloat(offY.value || "0"));
+
+    // available area
+    const availW = pageW - ml - mr - ox;
+    const availH = pageH - mt - mb - oy;
+
+    // compute rows that fit
+    const reqW = cols * labelW + (cols - 1) * gx;
+
+    let warning = "";
+    if (reqW > availW + 0.0001){
+      warning = `Your settings overflow page width. Needed ${reqW.toFixed(1)}mm, available ${availW.toFixed(1)}mm. Reduce labels/row or gap or margins.`;
+    }
+
+    let rows = 1;
+    if (stockType.value === "SHEET"){
+      rows = Math.floor((availH + gy) / (labelH + gy));
+      rows = Math.max(1, rows);
+    }
+
+    const perPage = cols * rows;
+    const pages = Math.ceil(allLabels.length / perPage);
+
+    warnBox.style.display = warning ? "block" : "none";
+    warnBox.textContent = warning;
+
+    stats.textContent =
+      `Page: ${pageW.toFixed(1)}×${pageH.toFixed(1)}mm · Grid: ${cols}×${rows} · ${perPage} labels/page · ${pages} page(s)`;
+
+    // build pages and append labels
+    let idx = 0;
+    for (let p = 0; p < pages; p++){
+      const paper = document.createElement("div");
+      paper.className = "paper screen-outline";
+      paper.style.width = `calc(${pageW} * 1mm)`;
+      paper.style.height = `calc(${pageH} * 1mm)`;
+      paper.style.pageBreakAfter = "always";
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      grid.style.left = `calc(${(ml + ox)} * 1mm)`;
+      grid.style.top = `calc(${(mt + oy)} * 1mm)`;
+      grid.style.columnGap = `calc(${gx} * 1mm)`;
+      grid.style.rowGap = `calc(${gy} * 1mm)`;
+      grid.style.gridTemplateColumns = `repeat(${cols}, calc(${labelW} * 1mm))`;
+      grid.style.gridAutoRows = `calc(${labelH} * 1mm)`;
+
+      paper.appendChild(grid);
+      pagesWrap.appendChild(paper);
+
+      for (let j = 0; j < perPage && idx < allLabels.length; j++, idx++){
+        grid.appendChild(allLabels[idx]);
+      }
+    }
+
+    setZoom(parseFloat(zoomRange.value || "1.2"));
+  }
+
+const zoomRange = document.getElementById("zoomRange");
+const zoomLabel = document.getElementById("zoomLabel");
+const fitWidthBtn = document.getElementById("fitWidthBtn");
+const fitPageBtn = document.getElementById("fitPageBtn");
+
+function setZoom(z){
+  const clamped = Math.max(0.3, Math.min(2.5, z));
+  pagesWrap.style.transform = `scale(${clamped})`;
+  zoomRange.value = clamped.toFixed(2);
+  zoomLabel.textContent = `${Math.round(clamped * 100)}%`;
+}
+
+function computeFitWidthScale(){
+  const viewport = document.getElementById("pagesViewport");
+  const firstPaper = pagesWrap.querySelector(".paper");
+  if (!firstPaper) return 1;
+
+  const pxPerMm = 96 / 25.4;
+  // firstPaper width is calc(X * 1mm) => extract X reliably:
+  const wStr = firstPaper.style.width || "";
+  const match = wStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
+  const paperWmm = match ? parseFloat(match[1]) : 210;
+  const paperWpx = paperWmm * pxPerMm;
+
+  const available = viewport.clientWidth - 40;
+  return available / paperWpx;
+}
+
+function computeFitPageScale(){
+  const viewport = document.getElementById("pagesViewport");
+  const firstPaper = pagesWrap.querySelector(".paper");
+  if (!firstPaper) return 1;
+
+  const pxPerMm = 96 / 25.4;
+
+  const wStr = firstPaper.style.width || "";
+  const hStr = firstPaper.style.height || "";
+  const mw = wStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
+  const mh = hStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
+
+  const paperWmm = mw ? parseFloat(mw[1]) : 210;
+  const paperHmm = mh ? parseFloat(mh[1]) : 297;
+
+  const paperWpx = paperWmm * pxPerMm;
+  const paperHpx = paperHmm * pxPerMm;
+
+  const availW = viewport.clientWidth - 40;
+  const availH = viewport.clientHeight - 40;
+
+  return Math.min(availW / paperWpx, availH / paperHpx);
+}
+
+// Hook up controls
+zoomRange.addEventListener("input", () => setZoom(parseFloat(zoomRange.value || "1")));
+fitWidthBtn.addEventListener("click", () => setZoom(computeFitWidthScale()));
+fitPageBtn.addEventListener("click", () => setZoom(computeFitPageScale()));
+
+window.addEventListener("resize", () => {
+  // keep whatever user set, don’t auto-shrink
+  setZoom(parseFloat(zoomRange.value || "1"));
+});
+
+  // UI toggles
+  function updateCustomRow(){
+    const isCustom = pageSize.value === "CUSTOM";
+    customSizeRow.style.display = isCustom ? "grid" : "none";
+  }
+
+  // Print
+  document.getElementById("printBtn").addEventListener("click", ()=>{
+    // ensure correct pagination then print
+    paginate();
+    window.print();
   });
+
+  // bindings
+  [stockType, orientation, pageSize, customW, customH, labelsPerRow, gapX, gapY, mLeft, mTop, mRight, mBottom, offX, offY]
+    .forEach(el => el.addEventListener("change", ()=>{
+      updateCustomRow();
+      paginate();
+    }));
+
+  window.addEventListener("resize", fitPreview);
+
+  // init
+  setDefaults();
+  updateCustomRow();
+
+  // disable some controls for roll
+  function applyStockUi(){
+    const isRoll = stockType.value === "ROLL";
+    pageSize.disabled = isRoll;
+    orientation.disabled = isRoll;
+    labelsPerRow.disabled = isRoll;
+    gapX.disabled = isRoll;
+    gapY.disabled = isRoll;
+    customW.disabled = isRoll;
+    customH.disabled = isRoll;
+  }
+  stockType.addEventListener("change", applyStockUi);
+  applyStockUi();
+
+  paginate();
 </script>
 {% endblock %}

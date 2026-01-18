@@ -2,17 +2,20 @@
 {% block title %}Single SKU Labels – {{ template.name }}{% endblock %}
 
 {% block content %}
+<style>
+  
+</style>
 <div class="row justify-content-center">
   <div class="col-lg-9">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h1 class="h4 mb-1">Generate Labels (Single SKU)</h1>
+        <h1 class="h4 mb-1" style="color: #9E63DF">Generate Labels (Single SKU)</h1>
         <p class="text-muted small mb-0">
           Workspace: {{ workspace.name }} · Template: {{ template.name }}
         </p>
       </div>
       <a href="{% url 'label_generate_start' workspace.id %}"
-         class="btn btn-link btn-sm">← Back</a>
+         class="btn btn-link btn-sm" style="padding: 10px 14px; border: 2px solid #9E63DF; background-color: #9E63DF; text-decoration: none; color: white; font-size: 14px;">← Back</a>
     </div>
 
     <form method="post" class="card shadow-sm">
@@ -34,6 +37,7 @@
               </span>
             </label>
             <input
+              style="border: 2px solid #9E63DF"
               type="text"
               name="field_{{ f.key }}"
               class="form-control form-control-sm"
@@ -49,13 +53,13 @@
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="form-label small">EAN Code <span class="text-danger">*</span></label>
-            <input type="text" name="ean_code"
+            <input style="border: 2px solid #9E63DF" type="text" name="ean_code"
                    class="form-control form-control-sm"
                    value="{{ ean_code }}">
           </div>
           <div class="col-md-6 mb-3">
             <div class="form-check mt-4">
-              <input class="form-check-input" type="checkbox" id="hasGs1Check"
+              <input style="border: 2px solid #9E63DF" class="form-check-input" type="checkbox" id="hasGs1Check"
                      name="has_gs1" {% if has_gs1 %}checked{% endif %}>
               <label class="form-check-label small" for="hasGs1Check">
                 Do you have GS1 Codes?
@@ -67,7 +71,7 @@
         <div class="row" id="gs1Row" {% if not has_gs1 %}style="display:none"{% endif %}>
           <div class="col-md-6 mb-3">
             <label class="form-label small">GS1 Code</label>
-            <input type="text" name="gs1_code"
+            <input style="border: 2px solid #9E63DF" type="text" name="gs1_code"
                    class="form-control form-control-sm"
                    value="{{ gs1_code }}">
           </div>
@@ -78,7 +82,7 @@
         <div class="row">
           <div class="col-md-4 mb-3">
             <label class="form-label small">Quantity (max 500)</label>
-            <input type="number" name="quantity"
+            <input style="border: 2px solid #9E63DF" type="number" name="quantity"
                    class="form-control form-control-sm"
                    min="1" max="500"
                    value="{{ quantity }}">

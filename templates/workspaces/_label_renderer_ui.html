@@ -1,0 +1,134 @@
+<style>
+  /* stage must be exact; no padding or border-radius for true WYSIWYG */
+  .lr-stage{
+    position:relative;
+    padding:0 !important;
+    margin:0;
+    overflow:hidden;
+    border: 1px solid rgba(0,0,0,.12);
+    border-radius: 0;
+    box-sizing: content-box;
+  }
+  .lr-stage *{ box-sizing:border-box; }
+
+  .lr-el{
+    position:absolute;
+    overflow:hidden;
+  }
+
+  /* text box matches canvas/template preview */
+  .lr-txt{
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    padding:6px 8px;
+    gap:4px;
+    overflow:hidden;
+  }
+  .lr-lbl{
+    opacity:.9;
+    font-size:0.85em;
+    line-height:1.1;
+  }
+  .lr-val{
+    line-height:1.1;
+    word-break:break-word;
+  }
+
+  /* barcode/qr/image fit rules */
+  .lr-img{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .lr-img.contain{ object-fit:contain; }
+  .lr-img.cover{ object-fit:cover; }
+
+  /* shapes */
+  .lr-shape{ width:100%; height:100%; }
+  .lr-shape-CIRCLE{ border-radius:9999px; }
+  .lr-shape-TRIANGLE{ clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .lr-shape-STAR{ clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+</style>
+
+<div class="lr-stage"
+     style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; background: {{ canvas_bg_color }};">
+  {% for it in items %}
+    {% with ft=it.field_type|default:"TEXT"|upper %}
+      <div class="lr-el"
+           style="
+             left: {{ it.x|default:0 }}px;
+             top: {{ it.y|default:0 }}px;
+             width: {{ it.width|default:1 }}px;
+             height: {{ it.height|default:1 }}px;
+             z-index: {{ it.z_index|default:0 }};
+             {% if it.bg_color and it.bg_color != 'transparent' %}background: {{ it.bg_color }};{% endif %}
+           ">
+
+        {# SHAPE #}
+        {% if ft == "SHAPE" %}
+          <div class="lr-shape lr-shape-{{ it.shape_type|default:'RECT'|upper }}"
+               style="background: {{ it.shape_color|default:'#000000' }};"></div>
+
+        {# BARCODE / QRCODE #}
+        {% elif ft == "BARCODE" or ft == "QRCODE" %}
+          {% if it.image_data_url %}
+            <img class="lr-img contain" src="{{ it.image_data_url }}" alt="{{ ft }}">
+          {% else %}
+            <div class="lr-txt" style="justify-content:center; text-align:center; font-weight:700; opacity:.7;">
+              [{{ ft }}]
+            </div>
+          {% endif %}
+
+        {# IMAGE_URL #}
+        {% elif ft == "IMAGE_URL" %}
+          {% if it.value %}
+            <img class="lr-img cover" src="{{ it.value }}" alt="image">
+          {% else %}
+            <div class="lr-txt" style="justify-content:center; text-align:center; font-weight:700; opacity:.6;">
+              IMAGE
+            </div>
+          {% endif %}
+
+        {# STATIC_TEXT #}
+        {% elif ft == "STATIC_TEXT" %}
+          <div class="lr-txt"
+               style="
+                 font-family: {{ it.font_family|default:'Inter' }};
+                 font-size: {{ it.font_size|default:14 }}px;
+                 font-weight: {% if it.font_bold %}700{% else %}400{% endif %};
+                 font-style: {% if it.font_italic %}italic{% else %}normal{% endif %};
+                 text-decoration: {% if it.font_underline %}underline{% else %}none{% endif %};
+                 color: {{ it.text_color|default:'#000000' }};
+                 text-align: {{ it.text_align|default:'left' }};
+               ">
+            <div class="lr-val">{{ it.value }}</div>
+          </div>
+
+        {# TEXT / PRICE / SERIAL etc #}
+        {% else %}
+          <div class="lr-txt"
+               style="
+                 font-family: {{ it.font_family|default:'Inter' }};
+                 font-size: {{ it.font_size|default:14 }}px;
+                 font-weight: {% if it.font_bold %}700{% else %}400{% endif %};
+                 font-style: {% if it.font_italic %}italic{% else %}normal{% endif %};
+                 text-decoration: {% if it.font_underline %}underline{% else %}none{% endif %};
+                 color: {{ it.text_color|default:'#000000' }};
+                 text-align: {{ it.text_align|default:'left' }};
+               ">
+
+            {% if it.show_label %}
+              <div class="lr-lbl">{{ it.name|default:it.key }}</div>
+            {% endif %}
+
+            <div class="lr-val">{{ it.value }}</div>
+          </div>
+        {% endif %}
+
+      </div>
+    {% endwith %}
+  {% endfor %}
+</div>

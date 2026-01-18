@@ -1,398 +1,1226 @@
-{% extends "base.html" %} {% block title %}Design Template – {{ template.name
-}}{% endblock %} {% block content %}
+{% extends "base.html" %}
+{% block title %}Design Template – {{ template.name }}{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --border:#e5e7eb;
+    --muted:#6b7280;
+    --panel:#ffffff;
+    --bg:#000000;
+    --shadow:0 10px 25px rgba(0,0,0,.08);
+  }
+  .lt-shell{ background:var(--bg); padding:14px; }
+  .lt-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .lt-title{ margin:0; font-size:22px; font-weight:700; }
+  .lt-sub{ margin:4px 0 0; font-size:12px; }
+  .lt-grid{ display:grid; grid-template-columns: 320px 1fr; gap:12px; align-items:start; }
+  .panel{ background:#000; box-shadow:var(--shadow); }
+  .panel-h{ padding:10px 12px; font-weight:700; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .panel-b{ padding:10px 12px; }
+  .pill{ font-size:11px; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+  .btnx{ border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 10px; font-weight:600; font-size:13px; cursor:pointer; }
+  .btnx.primary{ background:#111827; color:#fff; border-color:#111827; }
+  .btnx:disabled{ opacity:.6; cursor:not-allowed; }
+  .row2{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .sep{ height:10px; }
+
+  /* field list */
+  .list{ display:flex; flex-direction:column; gap:8px; }
+  .item{ border:1px solid #A769ED; border-radius:12px; padding:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .item small{ color:var(--muted); display:block; margin-top:2px; font-size:11px; }
+  .item .meta{ min-width:0; }
+  .item .meta b{ display:block; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item .actions{ display:flex; gap:6px; }
+  .item .actions button{ padding:6px 8px; border-radius:10px; }
+
+  /* canvas + rulers */
+  .canvas-wrap{
+    display:grid;
+    grid-template-columns: 28px auto;
+    grid-template-rows: 28px auto;
+    gap:0;
+    width: fit-content;
+    user-select:none;
+  }
+  .ruler-x{
+    grid-column:2; grid-row:1;
+    height:28px;
+    position:relative;
+    border:1px solid var(--border);
+    border-left:none;
+    border-bottom:none;
+    background:
+      linear-gradient(to right, rgba(0,0,0,.22) 1px, transparent 1px),
+      linear-gradient(to right, rgba(0,0,0,.10) 1px, transparent 1px);
+    background-size:
+      calc(var(--px-per-cm) * 1) 100%,
+      calc(var(--px-per-cm) * .5) 100%;
+  }
+  .ruler-y{
+    grid-column:1; grid-row:2;
+    width:28px;
+    position:relative;
+    border:1px solid var(--border);
+    border-top:none;
+    border-right:none;
+    background:
+      linear-gradient(to bottom, rgba(0,0,0,.22) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,0,0,.10) 1px, transparent 1px);
+    background-size:
+      100% calc(var(--px-per-cm) * 1),
+      100% calc(var(--px-per-cm) * .5);
+  }
+  .ruler-corner{
+    grid-column:1; grid-row:1;
+    border:1px solid var(--border);
+    background:#f3f4f6;
+  }
+  .ruler-label{
+    position:absolute;
+    font-size:10px;
+    color:var(--muted);
+    transform: translate(-50%, 0);
+    top:6px;
+    pointer-events:none;
+  }
+  .ruler-label-y{
+    position:absolute;
+    font-size:10px;
+    color:var(--muted);
+    left:6px;
+    transform: translate(0, -50%);
+    pointer-events:none;
+  }
+
+  #labelCanvas{
+    grid-column:2; grid-row:2;
+    position:relative;
+    border:1px solid var(--border);
+    overflow:hidden;
+    background: var(--canvas-bg, #ffffff);
+  }
+
+  /* field box */
+  .field-box{
+    position:absolute;
+    border:1px dashed rgba(0,0,0,.25);
+    box-sizing:border-box;
+    padding:0;
+    background: transparent;
+    cursor:move;
+  }
+  .field-box.selected{
+    outline:2px solid #2563eb;
+    outline-offset:1px;
+  }
+  .box-inner{
+    width:100%;
+    height:100%;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:6px 8px;
+    overflow:hidden;
+  }
+  .box-name{
+    font-size: calc(var(--fs) * .85);
+    opacity:.85;
+    margin-bottom:2px;
+    line-height:1.1;
+  }
+  .box-value{
+    font-size: var(--fs);
+    line-height:1.12;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+    white-space:pre-wrap;
+  }
+  .box-name, .box-value{
+    font-family: var(--ff);
+    font-weight: var(--fw);
+    font-style: var(--fst);
+    text-decoration: var(--fdec);
+    color: var(--tc);
+    text-align: var(--ta);
+  }
+
+  /* delete + resize */
+  .box-del{
+    position:absolute;
+    top:-10px;
+    right:-10px;
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    cursor:pointer;
+  }
+  .field-box:hover .box-del{ display:flex; }
+
+  .resize-handle{
+    position:absolute;
+    width:12px; height:12px;
+    right:-6px; bottom:-6px;
+    background:#fff;
+    border:1px solid rgba(0,0,0,.25);
+    border-radius:4px;
+    display:none;
+    cursor:nwse-resize;
+  }
+  .field-box:hover .resize-handle{ display:block; }
+
+  /* shapes */
+  .shape{
+    width:100%;
+    height:100%;
+    background: var(--shape, #000);
+  }
+  .shape.circle{ border-radius:50%; }
+  .shape.triangle{ clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .shape.star{
+    clip-path: polygon(
+      50% 0%,
+      61% 35%,
+      98% 35%,
+      68% 57%,
+      79% 91%,
+      50% 70%,
+      21% 91%,
+      32% 57%,
+      2% 35%,
+      39% 35%
+    );
+  }
+
+  /* inspector */
+  .ins-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .ins-grid label{ font-size:12px; color:var(--muted); margin-bottom:4px; display:block; }
+  .ins-grid input, .ins-grid select{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:13px;
+    background:#fff;
+  }
+  .toggles{ display:flex; gap:6px; flex-wrap:wrap; }
+  .tbtn{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:10px;
+    padding:7px 9px;
+    font-weight:700;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .tbtn.on{ background:#111827; color:#fff; border-color:#111827; }
+  .hint{ font-size:12px; color:var(--muted); }
+  .mini{ font-size:11px; color:var(--muted); }
+  .colorrow{ display:flex; gap:8px; align-items:center; }
+  .colorrow input[type="color"]{ width:44px; height:38px; padding:0; border-radius:10px; border:1px solid var(--border); background:#fff; }
+  .checkrow{ display:flex; gap:8px; align-items:center; }
+
+.panel-h span {
+  color: #A769ED;
+}
+
+.panel-h .pill {
+  border-radius: 20px;
+  border: 2px solid #A769ED;
+  padding: 4px 8px;
+}
+
+.customFieldType {
+  border: 1px solid #A769ED;
+  background: #000;
+  color: #fff;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 14px;
+}
+</style>
+
+<script id="existingLayoutJson" type="application/json">{{ existing_layout|safe }}</script>
+
 <div class="row justify-content-center">
   <div class="col-lg-11">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h1 class="h4 mb-1">Design Template: {{ template.name }}</h1>
-        <p class="text-muted mb-0">
-          Workspace: <strong>{{ workspace.name }}</strong> ({{ org.name }}) ·
-          Size: {{ template.width_cm }} × {{ template.height_cm }} cm @ {{
-          template.dpi }} DPI
-        </p>
-      </div>
-      <a
-        href="{% url 'label_template_list' workspace.id %}"
-        class="btn btn-link btn-sm"
-      >
-        ← Back to Templates
-      </a>
-    </div>
-
-    <div class="row">
-      <!-- Variables panel -->
-      <div class="col-md-3 mb-3">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h2 class="h6 mb-2">Variables</h2>
-            <p class="text-muted small">
-              Click “Add” to place a field on the canvas, then drag to position.
-            </p>
-
-            <ul class="list-group mb-3">
-              {% for f in workspace_fields %}
-              <li
-                class="list-group-item py-1 px-2 d-flex justify-content-between align-items-center"
-              >
-                <span class="small">{{ f.name }}</span>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary btn-add-field"
-                  data-name="{{ f.name }}"
-                  data-key="{{ f.key }}"
-                  data-field-type="{{ f.field_type }}"
-                  data-workspace-field-id="{{ f.id }}"
-                >
-                  Add
-                </button>
-              </li>
-              {% endfor %}
-            </ul>
-
-            <h2 class="h6 mb-2">Special Fields</h2>
-            <ul class="list-group mb-3">
-              <li
-                class="list-group-item py-1 px-2 d-flex justify-content-between align-items-center"
-              >
-                <span class="small">Barcode</span>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary btn-add-field"
-                  data-name="Barcode"
-                  data-key="barcode"
-                  data-field-type="{{ workspace_fields.model.FIELD_BARCODE }}"
-                  data-workspace-field-id=""
-                >
-                  Add
-                </button>
-              </li>
-              <li
-                class="list-group-item py-1 px-2 d-flex justify-content-between align-items-center"
-              >
-                <span class="small">QR Code</span>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary btn-add-field"
-                  data-name="QR Code"
-                  data-key="qrcode"
-                  data-field-type="{{ workspace_fields.model.FIELD_QR }}"
-                  data-workspace-field-id=""
-                >
-                  Add
-                </button>
-              </li>
-            </ul>
-
-            <h2 class="h6 mb-2">New Custom Field</h2>
-            <div class="mb-2">
-              <label class="form-label small mb-1">Field Name</label>
-              <input
-                type="text"
-                id="newFieldName"
-                class="form-control form-control-sm"
-              />
-            </div>
-            <div class="mb-2">
-              <label class="form-label small mb-1">Field Type</label>
-              <select id="newFieldType" class="form-select form-select-sm">
-                <option value="TEXT">Text</option>
-                <option value="IMAGE_URL">Image URL</option>
-                <option value="PRICE">Price</option>
-                <option value="SERIAL">Serial Number</option>
-                <option value="BARCODE">Barcode</option>
-                <option value="QRCODE">QR Code</option>
-                <option value="STATIC_TEXT">Static Text</option>
-                <option value="SHAPE">Shape</option>
-              </select>
-            </div>
-            <button
-              type="button"
-              id="btnAddCustomField"
-              class="btn btn-sm btn-success"
-            >
-              Add Custom Field
-            </button>
+    <div class="lt-shell">
+      <div class="lt-top">
+        <div>
+          <h1 class="lt-title">Design Template: {{ template.name }}</h1>
+          <div class="lt-sub">
+            Workspace: <b>{{ workspace.name }}</b> ({{ org.name }}) ·
+            Size: {{ width_cm|floatformat:2 }} × {{ height_cm|floatformat:2 }} cm @ {{ dpi }} DPI ·
+            UI px/cm: <b>{{ ui_px_per_cm|floatformat:2 }}</b>
           </div>
+        </div>
+        <div class="row2">
+          <a href="{% url 'label_template_list' workspace.id %}" class="btnx">← Back</a>
+          <button type="button" class="btnx primary" id="saveBtnTop">Save & Preview</button>
         </div>
       </div>
 
-      <!-- Canvas -->
-      <div class="col-md-9 mb-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h2 class="h6 mb-2">Canvas</h2>
-            <p class="text-muted small">
-              Drag fields to position them. Click ✕ to remove a field from this
-              canvas (it will remain available in the list).
-            </p>
+      <form method="post" id="canvasForm">
+        {% csrf_token %}
+        <input type="hidden" name="layout_data" id="layoutData">
+        <input type="hidden" name="canvas_bg_color" id="canvasBgInput" value="{{ canvas_bg_color }}">
 
-            <form method="post" id="canvasForm">
-              {% csrf_token %}
-              <div
-                id="labelCanvas"
-                class="border position-relative bg-light"
-                style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
-              ></div>
+        <div class="lt-grid">
+          <!-- LEFT -->
+          <div class="panel">
+            <div class="panel-h">
+              <span>Fields</span>
+              <span class="pill">Workspace</span>
+            </div>
+            <div class="panel-b">
 
-              <!-- Selected field size controls -->
-              <div class="row mt-3">
-                <div class="col-md-3">
-                  <label class="form-label small">Selected Width (px)</label>
-                  <input
-                    type="number"
-                    id="selectedWidth"
-                    class="form-control form-control-sm"
-                  />
+              <div class="hint">Add variables / special fields / shapes.</div>
+              <div class="sep"></div>
+
+              <div class="hint" style="font-size: 14px;font-weight:700; color:#A769ED;">Variables</div>
+              <div class="list" style="margin-top:8px;">
+                {% for f in workspace_fields %}
+                <div class="item">
+                  <div class="meta">
+                    <b>{{ f.name }}</b>
+                    <small>{{ f.field_type }}</small>
+                  </div>
+                  <div class="actions">
+                    <button type="button"
+                      class="btnx btn-add-field"
+                      data-name="{{ f.name }}"
+                      data-key="{{ f.key }}"
+                      data-field-type="{{ f.field_type }}"
+                      data-workspace-field-id="{{ f.id }}">
+                      Add
+                    </button>
+                  </div>
                 </div>
-                <div class="col-md-3">
-                  <label class="form-label small">Selected Height (px)</label>
-                  <input
-                    type="number"
-                    id="selectedHeight"
-                    class="form-control form-control-sm"
-                  />
+                {% endfor %}
+              </div>
+
+              <div class="sep"></div>
+
+              <div class="hint" style="font-weight:700; color:#111827;">Special</div>
+              <div class="list" style="margin-top:8px;">
+                <div class="item">
+                  <div class="meta">
+                    <b>Barcode</b>
+                    <small>BARCODE</small>
+                  </div>
+                  <div class="actions">
+                    <button type="button" class="btnx btn-add-field"
+                      data-name="Barcode" data-key="barcode"
+                      data-field-type="BARCODE" data-workspace-field-id="">
+                      Add
+                    </button>
+                  </div>
                 </div>
-                <div class="col-md-6">
-                  <p class="small text-muted mt-4" id="selectedFieldLabel">
-                    No field selected.
-                  </p>
+
+                <div class="item">
+                  <div class="meta">
+                    <b>QR Code</b>
+                    <small>QRCODE</small>
+                  </div>
+                  <div class="actions">
+                    <button type="button" class="btnx btn-add-field"
+                      data-name="QR Code" data-key="qrcode"
+                      data-field-type="QRCODE" data-workspace-field-id="">
+                      Add
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <input type="hidden" name="layout_data" id="layoutData" />
+              <div class="sep"></div>
 
-              <div class="d-flex justify-content-end gap-2 mt-3">
-                <a
-                  href="{% url 'label_template_list' workspace.id %}"
-                  class="btn btn-outline-secondary"
-                >
-                  Cancel
-                </a>
-                <button type="submit" class="btn btn-primary">
-                  Save &amp; Preview
-                </button>
+              <div class="hint" style="font-weight:700; color:#111827;">Shapes</div>
+              <div class="list" style="margin-top:8px;">
+                <div class="item"><div class="meta"><b>Rectangle</b><small>SHAPE · RECT</small></div>
+                  <div class="actions"><button type="button" class="btnx btn-add-shape" data-shape-type="RECT">Add</button></div>
+                </div>
+                <div class="item"><div class="meta"><b>Circle</b><small>SHAPE · CIRCLE</small></div>
+                  <div class="actions"><button type="button" class="btnx btn-add-shape" data-shape-type="CIRCLE">Add</button></div>
+                </div>
+                <div class="item"><div class="meta"><b>Triangle</b><small>SHAPE · TRIANGLE</small></div>
+                  <div class="actions"><button type="button" class="btnx btn-add-shape" data-shape-type="TRIANGLE">Add</button></div>
+                </div>
+                <div class="item"><div class="meta"><b>Star</b><small>SHAPE · STAR</small></div>
+                  <div class="actions"><button type="button" class="btnx btn-add-shape" data-shape-type="STAR">Add</button></div>
+                </div>
               </div>
-            </form>
+
+              <div class="sep"></div>
+
+              <div class="hint" style="font-size:14px;font-weight:700; color:#A769ED;">New Custom Field</div>
+              <div style="margin-top:8px;">
+                <label class="hint" style="color:#fff; padding: 5px">Field Name</label>
+                <input type="text" id="newFieldName" placeholder="e.g., Brand / MRP / Care"
+                       style="width:100%; margin-bottom:8px;" class="customFieldType">
+
+                <label class="hint" style="color:#fff; padding: 5px">Field Type</label>
+                <select id="newFieldType" style="width:100%; margin-bottom:8px; border-radius: 10px; padding: 8px 10px; font-size: 13px; background: #fff;">
+                  <option value="TEXT">Text</option>
+                  <option value="IMAGE_URL">Image URL</option>
+                  <option value="PRICE">Price</option>
+                  <option value="SERIAL">Serial</option>
+                  <option value="STATIC_TEXT">Static Text</option>
+                </select>
+
+                <button type="button" id="btnAddCustomField" class="btnx">Add Custom Field</button>
+              </div>
+
+              <div class="sep"></div>
+
+              <div class="hint" style="font-weight:700; color:#111827;">Layers</div>
+              <div id="layersList" class="list" style="margin-top:8px;"></div>
+
+            </div>
           </div>
+
+          <!-- RIGHT -->
+          <div class="panel">
+            <div class="panel-h">
+              <span>Canvas</span>
+              <div class="row2">
+                <span class="hint">Canvas BG</span>
+                <input type="color" id="canvasBgPicker" value="{{ canvas_bg_color }}">
+                <button type="button" class="btnx" id="saveBtn">Save & Preview</button>
+              </div>
+            </div>
+
+            <div class="panel-b">
+              <div class="hint" style="margin-bottom:10px;">
+                Drag to move · drag corner to resize · click to edit formatting · ❌ to delete · z-index in inspector/layers.
+              </div>
+
+              <div class="canvas-wrap"
+                   id="canvasWrap"
+                   style="--px-per-cm: {{ ui_px_per_cm }}px; --canvas-bg: {{ canvas_bg_color }};">
+                <div class="ruler-corner" style="background-color: #000;"></div>
+                <div class="ruler-x" id="rulerX"></div>
+                <div class="ruler-y" id="rulerY"></div>
+
+                <div id="labelCanvas"
+                     style="width: {{ canvas_width }}px; height: {{ canvas_height }}px;">
+                </div>
+              </div>
+
+              <div class="sep"></div>
+
+              <div class="panel" style="box-shadow:none;">
+                <div class="panel-h">
+                  <span>Inspector</span>
+                  <span class="pill" id="selMeta">No field selected</span>
+                </div>
+                <div class="panel-b">
+
+                  <div class="ins-grid">
+                    <div>
+                      <label>Font Family</label>
+                      <select id="insFontFamily">
+                        <option value="Inter">Inter</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label>Font Size (px)</label>
+                      <input type="number" id="insFontSize" min="6" max="200" value="14">
+                    </div>
+
+                    <div>
+                      <label>Alignment</label>
+                      <select id="insAlign">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label>Font Color</label>
+                      <div class="colorrow">
+                        <input type="color" id="insTextColorPicker" value="#000000">
+                        <input type="text" id="insTextColor" placeholder="#000000">
+                      </div>
+                      <div class="mini">Pick or paste hex</div>
+                    </div>
+
+                    <div>
+                      <label>Field BG</label>
+                      <div class="colorrow">
+                        <input type="color" id="insBgColorPicker" value="#ffffff">
+                        <input type="text" id="insBgColor" placeholder="transparent or #ffffff">
+                      </div>
+                      <div class="checkrow" style="margin-top:6px;">
+                        <input type="checkbox" id="insBgTransparent">
+                        <label for="insBgTransparent" style="margin:0; font-size:12px; color:var(--muted);">Transparent</label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label>Z Index</label>
+                      <input type="number" id="insZ" value="0">
+                    </div>
+
+                    <div>
+                      <label>Show Label</label>
+                      <select id="insShowLabel">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="sep"></div>
+
+                  <div class="toggles">
+                    <button type="button" class="tbtn" id="togBold"><b>B</b></button>
+                    <button type="button" class="tbtn" id="togItalic"><i>I</i></button>
+                    <button type="button" class="tbtn" id="togUnderline"><u>U</u></button>
+                    <button type="button" class="tbtn" id="bringFront">Bring Front</button>
+                    <button type="button" class="tbtn" id="sendBack">Send Back</button>
+                    <button type="button" class="tbtn" id="deleteSel">Delete</button>
+                  </div>
+
+                  <div class="sep"></div>
+
+                  <div id="shapeInspector" style="display:none;">
+                    <div class="ins-grid">
+                      <div>
+                        <label>Shape Type</label>
+                        <select id="insShapeType">
+                          <option value="RECT">Rectangle</option>
+                          <option value="CIRCLE">Circle</option>
+                          <option value="TRIANGLE">Triangle</option>
+                          <option value="STAR">Star</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label>Shape Color</label>
+                        <div class="colorrow">
+                          <input type="color" id="insShapeColorPicker" value="#000000">
+                          <input type="text" id="insShapeColor" placeholder="#000000">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sep"></div>
+
+                  <div class="hint">
+                    Tip: For background image, add IMAGE_URL field, resize to full canvas, set z-index low (e.g., -10), BG transparent.
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
         </div>
-      </div>
+      </form>
     </div>
   </div>
 </div>
 
 <script>
-  (function () {
-    const canvas = document.getElementById("labelCanvas");
-    const layoutInput = document.getElementById("layoutData");
-    const existingLayout = {{ existing_layout|safe }};
+(function(){
+  const canvas = document.getElementById("labelCanvas");
+  const layoutInput = document.getElementById("layoutData");
 
-    const widthInput = document.getElementById("selectedWidth");
-    const heightInput = document.getElementById("selectedHeight");
-    const selectedLabel = document.getElementById("selectedFieldLabel");
+  // safe JSON read
+  let existingLayout = [];
+  try {
+    existingLayout = JSON.parse(document.getElementById("existingLayoutJson").textContent || "[]");
+  } catch(e) { existingLayout = []; }
 
-    let selectedBox = null;
+  const canvasBgPicker = document.getElementById("canvasBgPicker");
+  const canvasBgInput = document.getElementById("canvasBgInput");
+  const canvasWrap = document.getElementById("canvasWrap");
+  const layersList = document.getElementById("layersList");
 
-    function selectBox(box) {
-      if (selectedBox && selectedBox !== box) {
-        selectedBox.classList.remove("border-primary");
-      }
-      selectedBox = box;
-      if (selectedBox) {
-        selectedBox.classList.add("border-primary");
-        widthInput.value = selectedBox.offsetWidth;
-        heightInput.value = selectedBox.offsetHeight;
-        selectedLabel.textContent = "Editing: " + selectedBox.dataset.name + " (" + selectedBox.dataset.key + ")";
-      } else {
-        widthInput.value = "";
-        heightInput.value = "";
-        selectedLabel.textContent = "No field selected.";
+  // Inspector
+  const selMeta = document.getElementById("selMeta");
+  const insFontFamily = document.getElementById("insFontFamily");
+  const insFontSize = document.getElementById("insFontSize");
+  const insAlign = document.getElementById("insAlign");
+
+  const insTextColorPicker = document.getElementById("insTextColorPicker");
+  const insTextColor = document.getElementById("insTextColor");
+
+  const insBgColorPicker = document.getElementById("insBgColorPicker");
+  const insBgColor = document.getElementById("insBgColor");
+  const insBgTransparent = document.getElementById("insBgTransparent");
+
+  const insZ = document.getElementById("insZ");
+  const insShowLabel = document.getElementById("insShowLabel");
+
+  const togBold = document.getElementById("togBold");
+  const togItalic = document.getElementById("togItalic");
+  const togUnderline = document.getElementById("togUnderline");
+  const bringFront = document.getElementById("bringFront");
+  const sendBack = document.getElementById("sendBack");
+  const deleteSel = document.getElementById("deleteSel");
+
+  const shapeInspector = document.getElementById("shapeInspector");
+  const insShapeType = document.getElementById("insShapeType");
+  const insShapeColorPicker = document.getElementById("insShapeColorPicker");
+  const insShapeColor = document.getElementById("insShapeColor");
+
+  let selected = null;
+  let dragState = null;
+
+  function uid(prefix){ return (prefix || "id") + "_" + Math.random().toString(16).slice(2,8); }
+  function boolStr(v){ return (v === true || v === "true"); }
+  function clamp(n, min, max){ return Math.max(min, Math.min(n, max)); }
+
+  function isValidHexColor(s){
+    if (!s) return false;
+    s = String(s).trim();
+    return /^#[0-9a-fA-F]{6}$/.test(s);
+  }
+
+  // prevent duplicate "input-style" fields (keeps generate form sane)
+  function isInputFieldType(ft){
+    ft = (ft||"").toUpperCase();
+    return !["SHAPE","STATIC_TEXT","BARCODE","QRCODE","IMAGE_URL"].includes(ft);
+  }
+  function findExistingByKeyType(key, ft){
+    const boxes = Array.from(canvas.querySelectorAll(".field-box"));
+    return boxes.find(b => (b.dataset.key||"") === key && (b.dataset.fieldType||"") === ft);
+  }
+
+  function sampleValue(ft, name){
+    ft = (ft||"").toUpperCase();
+    if (ft === "PRICE") return "₹999";
+    if (ft === "SERIAL") return "001";
+    if (ft === "STATIC_TEXT") return name || "Static text";
+    if (ft === "BARCODE") return "[BARCODE]";
+    if (ft === "QRCODE") return "[QR]";
+    if (ft === "IMAGE_URL") return "IMAGE";
+    if (ft === "SHAPE") return "";
+    return "Sample";
+  }
+
+  function applyBoxStyle(box){
+    const fs = parseInt(box.dataset.fontSize || "14", 10);
+    const ff = box.dataset.fontFamily || "Inter";
+    const bold = boolStr(box.dataset.fontBold);
+    const italic = boolStr(box.dataset.fontItalic);
+    const underline = boolStr(box.dataset.fontUnderline);
+    const ta = box.dataset.textAlign || "left";
+    const tc = box.dataset.textColor || "#000000";
+    const bg = box.dataset.bgColor || "transparent";
+    const z = parseInt(box.dataset.zIndex || "0", 10);
+
+    box.style.zIndex = String(z);
+    box.style.setProperty("--fs", fs + "px");
+    box.style.setProperty("--ff", ff);
+    box.style.setProperty("--fw", bold ? "700" : "400");
+    box.style.setProperty("--fst", italic ? "italic" : "normal");
+    box.style.setProperty("--fdec", underline ? "underline" : "none");
+    box.style.setProperty("--ta", ta);
+    box.style.setProperty("--tc", tc);
+
+    const inner = box.querySelector(".box-inner");
+    if (inner) inner.style.background = bg;
+
+    if ((box.dataset.fieldType || "").toUpperCase() === "SHAPE"){
+      const st = (box.dataset.shapeType || "RECT").toUpperCase();
+      const sc = box.dataset.shapeColor || "#000000";
+      box.style.setProperty("--shape", sc);
+      const shape = box.querySelector(".shape");
+      if (shape){
+        shape.classList.toggle("circle", st === "CIRCLE");
+        shape.classList.toggle("triangle", st === "TRIANGLE");
+        shape.classList.toggle("star", st === "STAR");
       }
     }
+  }
 
-    function createFieldBox(field) {
-      const box = document.createElement("div");
-      box.className = "field-box border bg-white px-2 py-1 small position-absolute";
-      box.style.left = (field.x || 10) + "px";
-      box.style.top = (field.y || 10) + "px";
-      box.style.width = (field.width || 140) + "px";
-      box.style.height = (field.height || 32) + "px";
-      box.dataset.name = field.name;
-      box.dataset.key = field.key;
-      box.dataset.fieldType = field.field_type;
-      box.dataset.workspaceFieldId = field.workspace_field_id || "";
+  function updateBoxContent(box){
+    const ft = (box.dataset.fieldType || "").toUpperCase();
+    const showLabel = boolStr(box.dataset.showLabel);
+    const inner = box.querySelector(".box-inner");
+    if (!inner) return;
+    inner.innerHTML = "";
 
-      box.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center h-100">
-          <span>${field.name}</span>
-          <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2 btn-remove-field">&times;</button>
+    if (ft === "SHAPE"){
+      const st = (box.dataset.shapeType || "RECT").toUpperCase();
+      const shape = document.createElement("div");
+      shape.className = "shape" + (st === "CIRCLE" ? " circle" : st === "TRIANGLE" ? " triangle" : st === "STAR" ? " star" : "");
+      inner.appendChild(shape);
+      inner.style.padding = "0px";
+      return;
+    }
+
+    inner.style.padding = "6px 8px";
+
+    if (showLabel && ft !== "STATIC_TEXT"){
+      const name = document.createElement("div");
+      name.className = "box-name";
+      name.textContent = box.dataset.name || "";
+      inner.appendChild(name);
+    }
+
+    const val = document.createElement("div");
+    val.className = "box-value";
+    val.textContent = sampleValue(ft, box.dataset.name);
+    inner.appendChild(val);
+  }
+
+  function setSelected(box){
+    if (selected && selected !== box) selected.classList.remove("selected");
+    selected = box;
+
+    if (!selected){
+      selMeta.textContent = "No field selected";
+      shapeInspector.style.display = "none";
+      return;
+    }
+
+    selected.classList.add("selected");
+    selMeta.textContent = `${selected.dataset.name} (${selected.dataset.key})`;
+
+    insFontFamily.value = selected.dataset.fontFamily || "Inter";
+    insFontSize.value = selected.dataset.fontSize || "14";
+    insAlign.value = selected.dataset.textAlign || "left";
+
+    const tc = selected.dataset.textColor || "#000000";
+    insTextColor.value = tc;
+    if (isValidHexColor(tc)) insTextColorPicker.value = tc;
+
+    const bg = (selected.dataset.bgColor || "transparent").trim();
+    const isTrans = (bg === "transparent" || bg === "");
+    insBgTransparent.checked = isTrans;
+    insBgColor.value = isTrans ? "transparent" : bg;
+    if (!isTrans && isValidHexColor(bg)) insBgColorPicker.value = bg;
+
+    insZ.value = selected.dataset.zIndex || "0";
+    insShowLabel.value = boolStr(selected.dataset.showLabel) ? "true" : "false";
+
+    togBold.classList.toggle("on", boolStr(selected.dataset.fontBold));
+    togItalic.classList.toggle("on", boolStr(selected.dataset.fontItalic));
+    togUnderline.classList.toggle("on", boolStr(selected.dataset.fontUnderline));
+
+    const ft = (selected.dataset.fieldType || "").toUpperCase();
+    if (ft === "SHAPE"){
+      shapeInspector.style.display = "block";
+      insShapeType.value = (selected.dataset.shapeType || "RECT").toUpperCase();
+      const sc = selected.dataset.shapeColor || "#000000";
+      insShapeColor.value = sc;
+      if (isValidHexColor(sc)) insShapeColorPicker.value = sc;
+    } else {
+      shapeInspector.style.display = "none";
+    }
+  }
+
+  function rebuildLayers(){
+    layersList.innerHTML = "";
+    const boxes = Array.from(canvas.querySelectorAll(".field-box"));
+    boxes.sort((a,b)=> (parseInt(a.dataset.zIndex||"0",10) - parseInt(b.dataset.zIndex||"0",10)));
+
+    boxes.forEach((box)=>{
+      const row = document.createElement("div");
+      row.className = "item";
+      row.style.cursor = "pointer";
+      row.innerHTML = `
+        <div class="meta">
+          <b>${box.dataset.name || "Field"}</b>
+          <small>z: ${box.dataset.zIndex || 0}</small>
+        </div>
+        <div class="actions">
+          <button type="button" class="btnx" data-act="up">▲</button>
+          <button type="button" class="btnx" data-act="down">▼</button>
         </div>
       `;
 
-      box.addEventListener("click", function (e) {
-        if (e.target.classList.contains("btn-remove-field")) return;
-        selectBox(box);
+      row.addEventListener("click", (e)=>{
+        if (e.target && e.target.dataset && e.target.dataset.act) return;
+        setSelected(box);
       });
 
-      makeDraggable(box);
-      canvas.appendChild(box);
+      row.querySelector('[data-act="up"]').addEventListener("click",(e)=>{
+        e.stopPropagation();
+        box.dataset.zIndex = String(parseInt(box.dataset.zIndex||"0",10) + 1);
+        applyBoxStyle(box);
+        rebuildLayers();
+      });
+      row.querySelector('[data-act="down"]').addEventListener("click",(e)=>{
+        e.stopPropagation();
+        box.dataset.zIndex = String(parseInt(box.dataset.zIndex||"0",10) - 1);
+        applyBoxStyle(box);
+        rebuildLayers();
+      });
+
+      layersList.appendChild(row);
+    });
+  }
+
+  function createBox(field){
+    const box = document.createElement("div");
+    box.className = "field-box";
+    box.style.left = (field.x || 10) + "px";
+    box.style.top = (field.y || 10) + "px";
+    box.style.width = (field.width || 140) + "px";
+    box.style.height = (field.height || 40) + "px";
+
+    box.dataset.dbId = field.db_id || "";
+    box.dataset.name = field.name || "Field";
+    box.dataset.key = field.key || "";
+    box.dataset.fieldType = field.field_type || "TEXT";
+    box.dataset.workspaceFieldId = field.workspace_field_id || "";
+
+    box.dataset.zIndex = (field.z_index ?? 0);
+
+    box.dataset.fontFamily = field.font_family || "Inter";
+    box.dataset.fontSize = (field.font_size ?? 14);
+    box.dataset.fontBold = (!!field.font_bold);
+    box.dataset.fontItalic = (!!field.font_italic);
+    box.dataset.fontUnderline = (!!field.font_underline);
+    box.dataset.textAlign = field.text_align || "left";
+    box.dataset.textColor = field.text_color || "#000000";
+    box.dataset.bgColor = field.bg_color || "transparent";
+    box.dataset.showLabel = (field.show_label === undefined) ? true : !!field.show_label;
+
+    box.dataset.shapeType = field.shape_type || "RECT";
+    box.dataset.shapeColor = field.shape_color || "#000000";
+
+    box.innerHTML = `
+      <div class="box-del" title="Delete">×</div>
+      <div class="box-inner"></div>
+      <div class="resize-handle" title="Resize"></div>
+    `;
+
+    box.querySelector(".box-del").addEventListener("click",(e)=>{
+      e.stopPropagation();
+      if (selected === box) setSelected(null);
+      box.remove();
+      rebuildLayers();
+    });
+
+    box.addEventListener("mousedown",(e)=>{
+      const target = e.target;
+
+      if (target.classList.contains("resize-handle")){
+        e.preventDefault();
+        setSelected(box);
+        dragState = {
+          type:"resize",
+          el: box,
+          startX: e.clientX,
+          startY: e.clientY,
+          startW: box.offsetWidth,
+          startH: box.offsetHeight
+        };
+        return;
+      }
+
+      if (target.classList.contains("box-del")) return;
+
+      e.preventDefault();
+      setSelected(box);
+      dragState = {
+        type:"move",
+        el: box,
+        startX: e.clientX,
+        startY: e.clientY,
+        startLeft: box.offsetLeft,
+        startTop: box.offsetTop
+      };
+    });
+
+    applyBoxStyle(box);
+    updateBoxContent(box);
+    canvas.appendChild(box);
+  }
+
+  document.addEventListener("mousemove",(e)=>{
+    if (!dragState) return;
+
+    const el = dragState.el;
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+
+    if (dragState.type === "move"){
+      const dx = e.clientX - dragState.startX;
+      const dy = e.clientY - dragState.startY;
+
+      let nx = dragState.startLeft + dx;
+      let ny = dragState.startTop + dy;
+
+      nx = clamp(nx, 0, cw - el.offsetWidth);
+      ny = clamp(ny, 0, ch - el.offsetHeight);
+
+      el.style.left = nx + "px";
+      el.style.top = ny + "px";
+    } else if (dragState.type === "resize"){
+      const dx = e.clientX - dragState.startX;
+      const dy = e.clientY - dragState.startY;
+
+      let nw = clamp(dragState.startW + dx, 10, cw - el.offsetLeft);
+      let nh = clamp(dragState.startH + dy, 10, ch - el.offsetTop);
+
+      el.style.width = nw + "px";
+      el.style.height = nh + "px";
+      updateBoxContent(el);
+    }
+  });
+
+  document.addEventListener("mouseup",()=>{ dragState = null; });
+
+  canvas.addEventListener("click",(e)=>{
+    if (e.target === canvas) setSelected(null);
+  });
+
+  function applyInspector(){
+    if (!selected) return;
+
+    selected.dataset.fontFamily = insFontFamily.value || "Inter";
+    selected.dataset.fontSize = insFontSize.value || "14";
+    selected.dataset.textAlign = insAlign.value || "left";
+
+    const tc = (insTextColor.value || "#000000").trim();
+    selected.dataset.textColor = tc;
+
+    if (insBgTransparent.checked){
+      selected.dataset.bgColor = "transparent";
+    } else {
+      selected.dataset.bgColor = (insBgColor.value || "#ffffff").trim();
     }
 
-    function makeDraggable(el) {
-      let isDown = false;
-      let offset = [0, 0];
+    selected.dataset.zIndex = insZ.value || "0";
+    selected.dataset.showLabel = (insShowLabel.value === "true");
 
-      el.addEventListener("mousedown", function (e) {
-        if (e.target.classList.contains("btn-remove-field")) {
+    applyBoxStyle(selected);
+    updateBoxContent(selected);
+    rebuildLayers();
+  }
+
+  // keep picker+text synced
+  insTextColorPicker.addEventListener("change", ()=>{
+    insTextColor.value = insTextColorPicker.value;
+    applyInspector();
+  });
+  insTextColor.addEventListener("change", ()=>{
+    if (isValidHexColor(insTextColor.value)) insTextColorPicker.value = insTextColor.value.trim();
+    applyInspector();
+  });
+
+  insBgColorPicker.addEventListener("change", ()=>{
+    insBgTransparent.checked = false;
+    insBgColor.value = insBgColorPicker.value;
+    applyInspector();
+  });
+  insBgColor.addEventListener("change", ()=>{
+    const v = (insBgColor.value || "").trim();
+    if (v === "transparent"){
+      insBgTransparent.checked = true;
+    } else if (isValidHexColor(v)){
+      insBgColorPicker.value = v;
+      insBgTransparent.checked = false;
+    }
+    applyInspector();
+  });
+  insBgTransparent.addEventListener("change", ()=>{
+    if (insBgTransparent.checked) insBgColor.value = "transparent";
+    applyInspector();
+  });
+
+  [insFontFamily, insFontSize, insAlign, insZ, insShowLabel].forEach(inp=>{
+    inp.addEventListener("change", applyInspector);
+    inp.addEventListener("keyup", applyInspector);
+  });
+
+  function toggleAttr(btn, attr){
+    if (!selected) return;
+    const cur = boolStr(selected.dataset[attr]);
+    selected.dataset[attr] = (!cur);
+    btn.classList.toggle("on", !cur);
+    applyBoxStyle(selected);
+    updateBoxContent(selected);
+  }
+
+  togBold.addEventListener("click", ()=>toggleAttr(togBold,"fontBold"));
+  togItalic.addEventListener("click", ()=>toggleAttr(togItalic,"fontItalic"));
+  togUnderline.addEventListener("click", ()=>toggleAttr(togUnderline,"fontUnderline"));
+
+  bringFront.addEventListener("click", ()=>{
+    if (!selected) return;
+    selected.dataset.zIndex = String(parseInt(selected.dataset.zIndex||"0",10) + 5);
+    applyBoxStyle(selected); rebuildLayers();
+  });
+  sendBack.addEventListener("click", ()=>{
+    if (!selected) return;
+    selected.dataset.zIndex = String(parseInt(selected.dataset.zIndex||"0",10) - 5);
+    applyBoxStyle(selected); rebuildLayers();
+  });
+
+  deleteSel.addEventListener("click", ()=>{
+    if (!selected) return;
+    selected.remove();
+    setSelected(null);
+    rebuildLayers();
+  });
+
+  // shape inspector
+  insShapeType.addEventListener("change", ()=>{
+    if (!selected) return;
+    selected.dataset.shapeType = insShapeType.value;
+    updateBoxContent(selected);
+    applyBoxStyle(selected);
+  });
+  insShapeColorPicker.addEventListener("change", ()=>{
+    insShapeColor.value = insShapeColorPicker.value;
+    if (!selected) return;
+    selected.dataset.shapeColor = insShapeColorPicker.value;
+    updateBoxContent(selected);
+    applyBoxStyle(selected);
+  });
+  insShapeColor.addEventListener("change", ()=>{
+    if (!selected) return;
+    const v = (insShapeColor.value || "#000000").trim();
+    selected.dataset.shapeColor = v;
+    if (isValidHexColor(v)) insShapeColorPicker.value = v;
+    updateBoxContent(selected);
+    applyBoxStyle(selected);
+  });
+
+  // canvas BG
+  canvasBgPicker.addEventListener("change", ()=>{
+    const v = canvasBgPicker.value || "#ffffff";
+    canvasWrap.style.setProperty("--canvas-bg", v);
+    canvasBgInput.value = v;
+  });
+
+  // rulers
+  function buildRulers(){
+    const rulerX = document.getElementById("rulerX");
+    const rulerY = document.getElementById("rulerY");
+
+    const pxPerCm = parseFloat(getComputedStyle(canvasWrap).getPropertyValue("--px-per-cm")) || 30;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+
+    rulerX.innerHTML = "";
+    rulerY.innerHTML = "";
+
+    const maxCmX = Math.floor(w / pxPerCm);
+    const maxCmY = Math.floor(h / pxPerCm);
+
+    for (let i=0;i<=maxCmX;i++){
+      const s = document.createElement("div");
+      s.className = "ruler-label";
+      s.style.left = (i * pxPerCm) + "px";
+      s.textContent = i;
+      rulerX.appendChild(s);
+    }
+    for (let i=0;i<=maxCmY;i++){
+      const s = document.createElement("div");
+      s.className = "ruler-label-y";
+      s.style.top = (i * pxPerCm) + "px";
+      s.textContent = i;
+      rulerY.appendChild(s);
+    }
+  }
+
+  // Add normal fields
+  document.querySelectorAll(".btn-add-field").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const ft = (btn.dataset.fieldType || "TEXT").toUpperCase();
+      const key = (btn.dataset.key || "").trim();
+      const name = btn.dataset.name || "Field";
+
+      if (key && isInputFieldType(ft)){
+        const existing = findExistingByKeyType(key, ft);
+        if (existing){
+          setSelected(existing);
           return;
         }
-        isDown = true;
-        offset = [el.offsetLeft - e.clientX, el.offsetTop - e.clientY];
-        selectBox(el);
-      });
-
-      document.addEventListener("mouseup", function () {
-        isDown = false;
-      });
-
-      document.addEventListener("mousemove", function (e) {
-        if (!isDown) return;
-        e.preventDefault();
-
-        let x = e.clientX + offset[0];
-        let y = e.clientY + offset[1];
-
-        const rect = canvas.getBoundingClientRect();
-        const maxX = rect.width - el.offsetWidth;
-        const maxY = rect.height - el.offsetHeight;
-
-        x = Math.max(0, Math.min(x, maxX));
-        y = Math.max(0, Math.min(y, maxY));
-
-        el.style.left = x + "px";
-        el.style.top = y + "px";
-      });
-    }
-
-    // Load existing layout (for future edits)
-    try {
-      if (Array.isArray(existingLayout)) {
-        existingLayout.forEach(createFieldBox);
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    // Add workspace / special fields
-    // Add workspace / special fields
-  document.querySelectorAll(".btn-add-field").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const fieldType = this.dataset.fieldType || "";
-      const key = this.dataset.key || "";
-
-      // Default size for normal text fields
-      let width = 140;
-      let height = 32;
-
-      // Special defaults for barcode & QR
-      if (key === "barcode" || fieldType === "BARCODE") {
-        width = 250;
-        height = 60;
-      } else if (key === "qrcode" || fieldType === "QRCODE") {
-        width = 100;
-        height = 100;
       }
 
-      const field = {
-        name: this.dataset.name,
-        key: key,
-        field_type: fieldType,
-        workspace_field_id: this.dataset.workspaceFieldId || null,
-        x: 10,
-        y: 10,
-        width: width,
-        height: height,
-      };
-      createFieldBox(field);
+      let w = 160, h = 60;
+      let showLabel = true;
+
+      if (ft === "BARCODE"){ w = 260; h = 90; showLabel = false; }
+      if (ft === "QRCODE"){ w = 140; h = 140; showLabel = false; }
+      if (ft === "IMAGE_URL"){ w = 240; h = 160; showLabel = false; }
+
+      createBox({
+        db_id: null,
+        name,
+        key: key || uid("field"),
+        field_type: ft,
+        workspace_field_id: btn.dataset.workspaceFieldId || null,
+        x: 10, y: 10, width: w, height: h,
+        z_index: 0,
+        font_family: "Inter",
+        font_size: 14,
+        font_bold: false,
+        font_italic: false,
+        font_underline: false,
+        text_align: "left",
+        text_color: "#000000",
+        bg_color: "transparent",
+        show_label: showLabel,
+        shape_type: "RECT",
+        shape_color: "#000000",
+      });
+
+      rebuildLayers();
     });
   });
 
-    // Add custom field
-    const customNameInput = document.getElementById("newFieldName");
-    const customTypeSelect = document.getElementById("newFieldType");
+  // Add shapes
+  document.querySelectorAll(".btn-add-shape").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const st = (btn.dataset.shapeType || "RECT").toUpperCase();
+      const name = st === "RECT" ? "Rectangle" : st.charAt(0) + st.slice(1).toLowerCase();
 
-    document.getElementById("btnAddCustomField").addEventListener("click", function () {
-      const name = customNameInput.value.trim();
-      const fieldType = customTypeSelect.value;
-      if (!name) {
-        alert("Please enter a field name");
-        return;
-      }
-      const key = name.toLowerCase().replace(/\s+/g, "_");
-      const field = {
+      createBox({
+        db_id: null,
         name: name,
-        key: key,
-        field_type: fieldType,
+        key: uid("shape_" + st.toLowerCase()),
+        field_type: "SHAPE",
         workspace_field_id: null,
-        x: 10,
-        y: 10,
-        width: 140,
-        height: 32,
-      };
-      createFieldBox(field);
-      customNameInput.value = "";
+        x: 10, y: 10, width: 160, height: 160,
+        z_index: 0,
+        font_family: "Inter",
+        font_size: 14,
+        font_bold: false,
+        font_italic: false,
+        font_underline: false,
+        text_align: "left",
+        text_color: "#000000",
+        bg_color: "transparent",
+        show_label: false,
+        shape_type: st,
+        shape_color: "#000000",
+      });
+
+      rebuildLayers();
+    });
+  });
+
+  // custom field
+  document.getElementById("btnAddCustomField").addEventListener("click", ()=>{
+    const nameInp = document.getElementById("newFieldName");
+    const typeSel = document.getElementById("newFieldType");
+
+    const name = (nameInp.value || "").trim();
+    if (!name){
+      alert("Please enter a field name");
+      return;
+    }
+    const ft = (typeSel.value || "TEXT").toUpperCase();
+
+    const baseKey = name.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"").slice(0,40);
+    const key = uid(baseKey || "custom");
+
+    // STATIC_TEXT behaves like a non-input element; show_label false by default
+    const showLabel = (ft === "STATIC_TEXT") ? false : true;
+
+    createBox({
+      db_id: null,
+      name,
+      key,
+      field_type: ft,
+      workspace_field_id: null,
+      x: 10, y: 10, width: 180, height: 60,
+      z_index: 0,
+      font_family: "Inter",
+      font_size: 14,
+      font_bold: false,
+      font_italic: false,
+      font_underline: false,
+      text_align: "left",
+      text_color: "#000000",
+      bg_color: "transparent",
+      show_label: showLabel,
+      shape_type: "RECT",
+      shape_color: "#000000",
     });
 
-    // Remove field from canvas
-    canvas.addEventListener("click", function (e) {
-      if (e.target.classList.contains("btn-remove-field")) {
-        const box = e.target.closest(".field-box");
-        if (!box) return;
-        const isSelected = (box === selectedBox);
-        box.remove();
-        if (isSelected) {
-          selectBox(null);
-        }
-      }
-    });
+    nameInp.value = "";
+    rebuildLayers();
+  });
 
-    // Resize selected box from inputs
-    function applySizeInputs() {
-      if (!selectedBox) return;
-      let w = parseInt(widthInput.value, 10);
-      let h = parseInt(heightInput.value, 10);
-      if (!w || w < 10) w = selectedBox.offsetWidth;
-      if (!h || h < 10) h = selectedBox.offsetHeight;
-      selectedBox.style.width = w + "px";
-      selectedBox.style.height = h + "px";
+  // Save
+  function serializeAndSubmit(){
+    const boxes = Array.from(canvas.querySelectorAll(".field-box"));
+    if (!boxes.length){
+      if (!confirm("No fields on canvas. Continue?")) return;
     }
 
-    widthInput.addEventListener("change", applySizeInputs);
-    heightInput.addEventListener("change", applySizeInputs);
+    const layout = boxes.map(box=>({
+      db_id: box.dataset.dbId || null,
+      name: box.dataset.name,
+      key: box.dataset.key,
+      field_type: box.dataset.fieldType,
+      workspace_field_id: box.dataset.workspaceFieldId || null,
+      x: box.offsetLeft,
+      y: box.offsetTop,
+      width: box.offsetWidth,
+      height: box.offsetHeight,
 
-    // Serialize layout before submit
-    document.getElementById("canvasForm").addEventListener("submit", function (e) {
-      const boxes = canvas.querySelectorAll(".field-box");
-      if (!boxes.length) {
-        if (!confirm("No fields on the canvas. Continue anyway?")) {
-          e.preventDefault();
-          return;
-        }
-      }
-      const layout = [];
-      boxes.forEach((box) => {
-        layout.push({
-          name: box.dataset.name,
-          key: box.dataset.key,
-          field_type: box.dataset.fieldType,
-          workspace_field_id: box.dataset.workspaceFieldId || null,
-          x: box.offsetLeft,
-          y: box.offsetTop,
-          width: box.offsetWidth,
-          height: box.offsetHeight,
-        });
-      });
-      layoutInput.value = JSON.stringify(layout);
-    });
-  })();
+      z_index: parseInt(box.dataset.zIndex||"0",10),
+      font_family: box.dataset.fontFamily || "Inter",
+      font_size: parseInt(box.dataset.fontSize||"14",10),
+      font_bold: boolStr(box.dataset.fontBold),
+      font_italic: boolStr(box.dataset.fontItalic),
+      font_underline: boolStr(box.dataset.fontUnderline),
+
+      text_align: box.dataset.textAlign || "left",
+      text_color: box.dataset.textColor || "#000000",
+      bg_color: box.dataset.bgColor || "transparent",
+      show_label: boolStr(box.dataset.showLabel),
+
+      shape_type: box.dataset.shapeType || "RECT",
+      shape_color: box.dataset.shapeColor || "#000000",
+    }));
+
+    layoutInput.value = JSON.stringify(layout);
+    document.getElementById("canvasForm").submit();
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", serializeAndSubmit);
+  document.getElementById("saveBtnTop").addEventListener("click", serializeAndSubmit);
+
+  // Delete with keyboard
+  document.addEventListener("keydown",(e)=>{
+    if (!selected) return;
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+    if (e.key === "Delete" || e.key === "Backspace"){
+      e.preventDefault();
+      selected.remove();
+      setSelected(null);
+      rebuildLayers();
+    }
+  });
+
+  // load existing
+  try{
+    if (Array.isArray(existingLayout)){
+      existingLayout.forEach(createBox);
+      rebuildLayers();
+    }
+  }catch(e){}
+
+  buildRulers();
+})();
 </script>
 {% endblock %}

@@ -1,0 +1,49 @@
+Org
+-  Workspaces
+ - Users (Admin/Operator)
+ - Templates
+    - Base
+        - Fields
+            - Variables
+                -prototypeOfBase
+            - Specials
+                -Barcode, QR
+            - Shapes
+                - Square, Circle, Triangle, Star
+            - Static
+                - Static Text
+            - Custom
+                - Added by User
+            - Positions
+            - Alignment
+            - Formatting
+            - Layers
+            - Size
+        - isUniqueToWorkspace
+        - isFirstTemplate
+    - Custom
+        - Fields
+            - Variables
+                - inheritedFromBase
+            - Specials
+                - Barcode, QR
+            - Shapes
+                - Square, Circle, Triangle, Star
+            - Static
+                - Static Text
+            - Custom
+                - Added by User
+            - Positions
+            - Alignment
+            - Formatting
+            - Layers
+            - Size
+        - isUniqueToWorkspace
+    - Global
+        - Fields
+            - Variables
+            - Specials
+            - Shapes
+            - Static
+            - Custom
+        

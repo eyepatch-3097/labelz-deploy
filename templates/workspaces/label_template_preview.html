@@ -1,127 +1,231 @@
-{% extends "base.html" %} {% block title %}Preview Template – {{ template.name
-}}{% endblock %} {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+{% extends "base.html" %}
+{% block title %}Template Preview – {{ template.name }}{% endblock %}
+
+{% block content %}
+<style>
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  .meta { color:#6b7280; font-size: 13px; }
+  .panel { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:16px; }
+  .grid { display:grid; grid-template-columns: 360px 1fr; gap:16px; align-items:start; }
+  .btnrow { display:flex; gap:10px; flex-wrap:wrap; }
+
+  /* IMPORTANT: no padding on stage (otherwise absolute coords shift) */
+  .stage {
+    position: relative;
+    width: {{ ui_w }}px;
+    height: {{ ui_h }}px;
+    background: {{ canvas_bg_color }};
+    overflow: hidden;
+    padding: 0 !important;
+    margin: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0;
+    box-sizing: content-box;
+  }
+  .stage * { box-sizing: border-box; }
+
+  .el { position:absolute; overflow:hidden; }
+
+  /* match canvas inner padding */
+  .txt {
+    width:100%; height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:6px 8px;
+    overflow:hidden;
+  }
+  .lbl { opacity:.85; font-size: 0.85em; line-height:1.1; margin-bottom:2px; }
+  .val { line-height:1.1; word-break:break-word; white-space:pre-wrap; }
+
+  .imgbox img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+  }
+
+  .shape-RECT { }
+  .shape-CIRCLE { border-radius: 9999px; }
+  .shape-TRIANGLE { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .shape-STAR { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+  .smallhint{ font-size:12px; color:#6b7280; }
+</style>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="topbar">
       <div>
-        <h1 class="h4 mb-1">Preview Template: {{ template.name }}</h1>
-        <p class="text-muted mb-0">
-          Workspace: <strong>{{ workspace.name }}</strong> ({{ org.name }})
-        </p>
-      </div>
-      <a
-        href="{% url 'label_template_canvas' template.id %}"
-        class="btn btn-link btn-sm"
-      >
-        ← Back to Canvas
-      </a>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h2 class="h6 mb-3">Sample Values</h2>
-        <form method="post">
-          {% csrf_token %}
-
-          <div class="row g-3">
-            {% for item in layout %}
-            <div class="col-md-6">
-              <label class="form-label small">
-                {{ item.name }} ({{ item.key }})
-              </label>
-
-              {% if item.field_type == "IMAGE_URL" %}
-              <input
-                type="text"
-                name="sample_{{ item.key }}"
-                value="{{ item.value }}"
-                class="form-control form-control-sm {% if item.error %}is-invalid{% endif %}"
-                placeholder="https://example.com/image.jpg"
-              />
-              {% else %}
-              <input
-                type="text"
-                name="sample_{{ item.key }}"
-                value="{{ item.value }}"
-                class="form-control form-control-sm {% if item.error %}is-invalid{% endif %}"
-              />
-              {% endif %} {% if item.error %}
-              <div class="invalid-feedback d-block">{{ item.error }}</div>
-              {% endif %}
-            </div>
-            {% endfor %}
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-3">
-            <button
-              type="submit"
-              name="action"
-              value="preview"
-              class="btn btn-outline-primary"
-            >
-              Update Preview
-            </button>
-            <button
-              type="submit"
-              name="action"
-              value="save"
-              class="btn btn-primary"
-            >
-              Save Template
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h2 class="h6 mb-3">Label Preview</h2>
-        <div
-          class="border bg-light position-relative"
-          style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
-        >
-          {% for item in layout %}
-          <div
-            class="position-absolute border bg-white p-1 small"
-            style="
-    left: {{ item.x }}px;
-    top: {{ item.y }}px;
-    width: {{ item.width }}px;
-    min-height: {{ item.height }}px;
-    overflow: visible;
-    white-space: normal;
-    word-wrap: break-word;
-  "
-          >
-            <div class="text-muted small">{{ item.name }}</div>
-
-            {% if item.field_type == "IMAGE_URL" %} {% if item.value %}
-            <div class="mt-1 text-center">
-              <img
-                src="{{ item.value }}"
-                alt="{{ item.name }}"
-                style="max-width: 100%; max-height: 80%; object-fit: contain"
-              />
-            </div>
-            {% else %}
-            <div class="text-muted small mt-1">(no image URL)</div>
-            {% endif %} {% elif item.field_type == "BARCODE" %}
-            <div class="text-muted small mt-1">
-              [Barcode preview placeholder]
-            </div>
-            {% elif item.field_type == "QRCODE" %}
-            <div class="text-muted small mt-1">
-              [QR code preview placeholder]
-            </div>
-            {% else %}
-            <div class="mt-1">{{ item.value|default:"(no value)" }}</div>
-            {% endif %}
-          </div>
-          {% endfor %}
+        <h2 style="margin:0 0 6px 0; color: #9E63DF;">Template Preview: {{ template.name }}</h2>
+        <div class="meta">
+          Workspace: <b>{{ workspace.name }}</b> ({{ org.name }}) ·
+          Size: {{ width_cm|floatformat:2 }} × {{ height_cm|floatformat:2 }} cm @ {{ dpi }} DPI ·
+          UI px/cm: <b>{{ ui_px_per_cm|floatformat:3 }}</b> 
         </div>
+      </div>
+
+      <div class="btnrow">
+        <a class="btn btn-outline-secondary" href="{% url 'label_template_canvas' template.id %}">← Back to Canvas</a>
+        <a class="btn btn-dark" href="{% url 'label_generate_single' workspace.id template.id %}">Generate Labels</a>
+      </div>
+    </div>
+
+    <div style="height:14px;"></div>
+
+    <div class="grid">
+      <!-- Sample Values -->
+      <div class="panel" style="border-radius:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h4 style="margin:0; color: #9E63DF">Sample Values</h4>
+
+          <form method="post" style="margin:0;">
+            {% csrf_token %}
+            <input type="hidden" name="reset" value="1">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">Reset</button>
+          </form>
+        </div>
+
+        <div style="height:10px;"></div>
+
+        {% if sample_fields %}
+          <form method="post">
+            {% csrf_token %}
+            {% for f in sample_fields %}
+              <div style="margin-bottom:10px;">
+                <div class="meta" style="margin-bottom:6px;"><b>{{ f.name }}</b> ({{ f.field_type }})</div>
+                <input class="form-control" name="field_{{ f.key }}" value="{{ f.value|default:'' }}" />
+              </div>
+            {% endfor %}
+            <button class="btn btn-dark w-100" type="submit">Apply</button>
+          </form>
+        {% else %}
+          <div class="meta">No variable fields found on the canvas.</div>
+        {% endif %}
+
+        <div style="height:10px;"></div>
+        <div class="smallhint">Tip: This preview uses the same UI scaling as canvas (WYSIWYG).</div>
+      </div>
+
+      <!-- Preview Stage -->
+      <div>
+        <div class="stage" id="stage"></div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  const LAYOUT = {{ layout_ui|safe }};
+  const INITIAL_VALUES = {{ sample_values_json|safe }};
+  const BARCODE_IMG = "{{ barcode_img_data_url|escapejs }}";
+  const QR_IMG = "{{ qr_img_data_url|escapejs }}";
+
+  const stage = document.getElementById("stage");
+
+  function asBool(v){
+    return (v === true || v === "true" || v === 1 || v === "1");
+  }
+
+  function applyTextStyle(el, it) {
+    el.style.fontFamily = it.font_family || "Inter";
+    el.style.fontSize = (it.font_size || 14) + "px";
+    el.style.fontWeight = asBool(it.font_bold) ? "700" : "400";
+    el.style.fontStyle = asBool(it.font_italic) ? "italic" : "normal";
+    el.style.textDecoration = asBool(it.font_underline) ? "underline" : "none";
+    el.style.color = it.text_color || "#000000";
+    el.style.textAlign = (it.text_align || "left");
+  }
+
+  function render(values={}) {
+    stage.innerHTML = "";
+
+    const items = [...LAYOUT].sort((a,b)=> (a.z_index||0) - (b.z_index||0));
+
+    items.forEach(it => {
+      const el = document.createElement("div");
+      el.className = "el";
+      el.style.left = (it.x||0) + "px";
+      el.style.top = (it.y||0) + "px";
+      el.style.width = (it.width||1) + "px";
+      el.style.height = (it.height||1) + "px";
+      el.style.zIndex = (it.z_index||0);
+
+      const ft = (it.field_type||"TEXT").toUpperCase();
+
+      // shapes
+      if (ft === "SHAPE") {
+        el.classList.add("shape-" + (it.shape_type || "RECT").toUpperCase());
+        el.style.background = it.shape_color || "#000000";
+        stage.appendChild(el);
+        return;
+      }
+
+      // bg color for non-shapes
+      if (it.bg_color && it.bg_color !== "transparent") {
+        el.style.background = it.bg_color;
+      }
+
+      // barcode
+      if (ft === "BARCODE") {
+        el.classList.add("imgbox");
+        el.innerHTML = `<img src="${BARCODE_IMG}" alt="barcode"/>`;
+        stage.appendChild(el);
+        return;
+      }
+
+      // qr
+      if (ft === "QRCODE") {
+        el.classList.add("imgbox");
+        el.innerHTML = `<img src="${QR_IMG}" alt="qr"/>`;
+        stage.appendChild(el);
+        return;
+      }
+
+      // image url field
+      if (ft === "IMAGE_URL") {
+        const url = (values[it.key] || "").trim();
+        el.classList.add("imgbox");
+        el.innerHTML = url ? `<img src="${url}" alt="image"/>` : "";
+        stage.appendChild(el);
+        return;
+      }
+
+      // static text (fallback: name)
+      if (ft === "STATIC_TEXT") {
+        const box = document.createElement("div");
+        box.className = "txt";
+        applyTextStyle(box, it);
+        box.textContent = (it.static_value || it.name || "");
+        el.appendChild(box);
+        stage.appendChild(el);
+        return;
+      }
+
+      // normal text-like field
+      const box = document.createElement("div");
+      box.className = "txt";
+      applyTextStyle(box, it);
+
+      const showLabel = asBool(it.show_label);
+      if (showLabel) {
+        const lbl = document.createElement("div");
+        lbl.className = "lbl";
+        lbl.textContent = it.name || it.key || "";
+        box.appendChild(lbl);
+      }
+
+      const val = document.createElement("div");
+      val.className = "val";
+      val.textContent = (values[it.key] ?? "");
+      box.appendChild(val);
+
+      el.appendChild(box);
+      stage.appendChild(el);
+    });
+  }
+
+  render(INITIAL_VALUES);
+</script>
 {% endblock %}

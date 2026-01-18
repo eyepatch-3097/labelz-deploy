@@ -1,95 +1,23 @@
 {% extends "base.html" %}
-
-{% block title %}
-Preview Labels – {{ template.name }}
-{% endblock %}
-
+{% block title %}Label Preview{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h1 class="h4 mb-1">Preview Label</h1>
-        <p class="text-muted small mb-0">
-          Workspace: {{ workspace.name }} · Template: {{ template.name }} · Qty: {{ batch.quantity }}
-          · EAN: {{ batch.ean_code }}
-          {% if batch.gs1_code %} · GS1: {{ batch.gs1_code }}{% endif %}
-        </p>
-      </div>
-      <div>
-        <a
-          href="{% url 'label_generate_start' workspace.id %}"
-          class="btn btn-link btn-sm"
-        >
-          ← Back to Generation
-        </a>
-      </div>
-    </div>
 
-    <div class="card shadow-sm mb-3">
-      <div class="card-body">
-        <div
-          class="border position-relative bg-white"
-          style="width: {{ canvas_width }}px; height: {{ canvas_height }}px; overflow: hidden;"
-        >
-          {% for item in layout %}
-          <div
-            class="position-absolute small"
-            style="left: {{ item.x }}px; top: {{ item.y }}px;
-                   width: {{ item.width }}px; height: {{ item.height }}px;"
-          >
-            {% if item.field_type == 'IMAGE_URL' %}
-              {% if item.value %}
-                <img
-                  src="{{ item.value }}"
-                  alt="{{ item.name }}"
-                  style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                />
-              {% endif %}
-            {% elif item.field_type == 'BARCODE' or item.field_type == 'QRCODE' %}
-              {% if item.image_data_url %}
-                <img
-                  src="{{ item.image_data_url }}"
-                  alt="{{ item.name }}"
-                  style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                />
-              {% else %}
-                <span class="text-muted">{{ item.value }}</span>
-              {% endif %}
-            {% else %}
-              <div
-                class="text-uppercase"
-                style="font-size: 10px; margin-bottom: 2px;"
-              >
-                {{ item.name }}
-              </div>
-              <div>{{ item.value }}</div>
-            {% endif %}
-          </div>
-          {% endfor %}
-        </div>
-
-        <p class="text-muted small mt-2 mb-0">
-          Preview shows the first label in the batch. Batch print will generate
-          {{ batch.quantity }} labels with unique QR codes if a QR field exists.
-        </p>
-      </div>
-    </div>
-
-    <div class="d-flex justify-content-end gap-2">
-      <a
-        href="{% url 'label_batch_history' workspace.id %}"
-        class="btn btn-outline-secondary btn-sm"
-      >
-        Label History
-      </a>
-      <a
-        href="{% url 'label_batch_print' workspace.id batch.id %}"
-        class="btn btn-primary btn-sm"
-      >
-        Print Batch
-      </a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-0" style="color:#9E63DF; padding-bottom: 10px;">Label Preview</h1>
+    <div class="text small">
+      Batch #{{ batch.id }} · Qty: {{ batch.quantity }} · {{ template.width_cm }}×{{ template.height_cm }} cm
+      · UI: {{ canvas_width }}×{{ canvas_height }} px
     </div>
   </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'label_generate_single' workspace.id template.id %}">← Edit Values</a>
+    <a class="btn" href="{% url 'label_batch_print' workspace.id batch.id %}" style="background-color:#9E63DF; color: #fff">Print Batch</a>
+  </div>
 </div>
+
+<div class="d-flex justify-content-center">
+  {% include "workspaces/_label_renderer_ui.html" with items=render_items canvas_width=canvas_width canvas_height=canvas_height canvas_bg_color=canvas_bg_color %}
+</div>
+
 {% endblock %}

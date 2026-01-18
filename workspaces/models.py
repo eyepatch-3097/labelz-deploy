@@ -55,6 +55,8 @@ class WorkspaceField(models.Model):
     FIELD_SERIAL = 'SERIAL'
     FIELD_BARCODE = 'BARCODE'
     FIELD_QR = 'QRCODE'
+    FIELD_STATIC_TEXT = 'STATIC_TEXT'
+    FIELD_SHAPE = 'SHAPE'
 
     FIELD_TYPE_CHOICES = [
         (FIELD_TEXT, 'Text'),
@@ -63,6 +65,8 @@ class WorkspaceField(models.Model):
         (FIELD_SERIAL, 'Serial Number'),
         (FIELD_BARCODE, 'Barcode'),
         (FIELD_QR, 'QR Code'),
+        (FIELD_STATIC_TEXT, 'Static Text'),
+        (FIELD_SHAPE, 'Shape'),
     ]
 
     workspace = models.ForeignKey(Workspace, related_name='fields', on_delete=models.CASCADE)
@@ -210,7 +214,9 @@ class LabelTemplate(models.Model):
     width_cm = models.DecimalField(max_digits=5, decimal_places=2)
     height_cm = models.DecimalField(max_digits=5, decimal_places=2)
     dpi = models.PositiveIntegerField(default=300)
-
+    canvas_bg_color = models.CharField(max_length=20, default="#ffffff", blank=True)
+    layout_json = models.JSONField(default=dict, blank=True)
+    print_defaults = models.JSONField(default=dict, blank=True)  # optional but recommended
     category = models.CharField(
         max_length=30,
         choices=CATEGORY_CHOICES,
@@ -259,6 +265,7 @@ class LabelTemplateField(models.Model):
         choices=WorkspaceField.FIELD_TYPE_CHOICES,
         default=WorkspaceField.FIELD_TEXT,
     )
+    
 
     # Canvas layout in pixels (we’ll map from cm+dpi on the front-end)
     x = models.IntegerField(default=0)
@@ -266,6 +273,44 @@ class LabelTemplateField(models.Model):
     width = models.IntegerField(default=100)
     height = models.IntegerField(default=24)
     # Optional reference back to workspace field (for variables defined at workspace level)
+    # Layering
+    z_index = models.IntegerField(default=0)
+    # Formatting
+    font_family = models.CharField(max_length=50, default="Inter", blank=True)
+    font_size = models.PositiveIntegerField(default=14)
+    font_bold = models.BooleanField(default=False)
+    font_italic = models.BooleanField(default=False)
+    font_underline = models.BooleanField(default=False)
+    ALIGN_LEFT = "left"
+    ALIGN_CENTER = "center"
+    ALIGN_RIGHT = "right"
+    TEXT_ALIGN_CHOICES = [
+        (ALIGN_LEFT, "Left"),
+        (ALIGN_CENTER, "Center"),
+        (ALIGN_RIGHT, "Right"),
+    ]
+    text_align = models.CharField(max_length=10, choices=TEXT_ALIGN_CHOICES, default=ALIGN_LEFT)
+
+    text_color = models.CharField(max_length=20, default="#000000", blank=True)
+    bg_color = models.CharField(max_length=20, default="transparent", blank=True)
+
+    show_label = models.BooleanField(default=True)
+
+    # Shape props (used when field_type == SHAPE)
+    SHAPE_RECT = "RECT"
+    SHAPE_CIRCLE = "CIRCLE"
+    SHAPE_TRIANGLE = "TRIANGLE"
+    SHAPE_STAR = "STAR"
+    SHAPE_TYPE_CHOICES = [
+        (SHAPE_RECT, "Rectangle"),
+        (SHAPE_CIRCLE, "Circle"),
+        (SHAPE_TRIANGLE, "Triangle"),
+        (SHAPE_STAR, "Star"),
+    ]
+    shape_type = models.CharField(max_length=20, choices=SHAPE_TYPE_CHOICES, default=SHAPE_RECT, blank=True)
+    shape_color = models.CharField(max_length=20, default="#000000", blank=True)
+
+
     workspace_field = models.ForeignKey(
         WorkspaceField,
         related_name='template_fields',
@@ -277,6 +322,7 @@ class LabelTemplateField(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
+        unique_together = ('template','key')
         ordering = ['order', 'id']
 
     def __str__(self):

@@ -1,0 +1,69 @@
+{# templates/workspaces/_label_print_label.html #}
+<div class="pl-label-inner" style="--mm-per-px: {{ mm_per_px }};">
+  {% for it in items %}
+    {% with ft=it.field_type|default:"TEXT"|upper %}
+      <div class="pl-el"
+           style="
+             left: {{ it.x_mm }}mm;
+             top: {{ it.y_mm }}mm;
+             width: {{ it.w_mm }}mm;
+             height: {{ it.h_mm }}mm;
+             z-index: {{ it.z_index|default:0 }};
+             {% if it.bg_color and it.bg_color != 'transparent' %}background: {{ it.bg_color }};{% endif %}
+           ">
+
+        {% if ft == "SHAPE" %}
+          <div class="pl-shape pl-shape-{{ it.shape_type|default:'RECT'|upper }}"
+               style="background: {{ it.shape_color|default:'#000000' }};"></div>
+
+        {% elif ft == "BARCODE" or ft == "QRCODE" %}
+          {% if it.image_data_url %}
+            <img class="pl-img contain" src="{{ it.image_data_url }}" alt="{{ ft }}">
+          {% else %}
+            <div class="pl-txt center">[{{ ft }}]</div>
+          {% endif %}
+
+        {% elif ft == "IMAGE_URL" %}
+          {% if it.value %}
+            <img class="pl-img cover" src="{{ it.value }}" alt="image">
+          {% else %}
+            <div class="pl-txt center">IMAGE</div>
+          {% endif %}
+
+        {% elif ft == "STATIC_TEXT" %}
+          <div class="pl-txt"
+               style="
+                 font-family: {{ it.font_family|default:'Inter' }};
+                 font-size: {{ it.font_size_mm|default:2 }}mm;
+                 font-weight: {% if it.font_bold %}700{% else %}400{% endif %};
+                 font-style: {% if it.font_italic %}italic{% else %}normal{% endif %};
+                 text-decoration: {% if it.font_underline %}underline{% else %}none{% endif %};
+                 color: {{ it.text_color|default:'#000000' }};
+                 text-align: {{ it.text_align|default:'left' }};
+               ">
+            <div class="pl-val">{{ it.value }}</div>
+          </div>
+
+        {% else %}
+          <div class="pl-txt"
+               style="
+                 font-family: {{ it.font_family|default:'Inter' }};
+                 font-size: {{ it.font_size_mm|default:2 }}mm;
+                 font-weight: {% if it.font_bold %}700{% else %}400{% endif %};
+                 font-style: {% if it.font_italic %}italic{% else %}normal{% endif %};
+                 text-decoration: {% if it.font_underline %}underline{% else %}none{% endif %};
+                 color: {{ it.text_color|default:'#000000' }};
+                 text-align: {{ it.text_align|default:'left' }};
+               ">
+
+            {% if it.show_label %}
+              <div class="pl-lbl">{{ it.name|default:it.key }}</div>
+            {% endif %}
+            <div class="pl-val">{{ it.value }}</div>
+          </div>
+        {% endif %}
+
+      </div>
+    {% endwith %}
+  {% endfor %}
+</div>
