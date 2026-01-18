@@ -449,6 +449,7 @@ class LabelBatchItem(models.Model):
     row_index = models.PositiveIntegerField(default=1)  # 1..N
     ean_code = models.CharField(max_length=64)
     gs1_code = models.CharField(max_length=64, blank=True, default="")
+    quantity = models.PositiveIntegerField(default=1)
 
     # variable values for this row (by template field key)
     field_values = models.JSONField(default=dict, blank=True)

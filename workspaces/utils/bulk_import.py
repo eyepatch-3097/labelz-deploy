@@ -10,6 +10,9 @@ from openpyxl import load_workbook, Workbook
 EXCLUDE_TYPES = {"SHAPE", "STATIC_TEXT", "BARCODE", "QRCODE", "SERIAL"}  # not user-input
 REQUIRED_COL = "EAN_CODE"
 OPTIONAL_COL = "GS1_CODE"
+QTY_COL = "QUANTITY"
+MIN_QTY = 1
+MAX_QTY = 100
 
 
 def norm_header(h: str) -> str:
@@ -41,7 +44,7 @@ def build_expected_headers(layout_items: List[dict]) -> Tuple[List[str], List[st
             var_keys.append(key)
             seen.add(key)
 
-    headers = [REQUIRED_COL, OPTIONAL_COL] + var_keys
+    headers = [REQUIRED_COL, OPTIONAL_COL, QTY_COL] + var_keys
     return headers, var_keys
 
 
@@ -133,6 +136,9 @@ def validate_and_normalize_rows(
     if REQUIRED_COL not in file_map:
         errors.append("Missing EAN_CODE column. Please download the correct template and re-upload.")
 
+    if QTY_COL not in file_map:
+        errors.append("Missing QUANTITY column. Please download the correct template and re-upload.")
+
     # Optional: GS1_CODE (ok if missing)
     # All variable keys must exist (case-insensitive)
     for k in var_keys:
@@ -148,6 +154,25 @@ def validate_and_normalize_rows(
     for idx, r in enumerate(rows, start=1):
         ean = (r.get(file_map.get(REQUIRED_COL, ""), "") or "").strip()
         gs1 = (r.get(file_map.get(OPTIONAL_COL, ""), "") or "").strip() if file_map.get(OPTIONAL_COL) else ""
+        qty_raw = ""
+
+        if file_map.get(QTY_COL):
+            qty_raw = (r.get(file_map.get(QTY_COL), "") or "").strip()
+
+        # default blank to 1 (safe)
+        if not qty_raw:
+            qty = 1
+        else:
+            try:
+                qty = int(qty_raw)
+            except ValueError:
+                errors.append(f"Row {idx}: QUANTITY must be a whole number (1–{MAX_QTY}).")
+                continue
+
+        if qty < MIN_QTY or qty > MAX_QTY:
+            errors.append(f"Row {idx}: QUANTITY must be between {MIN_QTY} and {MAX_QTY}.")
+            continue
+
 
         if not ean:
             errors.append(f"Row {idx}: EAN_CODE is empty. Barcode/QR cannot be generated.")
@@ -161,6 +186,7 @@ def validate_and_normalize_rows(
         normalized.append({
             "ean_code": ean,
             "gs1_code": gs1,
+            "quantity": qty,
             "field_values": fv,
         })
 

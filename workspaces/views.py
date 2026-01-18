@@ -2116,12 +2116,12 @@ def label_generate_single_preview(request, workspace_id, batch_id):
 
         # serial based on row_index if present (keeps preview aligned with print)
         try:
-            total = batch.items.count()
-            serial_digits = max(3, len(str(total)))
-            row_i = int(getattr(first, "row_index", 1) or 1)
-            serial = str(row_i).zfill(serial_digits)
+            row_qty = int(getattr(first, "quantity", 1) or 1)
         except Exception:
-            serial = "001"
+            row_qty = 1
+
+        serial_digits = max(3, len(str(row_qty)))
+        serial = str(1).zfill(serial_digits)  # always first label of that SKU row
 
     else:
         user_values = batch.field_values or {}
@@ -2292,45 +2292,48 @@ def label_batch_print(request, workspace_id, batch_id):
 
     if is_multi:
         rows = list(batch.items.order_by("row_index"))
-        qty = len(rows)
-
+        label_index = 0
+        
         # serial padding: at least 3 digits (based on number of rows)
         serial_digits = max(3, len(str(qty or 1)))
 
         for row in rows:
-            i = int(row.row_index or 1)
-            serial = str(i).zfill(serial_digits)
-
             row_values = row.field_values or {}
             base = ((row.ean_code or "").strip()) + ((row.gs1_code or "").strip())
 
-            # Since your import validation enforces EAN_CODE, base should exist.
-            barcode_value = f"{base}{serial}" if base else ""
-            qr_value = barcode_value
+            row_qty = int(getattr(row, "quantity", 1) or 1)
+            serial_digits = max(3, len(str(row_qty)))
 
-            barcode_img = make_barcode_png(barcode_value) if barcode_value else None
-            qr_img = make_qr_png(qr_value) if qr_value else None
+            for j in range(1, row_qty + 1):
+                label_index += 1
+                serial = str(j).zfill(serial_digits)
 
-            label_items = []
-            for it in base_items_mm:
-                out = dict(it)
-                ft = out["field_type"]
-                key = (out.get("key") or "").strip()
+                barcode_value = f"{base}{serial}" if base else ""
+                qr_value = barcode_value
 
-                if ft == "BARCODE":
-                    out["value"] = barcode_value
-                    out["image_data_url"] = barcode_img
-                elif ft == "QRCODE":
-                    out["value"] = qr_value
-                    out["image_data_url"] = qr_img
-                elif ft == "STATIC_TEXT":
-                    out["value"] = out.get("static_value") or out.get("name") or ""
-                else:
-                    out["value"] = row_values.get(key, "") if key else ""
+                barcode_img = make_barcode_png(barcode_value) if barcode_value else None
+                qr_img = make_qr_png(qr_value) if qr_value else None
 
-                label_items.append(out)
+                label_items = []
+                for it in base_items_mm:
+                    out = dict(it)
+                    ft = out["field_type"]
+                    key = (out.get("key") or "").strip()
 
-            labels.append({"index": i, "serial": serial, "items": label_items})
+                    if ft == "BARCODE":
+                        out["value"] = barcode_value
+                        out["image_data_url"] = barcode_img
+                    elif ft == "QRCODE":
+                        out["value"] = qr_value
+                        out["image_data_url"] = qr_img
+                    elif ft == "STATIC_TEXT":
+                        out["value"] = out.get("static_value") or out.get("name") or ""
+                    else:
+                        out["value"] = row_values.get(key, "") if key else ""
+
+                    label_items.append(out)
+
+                labels.append({"index": label_index, "serial": serial, "items": label_items})
 
     else:
         user_values = batch.field_values or {}
@@ -2565,12 +2568,14 @@ def label_generate_multi(request, workspace_id, template_id):
 
         # Create MULTI batch + items
         with transaction.atomic():
+
+            total_qty = sum(int(r.get("quantity") or 1) for r in normalized_rows)
             batch = LabelBatch.objects.create(
                 workspace=workspace,
                 template=template,
                 created_by=user,
                 mode=LabelBatch.MODE_MULTI,
-                quantity=len(normalized_rows),
+                quantity=total_qty,
                 ean_code="",
                 gs1_code="",
                 field_values={},  # unused in MULTI
@@ -2582,6 +2587,7 @@ def label_generate_multi(request, workspace_id, template_id):
                     row_index=idx,
                     ean_code=r["ean_code"],
                     gs1_code=r.get("gs1_code") or "",
+                    quantity=int(r.get("quantity") or 1),
                     field_values=r.get("field_values") or {},
                 )
 
@@ -2598,3 +2604,23 @@ def label_generate_multi(request, workspace_id, template_id):
             "var_keys": var_keys,
         },
     )
+
+def _bulk_expected_headers(template) -> list[str]:
+    stored = load_layout_from_template(template)
+    items = stored.get("items") or []
+
+    variable_keys = []
+    for it in items:
+        ft = (it.get("field_type") or "").upper()
+        key = (it.get("key") or "").strip()
+        if not key:
+            continue
+
+        # ✅ only user-fill fields
+        if ft in ("TEXT", "PRICE", "IMAGE_URL"):
+            variable_keys.append(key)
+
+    # ensure stable order
+    variable_keys = list(dict.fromkeys(variable_keys))
+
+    return variable_keys + ["ean_code", "gs1_code", "quantity"]
