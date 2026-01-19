@@ -10,13 +10,27 @@ from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
 import json
-
+from cms.models import CMSPost
 from workspaces.models import Workspace, LabelTemplate, LabelBatch
 
 
-def landing_page(request):
-    # Public landing page
-    return render(request, "landingpage.html")
+def landingpage(request):
+    recent_blogs = (
+        CMSPost.objects
+        .filter(status=CMSPost.STATUS_PUBLISHED, type=CMSPost.TYPE_BLOG)
+        .order_by("-published_at", "-created_at", "-id")[:3]
+    )
+
+    recent_videos = (
+        CMSPost.objects
+        .filter(status=CMSPost.STATUS_PUBLISHED, type=CMSPost.TYPE_VIDEO)
+        .order_by("-published_at", "-created_at", "-id")[:3]
+    )
+
+    return render(request, "landingpage.html", {
+        "recent_blogs": recent_blogs,
+        "recent_videos": recent_videos,
+    })
 
 
 def _parse_date(s: str):
@@ -175,13 +189,14 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     # ✅ Public landing
-    path("", landing_page, name="landing"),
+    path("", landingpage, name="landing"),
 
     # ✅ Logged-in dashboard
     path("dashboard/", dashboard_view, name="dashboard"),
 
     path("accounts/", include("accounts.urls")),
     path("workspaces/", include("workspaces.urls")),
+    path("cms/", include("cms.urls")),
 ]
 
 if settings.DEBUG:

@@ -371,7 +371,7 @@
             opacity: 0.7;
         }
         .brand-logo {
-            height: 35px;
+            height: 72px;
             object-fit: contain;
             /* Invert to make them white on dark bg */
             filter: grayscale(100%) invert(1) brightness(2);
@@ -582,6 +582,103 @@
             border: none;
         }
 
+        /* --- CMS SECTION (shared) --- */
+.cms-section { padding: 72px 0; }
+.cms-actions { margin-top: 18px; display: flex; justify-content: flex-end; }
+
+/* --- BLOGS --- */
+.blog-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 420px));
+  gap: 24px;
+  justify-content: start;
+  align-items: stretch;
+}
+
+.blog-card{
+  width: 100%;
+  height: 420px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface, #fff);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.blog-card:hover{
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-glow);
+  border-color: var(--color-primary);
+}
+
+.blog-thumb{
+  width:100%;
+  height:180px;
+  background:#0b0b0b;
+  overflow:hidden;
+}
+
+.blog-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.blog-body{ padding: 16px 16px 18px; }
+
+.blog-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  opacity:.75;
+  font-size: 12px;
+}
+
+.blog-title{
+  font-weight:700;
+  font-size:16px;
+  line-height:1.25;
+}
+
+.blog-desc{
+  margin-top:8px;
+  opacity:.8;
+  font-size: 13px;
+  line-height:1.45;
+}
+
+.blog-cta{
+  margin-top:12px;
+  font-weight:600;
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+/* --- VIDEO META (under iframe) --- */
+.video-meta{
+  padding: 14px 14px 16px;
+}
+
+.video-title{
+  font-weight:700;
+  font-size:14px;
+  line-height:1.25;
+}
+
+.video-desc{
+  margin-top:8px;
+  opacity:.8;
+  font-size:12.5px;
+  line-height:1.4;
+}
+
+
         /* --- PRICING --- */
         .pricing-section {
             background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #050505 70%);
@@ -737,7 +834,7 @@
             <div class="hero-content">
                 <h1>Stop designing<br>labels in Excel.</h1>
                 <p>The D2C label solution that actually sticks. Design, serialize, and print universally unique barcodes in seconds. No design degree required.</p>
-                <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; @media(min-width:768px){justify-content: flex-start;}">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: left; @media(min-width:768px){justify-content: flex-start;}">
                     <a href="http://127.0.0.1:8000/dashboard" class="btn btn-primary">Start Free Trial <i class="fa-solid fa-arrow-right"></i></a>
                     <a href="#video-demo" class="btn btn-dark"><i class="fa-solid fa-play"></i> Watch Demo</a>
                 </div>
@@ -750,7 +847,7 @@
                 </div>
                 <div class="floater floater-2">
                     <div class="floater-icon"><i class="fa-solid fa-qrcode"></i></div>
-                    <span>Auto-Serialization</span>
+                    <span>Serialized Labels in Bulk</span>
                 </div>
             </div>
         </div>
@@ -951,32 +1048,80 @@
         </div>
     </section>
 
-    <!-- VIDEO DEMOS -->
-    <section id="video-demo">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag tag-blue">In Action</span>
-                <h2 class="section-title">See how it works</h2>
-            </div>
-            <div class="video-grid">
-                <div class="video-card">
-                    <div class="video-wrapper">
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/mIqQzkasAeU?si=nz64tUx9XGKsNBCg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                    </div>
-                </div>
-                <div class="video-card">
-                    <div class="video-wrapper">
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ubmX2GMMgn8?si=hbV8wFtOqXyl1gDk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                    </div>
-                </div>
-                <div class="video-card">
-                    <div class="video-wrapper">
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/bMLTE7UIzz4?si=BQ4gQMHsjCOXEQj-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
+    
+
+{% if recent_blogs %}
+<section id="latest-blogs" class="cms-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag tag-blue">Updates</span>
+      <h2 class="section-title">Latest blogs</h2>
+    </div>
+
+    <div class="blog-grid">
+      {% for p in recent_blogs %}
+      <a class="blog-card" href="{% url 'cms_post_detail' p.slug %}">
+        {% if p.preview_image %}
+          <div class="blog-thumb">
+            <img src="{{ p.preview_image.url }}" alt="{{ p.title }}">
+          </div>
+        {% endif %}
+
+        <div class="blog-body">
+          <div class="blog-meta">
+            <span class="blog-date">{{ p.published_at|date:"M d, Y" }}</span>
+          </div>
+
+          <div class="blog-title">{{ p.title }}</div>
+          <div class="blog-desc">
+            {{ p.subtitle|default:p.meta_description|default:""|truncatechars:120 }}
+          </div>
+
+          <div class="blog-cta">Read →</div>
         </div>
-    </section>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="cms-actions">
+      <a class="btn btn-primary btn-sm" href="{% url 'cms_content_list' %}?type=BLOG">View all blogs</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+
+{% if recent_videos %}
+<section id="video-demo" class="cms-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag tag-blue">In Action</span>
+      <h2 class="section-title">See how it works</h2>
+    </div>
+
+    <div class="video-grid">
+      {% for p in recent_videos %}
+      <div class="video-card">
+        <a href="{% url 'cms_post_detail' p.slug %}" style="display:block; color:inherit; text-decoration:none;">
+          <div class="video-wrapper">
+            {{ p.youtube_embed_html|safe }}
+          </div>
+          <div class="video-meta">
+            <div class="video-title">{{ p.title }}</div>
+            <div class="video-desc">{{ p.video_description|default:""|truncatechars:120 }}</div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="cms-actions">
+      <a class="btn btn-primary btn-sm" href="{% url 'cms_content_list' %}?type=VIDEO">View all videos</a>
+    </div>
+  </div>
+</section>
+{% endif %}
 
     <!-- PRICING -->
     <section id="pricing" class="pricing-section">

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ post.meta_title|default:post.title }}{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+  <a class="btn btn-link px-0" href="{% url 'cms_content_list' %}?type=BLOG">← Back to blogs</a>
+
+  <h1 class="mt-2">{{ post.title }}</h1>
+  {% if post.subtitle %}
+    <p class="text-muted">{{ post.subtitle }}</p>
+  {% endif %}
+
+  {% if post.preview_image %}
+    <img src="{{ post.preview_image.url }}" class="img-fluid rounded mb-4" alt="{{ post.title }}">
+  {% endif %}
+
+  <div class="cms-content">
+    {{ post.blog_html|safe }}
+  </div>
+</div>
+{% endblock %}

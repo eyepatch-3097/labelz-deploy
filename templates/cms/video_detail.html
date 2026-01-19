@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+  <a class="btn btn-link px-0" href="{% url 'cms_content_list' %}?type=VIDEO">← Back to videos</a>
+
+  <h1 class="mt-2">{{ post.title }}</h1>
+  {% if post.video_description %}
+    <p class="text-muted">{{ post.video_description }}</p>
+  {% endif %}
+
+  <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
+    {{ post.youtube_embed_html|safe }}
+  </div>
+</div>
+{% endblock %}
