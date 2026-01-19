@@ -1,47 +1,242 @@
 {% extends "base.html" %}
-{% block title %}Label Generation – {{ workspace.name }}{% endblock %}
+
+{% block title %}Start Generation – {{ workspace.name }}{% endblock %}
 
 {% block content %}
+<style>
+    /* --- LABEL GENERATION START STYLES --- */
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    /* Selection Card Container */
+    .selection-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--color-muted);
+        margin-bottom: 12px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Template Select */
+    .form-select-dark {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 1rem;
+        width: 100%;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .form-select-dark:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
+
+    /* Mode Selection Grid */
+    .mode-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 10px;
+    }
+
+    /* Mode Option Card */
+    .mode-option {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 24px;
+        cursor: pointer;
+        transition: all 0.3s var(--ease-elastic);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .mode-option:hover {
+        background: rgba(255,255,255,0.05);
+        transform: translateY(-4px);
+        border-color: #666;
+    }
+
+    /* Active State for Radio */
+    .mode-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .mode-input:checked + .mode-option {
+        background: rgba(167, 105, 237, 0.1);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 20px rgba(167, 105, 237, 0.2);
+    }
+    
+    .mode-input:checked + .mode-option .mode-icon {
+        color: var(--color-primary);
+        transform: scale(1.1);
+    }
+
+    .mode-icon {
+        font-size: 2.5rem;
+        color: var(--color-muted);
+        margin-bottom: 16px;
+        transition: all 0.3s;
+    }
+
+    .mode-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+    
+    .mode-desc {
+        font-size: 0.85rem;
+        color: var(--color-muted);
+        line-height: 1.4;
+    }
+
+    /* Footer Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 40px;
+        padding-top: 24px;
+        border-top: 1px solid var(--color-border);
+    }
+
+    @media (max-width: 768px) {
+        .mode-grid { grid-template-columns: 1fr; }
+    }
+
+</style>
+
 <div class="row justify-content-center">
-  <div class="col-lg-8">
-    <h1 class="h4 mb-3">Generate Labels</h1>
+  <div class="col-lg-8" style="max-width: 900px;">
+    
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Start Generation</h1>
+        <p class="text mb-0">
+          Workspace: <strong class="text-white">{{ workspace.name }}</strong>
+        </p>
+      </div>
+      <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-ghost">
+        <i class="fa-solid fa-arrow-left me-2"></i> Back to Workspace
+      </a>
+    </div>
 
-    <form method="post" class="card shadow-sm">
-      <div class="card-body">
-        {% csrf_token %}
+    <form method="post" class="selection-card">
+      {% csrf_token %}
+      
+      <!-- Template Selection -->
+      <div class="mb-5">
+        <label class="form-label">
+            1. Select Template
+            <i class="fa-solid fa-circle-info ms-2" style="font-size:0.8em; cursor:help;" data-bs-toggle="tooltip" title="Choose the design layout you want to use for this batch."></i>
+        </label>
+        
+        {% if templates %}
+            <select name="template_id" class="form-select-dark" required>
+                <option value="" disabled selected>-- Choose a design template --</option>
+                {% for t in templates %}
+                    <option value="{{ t.id }}">
+                        {{ t.name }} ({{ t.width_cm }}x{{ t.height_cm }}cm)
+                    </option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <div class="alert alert-warning d-flex align-items-center mb-0" style="background:rgba(255, 125, 0, 0.1); border-color:rgba(255, 125, 0, 0.2); color:var(--color-accent-orange);">
+                <i class="fa-solid fa-triangle-exclamation me-3"></i>
+                <div>
+                    No templates found. <a href="{% url 'label_template_create' workspace.id %}" class="fw-bold text-white text-decoration-underline">Create one first</a>.
+                </div>
+            </div>
+        {% endif %}
+      </div>
 
-        <div class="mb-3">
-          <label class="form-label">Choose Template</label>
-          <select name="template_id" class="form-select">
-            <option value="">-- Select Template --</option>
-            {% for t in templates %}
-              <option value="{{ t.id }}">{{ t.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label d-block">Generation Mode</label>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="mode" id="modeSingle"
-                   value="SINGLE" checked>
-            <label class="form-check-label" for="modeSingle">
-              Single SKU
+      <!-- Mode Selection -->
+      <div class="mb-2">
+        <label class="form-label">2. Generation Mode</label>
+        
+        <div class="mode-grid">
+            <!-- Single Mode -->
+            <label style="cursor:pointer;">
+                <input type="radio" name="mode" value="SINGLE" class="mode-input" checked>
+                <div class="mode-option">
+                    <i class="fa-regular fa-file mode-icon"></i>
+                    <div class="mode-title">Single SKU</div>
+                    <div class="mode-desc">Generate labels for a single product. Good for quick prints or testing designs.</div>
+                </div>
             </label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="mode" id="modeMulti"
-                   value="MULTI">
-            <label class="form-check-label text-muted" for="modeMulti">
-              Multiple SKUs (coming soon)
+            
+            <!-- Multi/Bulk Mode -->
+            <label style="cursor:pointer;">
+                <input type="radio" name="mode" value="MULTI" class="mode-input">
+                <div class="mode-option">
+                    <i class="fa-solid fa-layer-group mode-icon"></i>
+                    <div class="mode-title">Multiple SKUs (Bulk)</div>
+                    <div class="mode-desc">Upload a CSV/Excel file to generate 1000s of unique labels in one go.</div>
+                </div>
             </label>
-          </div>
         </div>
       </div>
-      <div class="card-footer d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary">Next</button>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-custom btn-primary-glow px-5 py-3" {% if not templates %}disabled{% endif %}>
+            Next Step <i class="fa-solid fa-arrow-right ms-2"></i>
+        </button>
       </div>
+
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
 {% endblock %}
