@@ -197,6 +197,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("workspaces/", include("workspaces.urls")),
     path("cms/", include("cms.urls")),
+    path("billing/", include("billing.urls")),
 ]
 
 if settings.DEBUG:

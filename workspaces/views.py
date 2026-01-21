@@ -31,6 +31,10 @@ from .utils.bulk_import import (
 )
 from .utils.qr_payload import build_qr_payload
 from django.db.models import Count
+from billing.usage import record_label_generation
+from billing.usage import get_effective_entitlements, get_labels_remaining
+from billing.guards import limit_redirect
+from workspaces.models import Workspace
 
 WIZARD_SESSION_KEY = 'workspace_wizard'
 UI_MAX_SIDE_PX = 700.0  # single source of truth
@@ -504,6 +508,18 @@ def workspace_list(request):
 @login_required
 def workspace_create_step1(request):
     user = request.user
+    ent = get_effective_entitlements(user.org)
+    ws_limit = ent.get("workspace_limit")  # None => unlimited
+
+    if ws_limit is not None:
+        current_ws = Workspace.objects.filter(org=user.org).count()
+        if current_ws >= int(ws_limit):
+            return limit_redirect(
+                request,
+                user.org,
+                "Workspace limit reached for your plan. Please upgrade to create more workspaces."
+            )
+
     if not user.org or user.role != User.ROLE_ADMIN:
         messages.error(request, "Only admins can create workspaces.")
         return redirect('workspace_list')
@@ -560,9 +576,22 @@ def workspace_create_step1(request):
 @login_required
 def workspace_map_fields(request):
     user = request.user
+    
     if not user.org or user.role != User.ROLE_ADMIN:
         messages.error(request, "Only admins can create workspaces.")
         return redirect('workspace_list')
+
+    ent = get_effective_entitlements(user.org)
+    ws_limit = ent.get("workspace_limit")  # None => unlimited
+
+    if ws_limit is not None:
+        current_ws = Workspace.objects.filter(org=user.org).count()
+        if current_ws >= int(ws_limit):
+            return limit_redirect(
+                request,
+                user.org,
+                "Workspace limit reached for your plan. Please upgrade to create more workspaces."
+            )
 
     wizard = get_wizard(request)
     if not wizard or not wizard.get("from_file") or not wizard.get("template_file_path"):
@@ -624,9 +653,22 @@ def workspace_map_fields(request):
 @login_required
 def workspace_manual_fields(request):
     user = request.user
+
     if not user.org or user.role != User.ROLE_ADMIN:
         messages.error(request, "Only admins can create workspaces.")
         return redirect('workspace_list')
+    
+    ent = get_effective_entitlements(user.org)
+    ws_limit = ent.get("workspace_limit")  # None => unlimited
+
+    if ws_limit is not None:
+        current_ws = Workspace.objects.filter(org=user.org).count()
+        if current_ws >= int(ws_limit):
+            return limit_redirect(
+                request,
+                user.org,
+                "Workspace limit reached for your plan. Please upgrade to create more workspaces."
+            )
 
     wizard = get_wizard(request)
     if not wizard:
@@ -667,7 +709,10 @@ def workspace_manual_fields(request):
 
         if action == 'skip':
             # Create workspace immediately, even if fields list is empty
-            workspace = _create_workspace_from_wizard(user, wizard)
+            try:
+                workspace = _create_workspace_from_wizard(user, wizard)
+            except ValueError:
+                return limit_redirect(request, user.org, "Workspace limit reached. Please upgrade.")
             clear_wizard(request)
             messages.success(request, f"Workspace '{workspace.name}' created.")
             return redirect('workspace_list')
@@ -685,6 +730,15 @@ def workspace_manual_fields(request):
     })
 
 def _create_workspace_from_wizard(user, wizard):
+
+    ent = get_effective_entitlements(user.org)
+    ws_limit = ent.get("workspace_limit")  # None => unlimited
+
+    if ws_limit is not None:
+        current_ws = Workspace.objects.filter(org=user.org).count()
+        if current_ws >= int(ws_limit):
+            raise ValueError("Workspace limit reached")
+
     workspace = Workspace.objects.create(
         org=user.org,
         name=wizard["name"],
@@ -1140,6 +1194,18 @@ def label_template_create(request, workspace_id):
         if not has_access:
             messages.error(request, "You do not have access to this workspace.")
             return redirect("my_workspaces")
+
+    ent = get_effective_entitlements(org)
+    tpl_limit = ent.get("template_limit")  # None => unlimited
+
+    if tpl_limit is not None:
+        current_tpl = LabelTemplate.objects.filter(workspace__org=org).count()
+        if current_tpl >= int(tpl_limit):
+            return limit_redirect(
+                request,
+                org,
+                "Template limit reached for your plan. Please upgrade to create more templates."
+            )
 
     if request.method == "POST":
         form = LabelTemplateForm(request.POST)
@@ -1975,6 +2041,10 @@ def label_generate_single(request, workspace_id, template_id):
     meta = stored.get("_meta") or {}
     items = stored.get("items") or []
 
+    remaining = get_labels_remaining(workspace.org)  # None => unlimited
+    if remaining is not None and remaining <= 0:
+        return limit_redirect(request, workspace.org, "No labels left. Please upgrade to generate more labels.")
+
     if not items:
         messages.error(request, "No template layout found. Please open Canvas and Save once.")
         return redirect("label_template_canvas", template_id=template.id)
@@ -2011,6 +2081,14 @@ def label_generate_single(request, workspace_id, template_id):
             errors.append("EAN code is mandatory.")
         if quantity < 1 or quantity > 500:
             errors.append("Quantity must be between 1 and 500.")
+
+        remaining = get_labels_remaining(workspace.org)
+        if remaining is not None and quantity > remaining:
+            return limit_redirect(
+                request,
+                workspace.org,
+                f"You need {quantity} labels but only {remaining} are left. Please upgrade."
+            )
 
         field_values = {}
         for f in input_fields:
@@ -2050,6 +2128,7 @@ def label_generate_single(request, workspace_id, template_id):
             quantity=quantity,
             field_values=field_values,
         )
+        record_label_generation(org=workspace.org, qty=int(batch.quantity or 1))
 
         messages.success(request, "Label batch created.")
         return redirect("label_generate_single_preview", workspace_id=workspace.id, batch_id=batch.id)
@@ -2590,7 +2669,8 @@ def label_generate_multi_export_template(request, workspace_id, template_id):
 
     if not user.org or user.org != org:
         return HttpResponse("Unauthorized", status=403)
-
+    
+    
     template = get_object_or_404(LabelTemplate, id=template_id, workspace=workspace)
 
     stored = load_layout_from_template(template)
@@ -2629,9 +2709,14 @@ def label_generate_multi(request, workspace_id, template_id):
             messages.error(request, "You do not have access to this workspace.")
             return redirect("my_workspaces")
 
+    remaining = get_labels_remaining(workspace.org)
+    if remaining is not None and remaining <= 0:
+        return limit_redirect(request, workspace.org, "No labels left. Please upgrade to generate more labels.")
+    
     stored = load_layout_from_template(template)
     items = stored.get("items") or []
     headers, var_keys = build_expected_headers(items)
+
 
     if request.method == "POST":
         f = request.FILES.get("import_file")
@@ -2663,6 +2748,14 @@ def label_generate_multi(request, workspace_id, template_id):
         with transaction.atomic():
 
             total_qty = sum(int(r.get("quantity") or 1) for r in normalized_rows)
+            remaining = get_labels_remaining(workspace.org)
+            if remaining is not None and total_qty > remaining:
+                return limit_redirect(
+                    request,
+                    workspace.org,
+                    f"You need {total_qty} labels but only {remaining} are left. Please upgrade."
+                )
+
             batch = LabelBatch.objects.create(
                 workspace=workspace,
                 template=template,
@@ -2673,7 +2766,7 @@ def label_generate_multi(request, workspace_id, template_id):
                 gs1_code="",
                 field_values={},  # unused in MULTI
             )
-
+            record_label_generation(org=workspace.org, qty=int(total_qty or 0))
             for idx, r in enumerate(normalized_rows, start=1):
                 LabelBatchItem.objects.create(
                     batch=batch,

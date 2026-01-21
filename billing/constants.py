@@ -1,0 +1,11 @@
+# billing/constants.py
+
+TRIAL_WORKSPACE_LIMIT = 1
+TRIAL_TEMPLATE_LIMIT = 3
+TRIAL_LABELS_TOTAL = 5  # TOTAL lifetime labels (not per month)
+
+PLAN_STARTER = "STARTER"
+PLAN_PRO = "PRO"
+PLAN_SUPER = "SUPER"  # later
+
+CURRENCY_DEFAULT = "USD"

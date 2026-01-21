@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container" style="max-width: 980px;">
+  <h1 class="h4 mb-3">Plans & Usage</h1>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="text-muted small">Current plan</div>
+          <div class="h5 mb-0">{{ plan_code }}</div>
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 border rounded">
+            <div class="text-muted small">Workspaces</div>
+            <div class="fw-semibold">
+              {% if ws_limit is None %}Unlimited{% else %}{{ ws_created }}/{{ ws_limit }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded">
+            <div class="text-muted small">Templates</div>
+            <div class="fw-semibold">
+              {% if tpl_limit is None %}Unlimited{% else %}{{ tpl_created }}/{{ tpl_limit }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded">
+            <div class="text-muted small">Labels</div>
+            <div class="fw-semibold">
+              {% if lbl_limit is None %}
+                Unlimited
+              {% else %}
+                Used: {{ lbl_used }} / {{ lbl_limit }} <br>
+                Remaining: {{ lbl_remaining }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Available plans</h2>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="p-3 border rounded h-100">
+            <div class="fw-semibold">Starter — $19</div>
+            <div class="text-muted small">1 workspace • 3 templates • 3000 labels</div>
+
+            {% if can_upgrade %}
+              <form method="post" class="mt-3">
+                {% csrf_token %}
+                <input type="hidden" name="plan_code" value="STARTER">
+                <button class="btn btn-primary w-100">Buy Starter</button>
+              </form>
+            {% else %}
+              <div class="text-muted small mt-3">Only admins can upgrade (or you’re already Pro/Super).</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="p-3 border rounded h-100">
+            <div class="fw-semibold">Pro — $69</div>
+            <div class="text-muted small">Unlimited workspaces • Unlimited templates • 30000 labels</div>
+
+            {% if can_upgrade %}
+              <form method="post" class="mt-3">
+                {% csrf_token %}
+                <input type="hidden" name="plan_code" value="PRO">
+                <button class="btn btn-dark w-100">Buy Pro</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-semibold">Need a custom limit?</div>
+          <div class="text-muted small">Request Super plan approval.</div>
+        </div>
+        <a href="{% url 'billing_super_plan' %}" class="btn btn-outline-secondary">
+          Request Super Plan
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

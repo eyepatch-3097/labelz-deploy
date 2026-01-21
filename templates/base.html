@@ -415,6 +415,32 @@
       <i class="fa-solid fa-bars" style="font-size: 1.5rem;"></i>
     </button>
 
+  {% if user.is_authenticated and user.org %}
+  <div class="d-flex align-items-center ms-3">
+    <div class="px-3 py-1 rounded-pill"
+         style="background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);">
+      <span style="font-weight:600;">
+        Plan: {{ billing_plan_label|default:"Free Trial" }} —
+        {% if billing_labels_limit is None %}
+          Unlimited labels
+        {% else %}
+          {{ billing_labels_remaining|default:0 }}/{{ billing_labels_limit|default:0 }} labels left
+        {% endif %}
+      </span>
+    </div>
+
+    {% if billing_can_upgrade %}
+      <a href="{% url 'billing_select_plan' %}" class="btn btn-sm btn-outline-warning ms-2">
+        Upgrade
+      </a>
+    {% elif billing_can_go_super %}
+      <a href="{% url 'billing_super_plan' %}" class="btn btn-sm btn-outline-info ms-2">
+        Go Super
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto align-items-center">
         {% if user.is_authenticated %}
