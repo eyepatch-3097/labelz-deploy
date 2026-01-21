@@ -152,8 +152,11 @@ class PaymentEvent(models.Model):
     amount_cents = models.PositiveIntegerField(default=0)
 
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_CREATED)
-    provider = models.CharField(max_length=32, default="")  # e.g. RAZORPAY
+    provider = models.CharField(max_length=32, default="RAZORPAY")
+
+    provider_order_id = models.CharField(max_length=128, default="", blank=True)   # NEW
     provider_payment_id = models.CharField(max_length=128, default="", blank=True)
+    provider_signature = models.CharField(max_length=256, default="", blank=True) # NEW (optional)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

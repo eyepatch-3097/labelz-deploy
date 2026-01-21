@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:720px;">
+  <h1 class="h5 mb-3">Complete Payment</h1>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="mb-2"><b>Org:</b> {{ org.name }}</div>
+      <div class="mb-2"><b>Plan:</b> {{ plan_code }}</div>
+      <div class="mb-3"><b>Amount:</b> ₹{{ amount_rupees }}</div>
+
+      <form id="rpVerify" method="post" action="{% url 'billing_verify_payment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+      </form>
+
+      <button id="payBtn" class="btn btn-primary w-100">Pay with Razorpay</button>
+      <a href="{% url 'billing_select_plan' %}" class="btn btn-link w-100 mt-2">Cancel</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const options = {
+    key: "{{ razorpay_key_id }}",
+    amount: "{{ amount_paise }}",
+    currency: "{{ currency }}",
+    name: "Label",
+    description: "{{ plan_code }} plan",
+    order_id: "{{ razorpay_order_id }}",
+    handler: function (response){
+      document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+      document.getElementById("razorpay_signature").value = response.razorpay_signature;
+      document.getElementById("rpVerify").submit();
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  document.getElementById("payBtn").onclick = function(e){
+    e.preventDefault();
+    rzp.open();
+  };
+</script>
+{% endblock %}

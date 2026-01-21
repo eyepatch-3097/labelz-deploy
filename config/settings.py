@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 import dj_database_url
 import dj_database_url
+import dotenv
+dotenv.load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +26,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-fpva&iz-i1d81u#xa!e@@iu!jm&8zo=sp6p72!p*o0z0lk1mv%'
+
+#API KEYS
+
+#PAYMENT
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
+RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

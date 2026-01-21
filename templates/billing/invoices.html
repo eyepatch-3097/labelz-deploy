@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load money %}
+{% block content %}
+<div class="container" style="max-width: 980px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Billing & Invoices</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'billing_invoices_csv' %}">Download CSV</a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="text-muted small">Current plan</div>
+      <div class="h5">{{ plan_code }}</div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-4"><div class="p-3 border rounded">
+          <div class="text-muted small">Workspaces</div>
+          <div class="fw-semibold">{% if ws_limit is None %}Unlimited{% else %}{{ ws_created }}/{{ ws_limit }}{% endif %}</div>
+        </div></div>
+        <div class="col-md-4"><div class="p-3 border rounded">
+          <div class="text-muted small">Templates</div>
+          <div class="fw-semibold">{% if tpl_limit is None %}Unlimited{% else %}{{ tpl_created }}/{{ tpl_limit }}{% endif %}</div>
+        </div></div>
+        <div class="col-md-4"><div class="p-3 border rounded">
+          <div class="text-muted small">Labels</div>
+          <div class="fw-semibold">
+            {% if lbl_limit is None %}Unlimited{% else %}Used: {{ lbl_used }}/{{ lbl_limit }}<br>Remaining: {{ lbl_remaining }}{% endif %}
+          </div>
+        </div></div>
+      </div>
+
+      <hr class="my-3">
+
+      <form method="post" action="{% url 'billing_cancel_plan' %}"
+            onsubmit="return confirm('Confirm cancellation for {{ plan_code }} plan for org {{ org.name }}?');">
+        {% csrf_token %}
+        <button class="btn btn-outline-danger">Cancel Plan</button>
+        <a href="{% url 'billing_select_plan' %}" class="btn btn-link">Change Plan</a>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Payment History</h2>
+
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th><th>Date</th><th>Plan</th><th>Status</th><th>Amount</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in payments %}
+            <tr>
+              <td>{{ p.id }}</td>
+              <td>{{ p.created_at|date:"Y-m-d H:i" }}</td>
+              <td>{% if p.plan_version %}{{ p.plan_version.plan.code }}{% else %}-{% endif %}</td>
+              <td>{{ p.status }}</td>
+              
+              <td>₹{{ p.amount_cents|paise_to_inr }}</td>
+              <td>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'billing_invoice_pdf' p.id %}">
+                  PDF
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">No payments yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

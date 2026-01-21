@@ -59,14 +59,14 @@
       <div class="row g-3">
         <div class="col-md-6">
           <div class="p-3 border rounded h-100">
-            <div class="fw-semibold">Starter — $19</div>
+            <div class="fw-semibold">Starter — ₹1900</div>
             <div class="text-muted small">1 workspace • 3 templates • 3000 labels</div>
 
             {% if can_upgrade %}
-              <form method="post" class="mt-3">
+              <form method="post" action="{% url 'billing_checkout_start' %}" class="mt-3">
                 {% csrf_token %}
                 <input type="hidden" name="plan_code" value="STARTER">
-                <button class="btn btn-primary w-100">Buy Starter</button>
+                <button class="btn btn-primary w-100">Buy Starter (₹{{ starter_price }})</button>
               </form>
             {% else %}
               <div class="text-muted small mt-3">Only admins can upgrade (or you’re already Pro/Super).</div>
@@ -76,14 +76,14 @@
 
         <div class="col-md-6">
           <div class="p-3 border rounded h-100">
-            <div class="fw-semibold">Pro — $69</div>
+            <div class="fw-semibold">Pro — ₹6900</div>
             <div class="text-muted small">Unlimited workspaces • Unlimited templates • 30000 labels</div>
 
             {% if can_upgrade %}
-              <form method="post" class="mt-3">
+              <form method="post" action="{% url 'billing_checkout_start' %}" class="mt-3">
                 {% csrf_token %}
                 <input type="hidden" name="plan_code" value="PRO">
-                <button class="btn btn-dark w-100">Buy Pro</button>
+                <button class="btn btn-dark w-100">Buy Pro (₹{{ pro_price }}) </button>
               </form>
             {% endif %}
           </div>

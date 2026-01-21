@@ -11,7 +11,7 @@ from accounts.models import Org
 from billing.constants import (
     TRIAL_WORKSPACE_LIMIT, TRIAL_TEMPLATE_LIMIT, TRIAL_LABELS_TOTAL,
 )
-from .models import OrgSubscription, OrgUsageLifetime, OrgUsagePeriod
+from .models import OrgSubscription, OrgUsageLifetime, OrgUsagePeriod, OrgLimitOverride
 
 
 def get_or_create_subscription(org: Org) -> OrgSubscription:
@@ -113,24 +113,22 @@ def get_effective_entitlements(org: Org) -> Dict[str, Optional[int]]:
 
 @transaction.atomic()
 def get_labels_used(org: Org, now=None) -> int:
-    dt_now = timezone.now()
+    now = now or timezone.now()
     sub = get_or_create_subscription(org)
-    sub = refresh_subscription_state(sub, now=dt_now)
+    sub = refresh_subscription_state(sub, now=now)
 
-    ent = get_effective_entitlements(org)
-    is_lifetime = bool(ent.get("labels_is_lifetime"))
-
-    if is_lifetime:
+    # TRIAL => lifetime usage
+    if sub.status == OrgSubscription.STATUS_TRIAL:
         usage, _ = OrgUsageLifetime.objects.select_for_update().get_or_create(org=org)
         return int(usage.labels_generated_total or 0)
 
+    # ACTIVE => period usage
     if sub.status == OrgSubscription.STATUS_ACTIVE and sub.current_period_start and sub.current_period_end:
         usage, _ = OrgUsagePeriod.objects.select_for_update().get_or_create(
             org=org,
             period_start=sub.current_period_start,
             defaults={"period_end": sub.current_period_end, "labels_generated": 0},
         )
-        # keep end synced
         if usage.period_end != sub.current_period_end:
             usage.period_end = sub.current_period_end
             usage.save(update_fields=["period_end", "updated_at"])
@@ -138,32 +136,24 @@ def get_labels_used(org: Org, now=None) -> int:
 
     return 0
 
-
 @transaction.atomic()
 def record_label_generation(org: Org, qty: int) -> None:
-    """
-    Increments label usage by qty.
-    - TRIAL increments lifetime.
-    - ACTIVE increments current period.
-    - NONE/CANCELED no-op (later gating will prevent calling this).
-    """
     qty = int(qty or 0)
     if qty <= 0:
         return
 
     now = timezone.now()
     sub = get_or_create_subscription(org)
-    sub = refresh_subscription_state(sub, now=timezone.now())
+    sub = refresh_subscription_state(sub, now=now)
 
-    ent = get_effective_entitlements(org)
-    is_lifetime = bool(ent.get("labels_is_lifetime"))
-
-    if is_lifetime:
+    # TRIAL => lifetime usage
+    if sub.status == OrgSubscription.STATUS_TRIAL:
         usage, _ = OrgUsageLifetime.objects.select_for_update().get_or_create(org=org)
         usage.labels_generated_total = int(usage.labels_generated_total or 0) + qty
         usage.save(update_fields=["labels_generated_total", "updated_at"])
         return
 
+    # ACTIVE => period usage
     if sub.status == OrgSubscription.STATUS_ACTIVE and sub.current_period_start and sub.current_period_end:
         usage, _ = OrgUsagePeriod.objects.select_for_update().get_or_create(
             org=org,
@@ -174,7 +164,6 @@ def record_label_generation(org: Org, qty: int) -> None:
         usage.save(update_fields=["labels_generated", "updated_at"])
         return
 
-    # NONE/CANCELED => no-op
     return
 
 
