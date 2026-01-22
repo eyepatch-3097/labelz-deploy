@@ -1,54 +1,163 @@
 {% extends "base.html" %}
 
-{% block title %}Org Join Requests – Labelcraft{% endblock %}
+{% block title %}Join Requests – {{ org.name }}{% endblock %}
 
 {% block content %}
+<style>
+    /* --- JOIN REQUESTS STYLES --- */
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+    }
+
+    /* Requests Card */
+    .requests-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 30px;
+        overflow: hidden;
+    }
+
+    /* Custom Dark Table */
+    .table-dark-custom {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+        color: var(--color-text);
+        margin-bottom: 0;
+    }
+    
+    .table-dark-custom th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--color-muted);
+        font-weight: 700;
+        padding: 0 16px 8px;
+        border-bottom: 1px solid var(--color-border);
+    }
+    
+    .table-dark-custom td {
+        background: rgba(255,255,255,0.02);
+        padding: 16px;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        vertical-align: middle;
+    }
+    
+    .table-dark-custom tr td:first-child { border-left: 1px solid var(--color-border); border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+    .table-dark-custom tr td:last-child { border-right: 1px solid var(--color-border); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+    
+    .table-dark-custom tr:hover td { background: var(--color-surface-light); }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: var(--color-muted);
+        border: 1px dashed var(--color-border);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.01);
+    }
+    .empty-icon { font-size: 3rem; opacity: 0.2; margin-bottom: 20px; }
+
+    /* User Avatar Placeholder */
+    .user-avatar {
+        width: 36px; height: 36px;
+        background: #333;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #fff;
+        border: 1px solid var(--color-border);
+    }
+
+</style>
+
 <div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-3">Organisation Join Requests</h1>
-        <p class="text-muted mb-4">
-          Organisation: <strong>{{ org.name }}</strong>
+  <div class="col-lg-10" style="max-width: 1200px;">
+    
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Join Requests</h1>
+        <p class="text mb-0">
+          Manage access requests for <strong class="text-white">{{ org.name }}</strong>
         </p>
-
-        {% if pending_requests %}
-          <div class="table-responsive">
-            <table class="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Requested At</th>
-                  <th class="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for jr in pending_requests %}
-                  <tr>
-                    <td>{{ jr.user.email }}</td>
-                    <td>{{ jr.created_at }}</td>
-                    <td class="text-end">
-                      <form method="post" action="{% url 'approve_org_join_request' jr.id %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-success">
-                          Approve
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-muted">No pending join requests right now.</p>
-        {% endif %}
-
-        <a href="{% url 'dashboard' %}" class="btn btn-link mt-3">
-          ← Back to dashboard
-        </a>
       </div>
+      <a href="{% url 'dashboard' %}" class="btn btn-custom btn-ghost">
+        <i class="fa-solid fa-arrow-left me-2"></i> Dashboard
+      </a>
     </div>
+
+    <div class="requests-card">
+      {% if pending_requests %}
+        <div class="table-responsive">
+          <table class="table-dark-custom">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Request Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for jr in pending_requests %}
+              <tr>
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="user-avatar">
+                            {{ jr.user.email|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white">{{ jr.user.email }}</div>
+                            <div class="small text">Requesting Member Access</div>
+                        </div>
+                    </div>
+                </td>
+                
+                <td class="text small">
+                    <i class="fa-regular fa-clock me-2"></i> {{ jr.created_at|date:"M d, Y H:i" }}
+                </td>
+
+                <td class="text-end">
+                  <form method="post" action="{% url 'approve_org_join_request' jr.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-custom btn-success btn-sm px-3" style="background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, 0.4); color: #2ecc71;">
+                      <i class="fa-solid fa-check me-2"></i> Approve
+                    </button>
+                  </form>
+                  <!-- Optional: Reject Button could be added here later -->
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <h3 class="h5 text-white">All Clear</h3>
+            <p class="mb-0">There are no pending join requests at this time.</p>
+        </div>
+      {% endif %}
+    </div>
+
   </div>
 </div>
 {% endblock %}

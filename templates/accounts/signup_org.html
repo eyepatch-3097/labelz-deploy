@@ -1,38 +1,255 @@
 {% extends "base.html" %}
 
-{% block title %}Create Organisation – Labelcraft{% endblock %}
+{% block title %}Create Organisation – Labelz{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-6">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-3 text-center">Set up your Organisation</h1>
+<style>
+    /* --- CREATE ORG STYLES --- */
+    
+    .split-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: center;
+        min-height: 80vh;
+    }
 
-        <p class="text-muted text-center mb-4">
-          Signing up as <strong>{{ email }}</strong>
-        </p>
+    /* Form Card */
+    .form-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    /* Input Styling */
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--color-muted);
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control-dark {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 1rem;
+        width: 100%;
+        transition: all 0.2s;
+    }
+    
+    .form-control-dark:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
 
-        <form method="post" novalidate>
-          {% csrf_token %}
-          {{ form.non_field_errors }}
+    /* Info Card (Right Side) */
+    .info-card {
+        padding: 40px;
+        color: #fff;
+    }
 
-          <div class="mb-3">
-            <label for="{{ form.org_name.id_for_label }}" class="form-label">Organisation Name</label>
-            {{ form.org_name }}
-            {% if form.org_name.errors %}
-              <div class="text-danger small">
-                {{ form.org_name.errors|striptags }}
-              </div>
-            {% endif %}
-          </div>
+    .info-title {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        background: linear-gradient(to right, #fff, var(--color-muted));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-          <button type="submit" class="btn btn-primary w-100">
-            Create Organisation
-          </button>
-        </form>
-      </div>
+    .info-desc {
+        color: var(--color-muted);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 40px;
+    }
+
+    /* --- HIERARCHY ANIMATION --- */
+    .anim-stage {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Central Hub (Org) */
+    .anim-hub {
+        width: 80px; height: 80px;
+        background: rgba(167, 105, 237, 0.1);
+        border: 2px solid var(--color-primary);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2rem;
+        color: var(--color-primary);
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 0 30px rgba(167, 105, 237, 0.3);
+        animation: pulse-hub 3s infinite ease-in-out;
+    }
+
+    /* Orbiting Nodes (Users/Workspaces) */
+    .anim-node {
+        position: absolute;
+        width: 40px; height: 40px;
+        background: #222;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        color: #fff;
+        z-index: 5;
+    }
+
+    .node-user-1 { top: 20px; left: 20%; animation: float-in-1 4s infinite; color: var(--color-accent-blue); }
+    .node-user-2 { top: 60px; right: 20%; animation: float-in-2 4s infinite 1s; color: var(--color-accent-blue); }
+    
+    .node-ws-1 { bottom: 40px; left: 30%; animation: float-out-1 4s infinite 2s; color: var(--color-accent-orange); }
+    .node-ws-2 { bottom: 40px; right: 30%; animation: float-out-2 4s infinite 3s; color: var(--color-accent-orange); }
+
+    /* Connecting Lines (CSS SVG simulation) */
+    .anim-line {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 150px; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+        transform-origin: left center;
+        opacity: 0;
+    }
+
+    @keyframes pulse-hub {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(167, 105, 237, 0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(167, 105, 237, 0.5); }
+    }
+
+    @keyframes float-in-1 {
+        0% { transform: translate(-50px, -50px); opacity: 0; }
+        20% { opacity: 1; }
+        50% { transform: translate(0, 0); } /* Reaches hub (visually) */
+        100% { transform: translate(0, 0); opacity: 1; }
+    }
+    @keyframes float-in-2 {
+        0% { transform: translate(50px, -50px); opacity: 0; }
+        20% { opacity: 1; }
+        50% { transform: translate(0, 0); }
+        100% { transform: translate(0, 0); opacity: 1; }
+    }
+    
+    @keyframes float-out-1 {
+        0% { transform: translate(0, -40px) scale(0.5); opacity: 0; }
+        20% { opacity: 1; }
+        100% { transform: translate(0, 0) scale(1); opacity: 1; }
+    }
+    @keyframes float-out-2 {
+        0% { transform: translate(0, -40px) scale(0.5); opacity: 0; }
+        20% { opacity: 1; }
+        100% { transform: translate(0, 0) scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 992px) {
+        .split-layout { grid-template-columns: 1fr; gap: 20px; }
+        .info-card { order: -1; padding: 20px 0; text-align: center; }
+        .anim-stage { height: 200px; }
+    }
+</style>
+
+<div class="container-fluid" style="max-width: 1200px;">
+    
+    <div class="split-layout">
+        
+        <!-- LEFT: FORM -->
+        <div class="form-card">
+            <div class="mb-4">
+                <h1 class="h3 fw-bold text-white mb-2">Set up your Organisation</h1>
+                <p class="text mb-0">
+                    Signing up as <strong class="text-white">{{ email }}</strong>
+                </p>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label for="{{ form.org_name.id_for_label }}" class="form-label">Organisation Name</label>
+                    <!-- Manually render widget to apply styling -->
+                    <input type="text" name="{{ form.org_name.name }}" 
+                           class="form-control-dark" 
+                           id="{{ form.org_name.id_for_label }}"
+                           placeholder="e.g. Acme Corp Global"
+                           {% if form.org_name.value %}value="{{ form.org_name.value }}"{% endif %}
+                           required>
+                    
+                    {% if form.org_name.errors %}
+                        <div class="text-danger small mt-2">
+                            {{ form.org_name.errors|striptags }}
+                        </div>
+                    {% endif %}
+                    <div class="small text mt-2">
+                        This will be the unique namespace for all your workspaces and templates.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-custom btn-primary-glow w-100 py-3 fw-bold" style="font-size: 1.1rem;">
+                    Create Organisation <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- RIGHT: INFO & ANIMATION -->
+        <div class="info-card">
+            <h2 class="info-title">Why an Organisation?</h2>
+            <p class="info-desc">
+                Your Organisation acts as the central command center. It unifies your team, allowing you to manage access, billing, and global templates across multiple workspaces from a single dashboard.
+            </p>
+
+            <div class="anim-stage">
+                <!-- Central Org -->
+                <div class="anim-hub">
+                    <i class="fa-regular fa-building"></i>
+                </div>
+
+                <!-- Users Flowing In -->
+                <div class="anim-node node-user-1" title="User">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <div class="anim-node node-user-2" title="Admin">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+
+                <!-- Workspaces Flowing Out -->
+                <div class="anim-node node-ws-1" title="Workspace A">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <div class="anim-node node-ws-2" title="Workspace B">
+                    <i class="fa-solid fa-flask"></i>
+                </div>
+            </div>
+
+            <div class="d-flex gap-4 justify-content-center mt-4 text small text-uppercase fw-bold" style="letter-spacing:1px;">
+                <div><i class="fa-regular fa-user text-primary me-2"></i> Users</div>
+                <div><i class="fa-solid fa-arrow-right mx-2 opacity-50"></i></div>
+                <div><i class="fa-solid fa-laptop-file text-white me-2"></i> Workspaces</div>
+            </div>
+        </div>
+
     </div>
-  </div>
+
 </div>
-{% endblock %}
+{% endblock %}  

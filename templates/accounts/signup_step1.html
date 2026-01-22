@@ -1,252 +1,321 @@
 {% extends "base.html" %}
 
-{% block title %}Sign up – Labelcraft{% endblock %}
+{% block title %}Sign up – Labelz{% endblock %}
 
 {% block content %}
 <style>
-  /* --- Global & Layout --- */
-  body {
-    font-family: 'Inter', 'Roboto', sans-serif;
-    background-color: #F2F7FF;
-    overflow-x: hidden;
-  }
+    /* --- LABELZ SIGNUP SPECIFIC STYLES --- */
+    
+    .signup-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 0;
+    }
 
-  .split-screen-container {
-    min-height: 100vh;
-  }
+    .split-card {
+        display: flex;
+        width: 100%;
+        max-width: 1100px;
+        background: var(--color-surface);
+        border-radius: var(--radius-card);
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        border: 1px solid var(--color-border);
+        min-height: 650px;
+    }
 
-  /* --- Left Hero Section (Sign Up Variant) --- */
-  .hero-panel {
-    background: linear-gradient(135deg, #004080 0%, #6A70FF 100%);
-    color: #FFFFFF;
-    padding: 4rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
+    /* Left Side - Visuals */
+    .signup-visual {
+        flex: 1;
+        background: radial-gradient(circle at 70% 70%, #1a0b2e 0%, #000 100%);
+        position: relative;
+        padding: 4rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        color: #fff;
+        overflow: hidden;
+        border-right: 1px solid var(--color-border);
+    }
 
-  /* Decorative circle pattern */
-  .hero-panel::before {
-      content: '';
-      position: absolute;
-      top: -50px; right: -50px;
-      width: 300px; height: 300px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      pointer-events: none;
-  }
+    #particles-js {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1;
+        opacity: 0.5;
+    }
 
-  .hero-heading {
-    font-weight: 800;
-    font-size: 2.5rem;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
+    .visual-content {
+        position: relative;
+        z-index: 2;
+    }
 
-  .hero-subtext {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin-bottom: 3rem;
-    max-width: 500px;
-  }
+    .brand-highlight {
+        color: var(--color-primary);
+        text-shadow: 0 0 20px rgba(167, 105, 237, 0.4);
+    }
 
-  /* Benefits List */
-  .benefit-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1.2rem;
-    font-size: 1.05rem;
-    font-weight: 500;
-  }
+    /* Benefits List */
+    .benefit-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 3rem;
+    }
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 1.5rem;
+        font-size: 1.05rem;
+        font-weight: 500;
+        color: var(--color-text);
+        transition: transform 0.3s var(--ease-elastic);
+    }
+    .benefit-item:hover {
+        transform: translateX(10px);
+        color: #fff;
+    }
+    
+    .benefit-icon {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: rgba(167, 105, 237, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-primary);
+        border: 1px solid rgba(167, 105, 237, 0.2);
+        font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
 
-  .check-icon {
-    width: 24px;
-    height: 24px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    color: #fff;
-    flex-shrink: 0;
-  }
+    /* Right Side - Form */
+    .signup-form-side {
+        flex: 0 0 480px;
+        padding: 3rem 4rem;
+        background: var(--color-surface);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow-y: auto;
+    }
 
-  /* --- Right Form Section --- */
-  .form-panel {
-    background-color: #F2F7FF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-  }
+    /* Form Elements Override */
+    .form-control,
+    input[type="text"], input[type="email"], input[type="password"] {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        padding: 14px 16px;
+        border-radius: 12px;
+        font-size: 1rem;
+        width: 100%;
+        display: block;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .form-control:focus,
+    input:focus {
+        background: #050505;
+        color: #fff;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
+    
+    .form-label { 
+        color: var(--color-text); 
+        font-weight: 700; 
+        margin-bottom: 8px; 
+        font-size: 0.9rem; 
+        display: block;
+    }
 
-  .signup-card {
-    width: 100%;
-    max-width: 480px; /* Slightly wider for comfortable typing */
-    padding: 2.5rem;
-    background-color: #FFFFFF;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(106, 112, 255, 0.08);
-    border: 1px solid #E5E7EB;
-  }
+    .auth-link { color: var(--color-primary); text-decoration: none; font-weight: 700; }
+    .auth-link:hover { color: #fff; text-decoration: underline; }
 
-  .brand-heading-form {
-    color: #004080;
-    font-weight: 700;
-  }
-
-  /* Input Styling */
-  .form-control, input[type="text"], input[type="email"], input[type="password"] {
-    display: block;
-    width: 100%;
-    padding: 0.6rem 0.75rem;
-    font-size: 1rem;
-    color: #212529;
-    background-color: #fff;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-    height: 46px;
-    transition: all 0.15s ease-in-out;
-  }
-
-  .form-control:focus, input:focus {
-    border-color: #6A70FF;
-    outline: 0;
-    box-shadow: 0 0 0 3px rgba(106, 112, 255, 0.2); /* Lavender Ring */
-  }
-
-  .form-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #004080;
-    margin-bottom: 0.4rem;
-  }
-
-  .btn-labelcraft {
-    background-color: #6A70FF;
-    border-color: #6A70FF;
-    color: #FFFFFF;
-    font-weight: 600;
-    padding: 12px 20px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-  }
-
-  .btn-labelcraft:hover {
-    background-color: #565CFF;
-    border-color: #565CFF;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(106, 112, 255, 0.3);
-  }
-
-  .auth-link { color: #6A70FF; font-weight: 600; text-decoration: none; }
-  .auth-link:hover { color: #004080; text-decoration: underline; }
-
-  /* Responsive */
-  @media (max-width: 991.98px) {
-    .hero-panel { padding: 3rem 2rem; }
-    .form-panel { padding: 2rem 1rem; }
-    .split-screen-container { min-height: auto; }
-  }
+    /* Responsive */
+    @media (max-width: 992px) {
+        .split-card { flex-direction: column; min-height: auto; }
+        .signup-form-side { flex: auto; width: 100%; padding: 2rem; border-left: none; }
+        .signup-visual { padding: 3rem 2rem; min-height: 250px; border-right: none; border-bottom: 1px solid var(--color-border); }
+        .benefit-list { display: none; } /* Hide benefits on mobile to save space */
+    }
 </style>
 
-<div class="container-fluid p-0 overflow-hidden">
-  <div class="row g-0 split-screen-container">
-    
-    <div class="col-lg-7 hero-panel order-2 order-lg-1">
-      <div class="ps-lg-5 pe-lg-5">
-        <h1 class="hero-heading">Join the new standard in retail labelling.</h1>
-        <p class="hero-subtext">
-            Start designing professional, compliant labels today. No design skills required.
-        </p>
-
-        <div class="mt-4">
-            <div class="benefit-item">
-                <div class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <span>Unlimited Single SKU Labels</span>
-            </div>
-            <div class="benefit-item">
-                <div class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <span>Bulk Generator Access</span>
-            </div>
-            <div class="benefit-item">
-                <div class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <span>Team Collaboration Features</span>
-            </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-5 form-panel order-1 order-lg-2">
-      <div class="signup-card">
+<div class="signup-wrapper">
+    <div class="split-card">
         
-        <div class="text-center mb-4">
-             <h2 style="color: #6A70FF; font-weight: 800; letter-spacing: -0.5px; font-size: 1.5rem; margin-bottom: 1rem;">Labelcraft</h2>
-             <h1 class="h4 brand-heading-form">Create your account</h1>
-             <p class="text-muted small">Enter your details to get started.</p>
+        <!-- Visual Side -->
+        <div class="signup-visual">
+            <canvas id="particles-js"></canvas>
+            <div class="visual-content">
+                <h1 class="display-5 fw-bold mb-3" style="line-height: 1.1;">Join the new standard in <br><span class="brand-highlight">Retail Labelling.</span></h1>
+                <p class="text mb-0" style="font-size: 1.1rem;">Start designing professional, compliant labels today. No design skills required.</p>
+                
+                <div class="benefit-list">
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <span>Unlimited Single SKU Labels</span>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><i class="fa-solid fa-layer-group"></i></div>
+                        <span>Bulk Generator Access</span>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon"><i class="fa-solid fa-users"></i></div>
+                        <span>Team Collaboration Features</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <form method="post" novalidate>
-          {% csrf_token %}
-          {{ form.non_field_errors }}
+        <!-- Form Side -->
+        <div class="signup-form-side">
+            <div class="mb-4 text-center">
+                <div class="mb-3">
+                     <i class="fa-solid fa-barcode" style="font-size: 2rem; color: var(--color-primary);"></i>
+                </div>
+                <h2 class="fw-bold text-white mb-2">Create your account</h2>
+                <p class="text small">Enter your details to get started with Labelz.</p>
+            </div>
 
-          <div class="mb-3">
-            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
-            {{ form.email }}
-            {% if form.email.errors %}
-              <div class="text-danger small mt-1">
-                {{ form.email.errors|striptags }}
-              </div>
-            {% endif %}
-          </div>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
 
-          <div class="mb-3">
-            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-            {{ form.password1 }}
-            {% if form.password1.errors %}
-              <div class="text-danger small mt-1">
-                {{ form.password1.errors|striptags }}
-              </div>
-            {% endif %}
-          </div>
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
+                    {% endif %}
+                </div>
 
-          <div class="mb-4">
-            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-            {{ form.password2 }}
-            {% if form.password2.errors %}
-              <div class="text-danger small mt-1">
-                {{ form.password2.errors|striptags }}
-              </div>
-            {% endif %}
-          </div>
+                <div class="mb-3">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">{{ form.password1.errors|striptags }}</div>
+                    {% endif %}
+                </div>
 
-          <button type="submit" class="btn btn-labelcraft w-100 shadow-sm">
-            Continue
-          </button>
-        </form>
+                <div class="mb-4">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">{{ form.password2.errors|striptags }}</div>
+                    {% endif %}
+                </div>
 
-        <p class="mt-4 text-center text-muted small">
-          Already have an account?
-          <a href="{% url 'login' %}" class="auth-link">Log in</a>
-        </p>
-      </div>
+                <button type="submit" class="btn btn-primary-glow w-100 py-3 rounded-pill fw-bold">
+                    Continue <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+
+            <p class="mt-4 text-center text small">
+                Already have an account? <a href="{% url 'login' %}" class="auth-link">Log in</a>
+            </p>
+        </div>
     </div>
-
-  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Particle Animation Logic
+    const canvas = document.getElementById('particles-js');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        const resize = () => {
+            if(canvas.parentElement) {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+        };
+        
+        window.addEventListener('resize', resize);
+        resize(); // Initial sizing
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 3 + 1;
+                this.color = Math.random() > 0.5 ? '#A769ED' : '#C2E0FF';
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const initParticles = () => {
+            particles = [];
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle());
+            }
+            animate();
+        };
+
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw particles
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // Draw connections
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 100) {
+                        ctx.strokeStyle = particles[i].color;
+                        ctx.globalAlpha = 0.15 * (1 - dist / 100);
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        };
+
+        // Delay init slightly to ensure layout is ready
+        setTimeout(initParticles, 100);
+    }
+</script>
 {% endblock %}
