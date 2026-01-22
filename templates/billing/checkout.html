@@ -1,47 +1,182 @@
 {% extends "base.html" %}
+
+{% block title %}Checkout – Labelz{% endblock %}
+
 {% block content %}
-<div class="container" style="max-width:720px;">
-  <h1 class="h5 mb-3">Complete Payment</h1>
+<style>
+    /* --- CHECKOUT PAGE STYLES --- */
+    
+    .checkout-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <div class="mb-2"><b>Org:</b> {{ org.name }}</div>
-      <div class="mb-2"><b>Plan:</b> {{ plan_code }}</div>
-      <div class="mb-3"><b>Amount:</b> ₹{{ amount_rupees }}</div>
+    .checkout-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        width: 100%;
+        max-width: 500px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    /* Header & Amount */
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .checkout-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+    .checkout-amount {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: var(--color-primary);
+        line-height: 1;
+        margin: 20px 0;
+        text-shadow: 0 0 20px rgba(167, 105, 237, 0.3);
+    }
+    
+    /* Order Details */
+    .order-details {
+        background: rgba(255,255,255,0.03);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 1px solid var(--color-border);
+    }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+    .detail-row:last-child { margin-bottom: 0; }
+    .detail-label { color: var(--color-muted); }
+    .detail-value { color: #fff; font-weight: 600; }
 
-      <form id="rpVerify" method="post" action="{% url 'billing_verify_payment' %}">
-        {% csrf_token %}
-        <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
-        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
-        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
-      </form>
+    /* Secure Animation */
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--color-muted);
+        font-size: 0.8rem;
+        margin-top: 24px;
+        opacity: 0.7;
+    }
+    .secure-icon { color: #2ecc71; animation: pulse-shield 2s infinite; }
+    
+    @keyframes pulse-shield {
+        0% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 10px #2ecc71; }
+        100% { transform: scale(1); opacity: 0.8; }
+    }
 
-      <button id="payBtn" class="btn btn-primary w-100">Pay with Razorpay</button>
-      <a href="{% url 'billing_select_plan' %}" class="btn btn-link w-100 mt-2">Cancel</a>
+    /* Background Glow */
+    .bg-glow {
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(167, 105, 237, 0.05) 0%, transparent 60%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+</style>
+
+<div class="checkout-wrapper">
+    <div class="checkout-card">
+        <div class="bg-glow"></div>
+        
+        <div class="checkout-header" style="position:relative; z-index:1;">
+            <div style="margin-bottom:16px;">
+                <i class="fa-solid fa-credit-card text-white" style="font-size: 3rem; opacity:0.1;"></i>
+            </div>
+            <h1 class="checkout-title">Complete Payment</h1>
+            <div class="text small">Secure checkout via Razorpay</div>
+            
+            <div class="checkout-amount">₹{{ amount_rupees }}</div>
+        </div>
+
+        <div class="order-details" style="position:relative; z-index:1;">
+            <div class="detail-row">
+                <span class="detail-label">Organization</span>
+                <span class="detail-value">{{ org.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Plan</span>
+                <span class="detail-value text-uppercase">{{ plan_code }}</span>
+            </div>
+            <div class="detail-row" style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; margin-top:12px;">
+                <span class="detail-label">Total</span>
+                <span class="detail-value">₹{{ amount_rupees }}</span>
+            </div>
+        </div>
+
+        <form id="rpVerify" method="post" action="{% url 'billing_verify_payment' %}">
+            {% csrf_token %}
+            <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
+            <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+            <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+        </form>
+
+        <div style="position:relative; z-index:1;">
+            <button id="payBtn" class="btn btn-custom btn-primary-glow w-100 py-3 fw-bold" style="font-size:1.1rem;">
+                <i class="fa-solid fa-lock me-2"></i> Pay Now
+            </button>
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'billing_select_plan' %}" class="small text text-decoration-none hover-white">Cancel and go back</a>
+            </div>
+
+            <div class="secure-badge">
+                <i class="fa-solid fa-shield-halved secure-icon"></i>
+                <span>256-bit SSL Secure Payment</span>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
+<!-- Razorpay Script -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-  const options = {
-    key: "{{ razorpay_key_id }}",
-    amount: "{{ amount_paise }}",
-    currency: "{{ currency }}",
-    name: "Label",
-    description: "{{ plan_code }} plan",
-    order_id: "{{ razorpay_order_id }}",
-    handler: function (response){
-      document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
-      document.getElementById("razorpay_signature").value = response.razorpay_signature;
-      document.getElementById("rpVerify").submit();
-    }
-  };
+    const options = {
+        key: "{{ razorpay_key_id }}",
+        amount: "{{ amount_paise }}",
+        currency: "{{ currency }}",
+        name: "Labelz",
+        description: "{{ plan_code|upper }} Plan Subscription",
+        order_id: "{{ razorpay_order_id }}",
+        theme: {
+            color: "#A769ED" // Brand Primary
+        },
+        handler: function (response){
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_signature").value = response.razorpay_signature;
+            document.getElementById("rpVerify").submit();
+        },
+        modal: {
+            ondismiss: function(){
+                console.log('Checkout cancelled');
+            }
+        }
+    };
 
-  const rzp = new Razorpay(options);
-  document.getElementById("payBtn").onclick = function(e){
-    e.preventDefault();
-    rzp.open();
-  };
+    const rzp = new Razorpay(options);
+    
+    document.getElementById("payBtn").onclick = function(e){
+        e.preventDefault();
+        rzp.open();
+    };
 </script>
 {% endblock %}

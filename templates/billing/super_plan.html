@@ -1,93 +1,212 @@
 {% extends "base.html" %}
+{% block title %}Super Plan Request – Labelz{% endblock %}
+
 {% block content %}
+<style>
+    /* --- SUPER PLAN PAGE STYLES --- */
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+    }
 
-<div class="container" style="max-width: 980px;">
-  <h1 class="h4 mb-3">Plans & Usage</h1>
+    /* Usage Context Card */
+    .usage-context {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 24px;
+        margin-bottom: 40px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
 
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <div class="text-muted small">Current plan</div>
-          <div class="h5 mb-0">{{ plan_code }}</div>
-        </div>
-      </div>
+    .usage-item {
+        text-align: center;
+        padding: 16px;
+        border-right: 1px solid var(--color-border);
+    }
+    .usage-item:last-child { border-right: none; }
+    
+    .usage-label { 
+        font-size: 0.75rem; 
+        text-transform: uppercase; 
+        color: var(--color-muted); 
+        font-weight: 700; 
+        margin-bottom: 8px;
+    }
+    .usage-val { font-size: 1.5rem; font-weight: 800; color: #fff; }
 
-      <hr class="my-3">
+    /* Request Form Card */
+    .request-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="p-3 border rounded">
-            <div class="text-muted small">Workspaces</div>
-            <div class="fw-semibold">
-              {% if ws_limit is None %}Unlimited{% else %}{{ ws_created }}/{{ ws_limit }}{% endif %}
+    /* Form Elements */
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--color-muted);
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control-dark {
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        width: 100%;
+        transition: all 0.2s;
+    }
+    
+    .form-control-dark:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(167, 105, 237, 0.15);
+        outline: none;
+    }
+    
+    .form-control-dark:disabled {
+        background: rgba(255,255,255,0.05);
+        color: var(--color-muted);
+        cursor: not-allowed;
+    }
+
+    /* Pending Alert */
+    .pending-alert {
+        background: rgba(194, 224, 255, 0.1);
+        border: 1px solid rgba(194, 224, 255, 0.2);
+        color: var(--color-accent-blue);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Warning Alert */
+    .warning-box {
+        text-align: center;
+        padding: 40px;
+        color: var(--color-muted);
+        border: 1px dashed var(--color-border);
+        border-radius: 12px;
+    }
+
+</style>
+
+<div class="container-fluid" style="max-width: 1000px;">
+    
+    <div class="page-header">
+        <h1 class="page-title">Request Super Plan</h1>
+        <p class="text">Current Plan: <strong class="text-white">{{ plan_code }}</strong></p>
+    </div>
+
+    <!-- Current Usage Context -->
+    <div class="usage-context">
+        <div class="usage-item">
+            <div class="usage-label">Workspaces</div>
+            <div class="usage-val">
+                {% if ws_limit is None %}∞{% else %}{{ ws_created }} <span class="text fs-6">/ {{ ws_limit }}</span>{% endif %}
             </div>
-          </div>
         </div>
-
-        <div class="col-md-4">
-          <div class="p-3 border rounded">
-            <div class="text-muted small">Templates</div>
-            <div class="fw-semibold">
-              {% if tpl_limit is None %}Unlimited{% else %}{{ tpl_created }}/{{ tpl_limit }}{% endif %}
+        <div class="usage-item">
+            <div class="usage-label">Templates</div>
+            <div class="usage-val">
+                {% if tpl_limit is None %}∞{% else %}{{ tpl_created }} <span class="text fs-6">/ {{ tpl_limit }}</span>{% endif %}
             </div>
-          </div>
         </div>
-
-        <div class="col-md-4">
-          <div class="p-3 border rounded">
-            <div class="text-muted small">Labels</div>
-            <div class="fw-semibold">
-              {% if labels_limit is None %}
-                Unlimited
-              {% else %}
-                Used: {{ labels_used }} / {{ labels_limit }} <br>
-                Remaining: {{ labels_remaining }}
-              {% endif %}
+        <div class="usage-item" style="border-right:none;">
+            <div class="usage-label">Label Usage</div>
+            <div class="usage-val">
+                {% if labels_limit is None %}∞{% else %}{{ labels_used }} <span class="text fs-6">/ {{ labels_limit }}</span>{% endif %}
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+
+    <div class="request-card">
+        
+        {% if pending %}
+            <div class="pending-alert">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size:1.2rem;"></i>
+                <div>
+                    <strong>Request Pending</strong><br>
+                    You requested <b>{{ pending.requested_labels }}</b> labels on {{ pending.created_at|date:"M d, Y" }}.
+                </div>
+            </div>
+        {% endif %}
+
+        <h2 class="card-title">
+            <i class="fa-solid fa-rocket" style="color:var(--color-primary)"></i> Custom Limit Request
+        </h2>
+        <p class="text mb-4">
+            Need more than the Pro plan allows? Enter your required monthly label volume below. Our team will review your request.
+        </p>
+
+        {% if not is_admin %}
+            <div class="warning-box">
+                <i class="fa-solid fa-lock mb-3" style="font-size:2rem;"></i>
+                <h4 class="h6 text-white">Admin Access Required</h4>
+                <p class="small mb-0">Only organization administrators can request plan upgrades. Please contact your admin.</p>
+            </div>
+        {% else %}
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label">Requested Label Volume (Monthly)</label>
+                    <input type="number" 
+                           name="requested_labels" 
+                           class="form-control-dark" 
+                           placeholder="e.g. 50000" 
+                           min="1" 
+                           step="1"
+                           {% if pending %}disabled{% endif %}
+                           required>
+                    <div class="small text mt-2">
+                        For users needing > 30,000 labels/month.
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-10">
+                    <a href="{% url 'billing_select_plan' %}" class="btn btn-custom btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-custom btn-primary-glow px-4" {% if pending %}disabled{% endif %}>
+                        {% if pending %}Request Submitted{% else %}Submit Request{% endif %}
+                    </button>
+                </div>
+            </form>
+        {% endif %}
 
     </div>
-  </div>
 
-
-<div class="container" style="max-width: 760px;">
-  <h1 class="h4 mb-3">Super Plan Request</h1>
-
-  {% if pending %}
-    <div class="alert alert-info">
-      Pending request: <b>{{ pending.requested_labels }}</b> labels.
-      Submitted on {{ pending.created_at|date:"Y-m-d H:i" }}.
-    </div>
-  {% endif %}
-
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <p class="text-muted mb-3">
-        Enter the number of labels you want for the next 30 days.
-      </p>
-
-      {% if not is_admin %}
-        <div class="alert alert-warning mb-0">
-          Only org admins can request Super plan. Please ask your admin.
-        </div>
-      {% else %}
-        <form method="post">
-          {% csrf_token %}
-          <label class="form-label">Requested labels (30 days)</label>
-          <input class="form-control" type="number" name="requested_labels" min="1" step="1"
-                 {% if pending %}disabled{% endif %}>
-
-          <button class="btn btn-primary mt-3" {% if pending %}disabled{% endif %}>
-            Request Super
-          </button>
-        </form>
-      {% endif %}
-
-    </div>
-  </div>
 </div>
-
 {% endblock %}
