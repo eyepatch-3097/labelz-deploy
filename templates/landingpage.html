@@ -12,7 +12,7 @@
     
     <!-- ICONS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+     <link rel="icon" href="https://res.cloudinary.com/do7w7isgi/image/upload/v1769081437/barcode_1_qvrlgj.png" type="image/x-icon">
     <style>
         /* --- DESIGN SYSTEM TOKENS (v5.0 - Dark Mode & Gradients) --- */
         :root {
@@ -868,6 +868,111 @@
         </div>
     </div>
 
+    <!-- CUSTOMER SHOWCASE CAROUSEL (NEW) -->
+    <section id="showcase" style="background: #080808; padding: 100px 0; overflow: hidden;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag tag-blue">Inspiration</span>
+                <h2 class="section-title">What Our Customers Make With Labelz</h2>
+                <p style="color:var(--color-muted);">From minimalist product tags to complex shipping labels.</p>
+            </div>
+        </div>
+
+        <div class="showcase-wrapper">
+            <div class="showcase-track">
+                <!-- Set 1 -->
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_151448_k9sd1p.png" alt="Label Design 1">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_161431_ebiakw.png" alt="Label Design 2">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162713_g2l3hk.png" alt="Label Design 3">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162458_qevabn.png" alt="Label Design 4">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162323_w6jvrw.png" alt="Label Design 5">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162110_bp0fks.png" alt="Label Design 6">
+                </div>
+
+                <!-- Set 2 (Duplicate for loop) -->
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_151448_k9sd1p.png" alt="Label Design 1">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_161431_ebiakw.png" alt="Label Design 2">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162713_g2l3hk.png" alt="Label Design 3">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162458_qevabn.png" alt="Label Design 4">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162323_w6jvrw.png" alt="Label Design 5">
+                </div>
+                <div class="showcase-item">
+                    <img src="https://res.cloudinary.com/do7w7isgi/image/upload/v1769079502/Screenshot_2026-01-22_162110_bp0fks.png" alt="Label Design 6">
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .showcase-wrapper {
+                width: 100%;
+                overflow: hidden;
+                position: relative;
+                mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+                -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            }
+            
+            .showcase-track {
+                display: flex;
+                gap: 40px;
+                width: max-content;
+                animation: showcase-scroll 40s linear infinite;
+            }
+            
+            .showcase-item {
+                width: 300px;
+                height: 200px;
+                flex-shrink: 0;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--color-border);
+                background: var(--color-surface);
+                position: relative;
+                transition: transform 0.3s var(--ease-elastic);
+            }
+            
+            .showcase-item:hover {
+                transform: scale(1.05);
+                border-color: var(--color-accent-blue);
+                box-shadow: 0 10px 30px rgba(194, 224, 255, 0.15);
+                z-index: 2;
+            }
+            
+            .showcase-item img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover; /* Cover or contain depending on image aspect ratio preference */
+                opacity: 0.9;
+                transition: opacity 0.3s;
+            }
+            .showcase-item:hover img { opacity: 1; }
+
+            @keyframes showcase-scroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(calc(-300px * 6 - 40px * 6)); } /* Move by (width + gap) * count */
+            }
+        </style>
+    </section>
+
     <!-- PAYOFFS (COUNTERS) -->
     <section class="payoffs-section">
         <div class="container">
@@ -1149,7 +1254,7 @@
                 <div class="card price-card featured">
                     <div class="popular-badge">MOST POPULAR</div>
                     <h3>Scale</h3>
-                    <div class="price-amount" style="color:var(--color-accent-orange);">$39<span class="price-sub">/mo</span></div>
+                    <div class="price-amount" style="color:var(--color-accent-orange);">$69<span class="price-sub">/mo</span></div>
                     <ul class="feature-list">
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> <strong>Unlimited Workspaces</strong></li>
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> <strong>30,000 Labels/mo</strong></li>
