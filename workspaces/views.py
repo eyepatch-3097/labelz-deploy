@@ -879,6 +879,7 @@ def workspace_sample_canvas(request):
             )
             new_layout.append(updated)
 
+        
         # Ensure barcode exists before saving workspace; if not, append one
         if not has_barcode(new_layout):
             max_y = max((item.get("y", 10) for item in new_layout), default=10)
@@ -899,7 +900,13 @@ def workspace_sample_canvas(request):
         save_wizard(request, wizard)
 
         # Create workspace with layout
-        workspace = Workspace.objects.create(
+        DEFAULT_W_CM = Decimal("10.00")
+        DEFAULT_H_CM = Decimal("10.00")
+        DEFAULT_DPI = 300
+
+        with transaction.atomic():
+            # 1) Create workspace
+            workspace = Workspace.objects.create(
             org=user.org,
             name=wizard["name"],
             description=wizard.get("description", ""),
@@ -907,8 +914,10 @@ def workspace_sample_canvas(request):
             template_file=wizard.get("template_file_path") or None,
         )
 
+        # 2) Create workspace fields
+        created_ws_fields = []
         for idx, item in enumerate(new_layout):
-            WorkspaceField.objects.create(
+            wf = WorkspaceField.objects.create(
                 workspace=workspace,
                 name=item["name"],
                 key=item["key"],
@@ -920,6 +929,69 @@ def workspace_sample_canvas(request):
                 height=item["height"],
                 order=idx,
             )
+            created_ws_fields.append(wf)
+
+        ws_fields_by_key = {wf.key: wf for wf in created_ws_fields}
+
+        # 3) Create base template (always new for a new workspace)
+        base_tpl = LabelTemplate.objects.create(
+            workspace=workspace,
+            name="Base Template",
+            description="Auto-created from workspace sample canvas",
+            width_cm=DEFAULT_W_CM,
+            height_cm=DEFAULT_H_CM,
+            dpi=DEFAULT_DPI,
+            canvas_bg_color="#ffffff",
+            is_base=True,
+            created_by=user,
+            layout_json={"layout": []},
+        )
+
+        # 4) Create base template fields linked to workspace fields
+        used_keys = set()
+        layout_payload = []
+
+        for idx, item in enumerate(new_layout):
+            raw_key = (item.get("key") or "").strip() or f"field_{idx+1}"
+            key = raw_key
+
+            # Keep barcode stable; de-dupe others
+            if key != "barcode":
+                base_key = key
+                n = 2
+                while key in used_keys:
+                    key = f"{base_key}_{n}"
+                    n += 1
+            used_keys.add(key)
+
+            wf_obj = ws_fields_by_key.get(raw_key)
+
+            LabelTemplateField.objects.create(
+                template=base_tpl,
+                name=(item.get("name") or "").strip() or key,
+                key=key,
+                field_type=(item.get("field_type") or "TEXT"),
+                x=int(item.get("x") or 0),
+                y=int(item.get("y") or 0),
+                width=int(item.get("width") or 100),
+                height=int(item.get("height") or 24),
+                order=idx,
+                z_index=0,
+                workspace_field=wf_obj,
+            )
+
+            layout_payload.append({
+                "name": (item.get("name") or "").strip() or key,
+                "key": key,
+                "field_type": (item.get("field_type") or "TEXT"),
+                "x": int(item.get("x") or 0),
+                "y": int(item.get("y") or 0),
+                "width": int(item.get("width") or 100),
+                "height": int(item.get("height") or 24),
+            })
+
+        base_tpl.layout_json = {"layout": layout_payload}
+        base_tpl.save(update_fields=["layout_json", "updated_at"])
 
         clear_wizard(request)
         messages.success(
