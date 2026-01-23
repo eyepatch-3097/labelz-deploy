@@ -10,6 +10,7 @@ from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
 import json
+import os
 from cms.models import CMSPost
 from workspaces.models import Workspace, LabelTemplate, LabelBatch
 
@@ -200,4 +201,7 @@ urlpatterns = [
     path("billing/", include("billing.urls")),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT, insecure=True)
+if settings.DEBUG or os.getenv("SERVE_MEDIA", "0") == "1":
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", django_serve, {"document_root": settings.MEDIA_ROOT}),
+    ]
