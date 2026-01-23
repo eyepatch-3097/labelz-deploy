@@ -2882,3 +2882,32 @@ def _bulk_expected_headers(template) -> list[str]:
     variable_keys = list(dict.fromkeys(variable_keys))
 
     return variable_keys + ["ean_code", "gs1_code", "quantity"]
+
+@login_required
+def org_label_history(request):
+    user = request.user
+
+    if not user.org:
+        messages.error(request, "You are not linked to any organisation.")
+        return redirect("dashboard")
+
+    if user.role != User.ROLE_ADMIN:
+        messages.error(request, "Only admins can access org-wide history.")
+        return redirect("dashboard")
+
+    batches = (
+        LabelBatch.objects
+        .filter(workspace__org=user.org)
+        .select_related("workspace", "template", "created_by")
+        .annotate(row_count=Count("items"))  # LabelBatchItem related_name="items"
+        .order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "workspaces/org_label_history.html",
+        {
+            "org": user.org,
+            "batches": batches,
+        },
+    )

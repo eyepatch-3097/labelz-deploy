@@ -5,6 +5,10 @@ import hashlib
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils import timezone
+import hashlib
+import secrets
+from datetime import timedelta
 
 
 class Org(models.Model):
@@ -114,6 +118,8 @@ class User(AbstractUser):
     # Remove username; use email as the unique identifier
     username = None
     email = models.EmailField(unique=True)
+    email_is_verified = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
 
     org = models.ForeignKey(
         Org,
@@ -228,3 +234,75 @@ class OrgJoinRequest(models.Model):
 
     def __str__(self):
         return f"JoinRequest({self.user.email} -> {self.org})"
+
+
+class EmailOTP(models.Model):
+    PURPOSE_VERIFY = "VERIFY_EMAIL"
+    PURPOSE_RESET = "RESET_PASSWORD"
+    PURPOSE_CHOICES = [
+        (PURPOSE_VERIFY, "Verify Email"),
+        (PURPOSE_RESET, "Reset Password"),
+    ]
+
+    email = models.EmailField(db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="email_otps"
+    )
+    purpose = models.CharField(max_length=32, choices=PURPOSE_CHOICES)
+    otp_hash = models.CharField(max_length=128)
+    attempts = models.PositiveIntegerField(default=0)
+
+    expires_at = models.DateTimeField()
+    consumed_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["email", "purpose", "-created_at"]),
+        ]
+
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    def is_consumed(self):
+        return self.consumed_at is not None
+
+    @staticmethod
+    def make_otp() -> str:
+        # 6-digit numeric OTP
+        return f"{secrets.randbelow(1_000_000):06d}"
+
+    @staticmethod
+    def hash_otp(raw_otp: str) -> str:
+        # hash with SECRET_KEY so DB leak doesn’t expose OTPs
+        base = f"{settings.SECRET_KEY}:{raw_otp}".encode("utf-8")
+        return hashlib.sha256(base).hexdigest()
+
+    @classmethod
+    def create_otp(cls, *, email: str, purpose: str, user=None, ttl_minutes: int = 10):
+        raw = cls.make_otp()
+        row = cls.objects.create(
+            email=email,
+            user=user,
+            purpose=purpose,
+            otp_hash=cls.hash_otp(raw),
+            expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
+        )
+        return row, raw
+
+    def verify(self, raw_otp: str, max_attempts: int = 5) -> bool:
+        if self.is_consumed() or self.is_expired():
+            return False
+        if self.attempts >= max_attempts:
+            return False
+
+        self.attempts += 1
+        ok = (self.otp_hash == self.hash_otp(raw_otp))
+        if ok:
+            self.consumed_at = timezone.now()
+        self.save(update_fields=["attempts", "consumed_at"])
+        return ok

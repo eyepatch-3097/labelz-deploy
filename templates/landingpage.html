@@ -255,7 +255,31 @@
         }
         .nav-links a:hover { color: var(--color-secondary); }
         .nav-links a i { color: var(--color-primary); }
-
+        /* --- PROMO VIDEO SECTION (NEW) --- */
+        .promo-section {
+            background: #080808;
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .promo-wrapper {
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+            box-shadow: 0 20px 80px -10px rgba(167, 105, 237, 0.2);
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            background: #000;
+        }
+        
+        .promo-wrapper video {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
         /* --- HERO --- */
         .hero {
             padding-top: 140px;
@@ -819,7 +843,7 @@
                 <a href="#testimonials"><i class="fa-solid fa-heart"></i> Love</a>
                 <a href="#contact">Enterprise</a>
             </nav>
-            <a href="http://127.0.0.1:8000/dashboard" class="btn btn-primary" style="padding: 10px 24px;">Get Started</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-primary" style="padding: 10px 24px;">Get Started</a>
         </div>
     </header>
 
@@ -835,8 +859,8 @@
                 <h1>Stop designing<br>labels in Excel.</h1>
                 <p>The D2C label solution that actually sticks. Design, serialize, and print universally unique barcodes in seconds. No design degree required.</p>
                 <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: left; @media(min-width:768px){justify-content: flex-start;}">
-                    <a href="http://127.0.0.1:8000/dashboard" class="btn btn-primary">Start Free Trial <i class="fa-solid fa-arrow-right"></i></a>
-                    <a href="#video-demo" class="btn btn-dark"><i class="fa-solid fa-play"></i> Watch Demo</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Start Free Trial <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="#promo-video" class="btn btn-dark"><i class="fa-solid fa-play"></i> Watch Demo</a>
                 </div>
             </div>
             <div class="hero-image-wrapper">
@@ -996,6 +1020,23 @@
                     <h3>10x</h3>
                     <p>Faster Workflow</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="promo-section" id="promo-video">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" style="background: rgba(167, 105, 237, 0.15); color: #A769ED; border-color: rgba(167, 105, 237, 0.3);">Product Tour</span>
+                <h2 class="section-title">See Labelz in Action</h2>
+                <p style="color:var(--color-muted);">Watch how easy it is to design and generate labels.</p>
+            </div>
+            
+            <div class="promo-wrapper">
+                <video width="100%" controls muted style="display: block; width: 100%; height: auto;">
+                    <source src="https://res.cloudinary.com/do7w7isgi/video/upload/v1769147328/labelcraftpromo_1_y4bw9a.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
         </div>
     </section>
@@ -1240,28 +1281,28 @@
                 <!-- Starter -->
                 <div class="card price-card">
                     <h3>Starter</h3>
-                    <div class="price-amount">$19<span class="price-sub">/mo</span></div>
+                    <div class="price-amount">₹1900<span class="price-sub">/mo</span></div>
                     <ul class="feature-list">
                         <li><i class="fa-solid fa-check"></i> 1 Workspace</li>
                         <li><i class="fa-solid fa-check"></i> 3,000 Labels/mo</li>
                         <li><i class="fa-solid fa-check"></i> Basic Templates</li>
                         <li><i class="fa-solid fa-check"></i> Email Support</li>
                     </ul>
-                    <a href="http://127.0.0.1:8000/dashboard" class="btn btn-dark" style="width:100%; justify-content:center;">Get Started</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-dark" style="width:100%; justify-content:center;">Get Started</a>
                 </div>
                 
                 <!-- Pro -->
                 <div class="card price-card featured">
                     <div class="popular-badge">MOST POPULAR</div>
                     <h3>Scale</h3>
-                    <div class="price-amount" style="color:var(--color-accent-orange);">$69<span class="price-sub">/mo</span></div>
+                    <div class="price-amount" style="color:var(--color-accent-orange);">₹6900<span class="price-sub">/mo</span></div>
                     <ul class="feature-list">
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> <strong>Unlimited Workspaces</strong></li>
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> <strong>30,000 Labels/mo</strong></li>
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> Advanced Barcodes</li>
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> Priority Support</li>
                     </ul>
-                    <a href="http://127.0.0.1:8000/dashboard" class="btn btn-orange" style="width:100%; justify-content:center;">Go Pro</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-orange" style="width:100%; justify-content:center;">Go Pro</a>
                 </div>
             </div>
         </div>

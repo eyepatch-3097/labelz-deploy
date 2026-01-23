@@ -348,6 +348,17 @@
         <div class="role-badge">
             {{ user.get_role_display|default:"Member" }}
         </div>
+
+            {% if user.is_authenticated %}
+  <div class="ms-3 d-flex align-items-center justify-content-start mt-2">
+    {% if not user.email_is_verified %}
+      <span class="badge bg-warning text-dark">Verification pending</span>
+      <a class="btn btn-sm btn-outline-light ms-2" href="{% url 'verify_email' %}">Verify</a>
+    {% else %}
+      <span class="badge bg-success">Verified</span>
+    {% endif %}
+  </div>
+{% endif %}
     </div>
 
     <!-- Navigation -->
@@ -377,7 +388,7 @@
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link">
+            <a href="{% url 'org_label_history' %}" class="sidebar-link">
                 <i class="fa-solid fa-clock-rotate-left"></i> Label History
             </a>
         </li>
@@ -414,6 +425,8 @@
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <i class="fa-solid fa-bars" style="font-size: 1.5rem;"></i>
     </button>
+
+
 
   {% if user.is_authenticated and user.org %}
   <div class="d-flex align-items-center ms-3">

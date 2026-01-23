@@ -10,7 +10,9 @@ from .forms import LoginForm, SignupStep1Form, SignupOrgForm
 from .models import Org, User, OrgJoinRequest
 from .utils import split_email_domain, is_generic_email_domain
 from django.db import transaction
-
+from django.core.mail import send_mail
+from django.utils import timezone
+from .models import EmailOTP
 
 class LabelcraftLoginView(LoginView):
     authentication_form = LoginForm
@@ -183,3 +185,147 @@ def approve_org_join_request(request, request_id):
 
     messages.success(request, f"{join_user.email} has been approved and can now use Labelcraft.")
     return redirect('org_join_requests')
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def verify_email(request):
+    user = request.user
+
+    if user.email_is_verified:
+        messages.info(request, "Your email is already verified.")
+        return redirect("dashboard")
+
+    # resend on GET (simple + works)
+    if request.method == "GET":
+        otp_row, raw = EmailOTP.create_otp(
+            email=user.email,
+            purpose=EmailOTP.PURPOSE_VERIFY,
+            user=user,
+            ttl_minutes=10,
+        )
+        send_mail(
+            subject="Your Labelcraft verification OTP",
+            message=f"Your OTP is {raw}. It expires in 10 minutes.",
+            from_email=None,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        return render(request, "accounts/verify_email.html", {
+            "email": user.email,
+        })
+
+    # POST = confirm OTP
+    raw_otp = (request.POST.get("otp") or "").strip()
+
+    latest = EmailOTP.objects.filter(
+        email=user.email,
+        purpose=EmailOTP.PURPOSE_VERIFY,
+    ).order_by("-created_at").first()
+
+    if not latest:
+        messages.error(request, "No OTP found. Please click Verify again.")
+        return redirect("verify_email")
+
+    ok = latest.verify(raw_otp)
+    if not ok:
+        messages.error(request, "Invalid/expired OTP. Please try again.")
+        return redirect("verify_email")
+
+    user.email_is_verified = True
+    user.email_verified_at = timezone.now()
+    user.save(update_fields=["email_is_verified", "email_verified_at"])
+
+    messages.success(request, "Email verified successfully.")
+    return redirect("dashboard")
+
+@require_http_methods(["GET", "POST"])
+def forgot_password(request):
+    """
+    Flow:
+    1) User enters email + new password + confirm → Send OTP
+    2) OTP input appears → Confirm Reset
+    """
+    if request.method == "GET":
+        # clear any stale session state
+        request.session.pop("fp_email", None)
+        request.session.pop("fp_password", None)
+        return render(request, "accounts/forgot_password.html", {"step": "start"})
+
+    action = (request.POST.get("action") or "").strip()
+
+    if action == "send_otp":
+        email = (request.POST.get("email") or "").strip().lower()
+        pw1 = request.POST.get("password1") or ""
+        pw2 = request.POST.get("password2") or ""
+
+        if not email:
+            messages.error(request, "Enter your email.")
+            return redirect("forgot_password")
+
+        if pw1 != pw2 or not pw1:
+            messages.error(request, "Passwords do not match.")
+            return render(request, "accounts/forgot_password.html", {"step": "start", "email": email})
+
+        # Don’t reveal existence too much; but you do want reset only if user exists.
+        u = User.objects.filter(email=email).first()
+        if not u:
+            messages.info(request, "If that email exists, we sent an OTP.")
+            return render(request, "accounts/forgot_password.html", {"step": "otp", "email": email})
+
+        otp_row, raw = EmailOTP.create_otp(
+            email=email,
+            purpose=EmailOTP.PURPOSE_RESET,
+            user=u,
+            ttl_minutes=10,
+        )
+        send_mail(
+            subject="Your Labelcraft password reset OTP",
+            message=f"Your OTP is {raw}. It expires in 10 minutes.",
+            from_email=None,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+
+        # store email + new password in session until OTP verifies
+        request.session["fp_email"] = email
+        request.session["fp_password"] = pw1
+
+        messages.success(request, "OTP sent. Enter it to reset password.")
+        return render(request, "accounts/forgot_password.html", {"step": "otp", "email": email})
+
+    if action == "confirm_reset":
+        email = request.session.get("fp_email") or ""
+        new_password = request.session.get("fp_password") or ""
+        raw_otp = (request.POST.get("otp") or "").strip()
+
+        if not email or not new_password:
+            messages.error(request, "Session expired. Please try again.")
+            return redirect("forgot_password")
+
+        u = User.objects.filter(email=email).first()
+        if not u:
+            messages.error(request, "Invalid request. Try again.")
+            return redirect("forgot_password")
+
+        latest = EmailOTP.objects.filter(
+            email=email,
+            purpose=EmailOTP.PURPOSE_RESET,
+        ).order_by("-created_at").first()
+
+        if not latest or not latest.verify(raw_otp):
+            messages.error(request, "Invalid/expired OTP.")
+            return render(request, "accounts/forgot_password.html", {"step": "otp", "email": email})
+
+        u.set_password(new_password)
+        u.save(update_fields=["password"])
+
+        # cleanup
+        request.session.pop("fp_email", None)
+        request.session.pop("fp_password", None)
+
+        messages.success(request, "Password updated. Please login.")
+        return redirect("login")
+
+    messages.error(request, "Invalid action.")
+    return redirect("forgot_password")

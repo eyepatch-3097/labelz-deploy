@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Label History – {{ org.name }}{% endblock %}
+
+{% block content %}
+<style>
+  /* reuse your styles */
+  .history-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; border-bottom:1px solid var(--color-border); padding-bottom:1rem; }
+  .page-title { font-size:2rem; font-weight:800; color:#fff; margin:0; }
+  .history-card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-card); padding:24px; overflow:hidden; }
+  .table-dark-custom { width:100%; border-collapse:separate; border-spacing:0 8px; color:var(--color-text); margin-bottom:0; }
+  .table-dark-custom th { font-size:0.75rem; text-transform:uppercase; color:var(--color-muted); font-weight:700; padding:0 16px 8px; border-bottom:1px solid var(--color-border); white-space:nowrap; }
+  .table-dark-custom td { background:rgba(255,255,255,0.02); padding:16px; border-top:1px solid var(--color-border); border-bottom:1px solid var(--color-border); vertical-align:middle; font-size:0.95rem; }
+  .table-dark-custom tr td:first-child { border-left:1px solid var(--color-border); border-top-left-radius:12px; border-bottom-left-radius:12px; }
+  .table-dark-custom tr td:last-child { border-right:1px solid var(--color-border); border-top-right-radius:12px; border-bottom-right-radius:12px; }
+  .table-dark-custom tr:hover td { background:var(--color-surface-light); }
+
+  .badge-pill { padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border:1px solid transparent; }
+  .badge-bulk { background:rgba(167,105,237,0.15); color:var(--color-primary); border-color:rgba(167,105,237,0.3); }
+  .badge-single { background:rgba(255,255,255,0.05); color:var(--color-muted); border-color:var(--color-border); }
+
+  .btn-action { width:32px; height:32px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--color-border); background:transparent; color:var(--color-text); transition:all 0.2s; }
+  .btn-action:hover { color:#fff; background:rgba(255,255,255,0.1); }
+  .btn-print { color:var(--color-primary); border-color:rgba(167,105,237,0.3); }
+  .btn-print:hover { background:var(--color-primary); color:#fff; box-shadow:0 0 10px rgba(167,105,237,0.4); }
+  .btn-export { color:#2ecc71; border-color:rgba(46,204,113,0.3); }
+  .btn-export:hover { background:#2ecc71; color:#fff; box-shadow:0 0 10px rgba(46,204,113,0.4); }
+
+  .empty-history { text-align:center; padding:60px; color:var(--color-muted); }
+  .empty-icon { font-size:3rem; opacity:0.2; margin-bottom:20px; }
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-lg-11" style="max-width: 1400px;">
+
+    <div class="history-header">
+      <div>
+        <h1 class="page-title">Label History</h1>
+        <p class="text-muted mb-0">
+          Org-wide history for: <strong class="text-white">{{ org.name }}</strong>
+        </p>
+      </div>
+      <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-primary-glow">
+        <i class="fa-solid fa-plus me-2"></i> Generate New Labels
+      </a>
+    </div>
+
+    {% if batches %}
+      <div class="history-card">
+        <div class="table-responsive">
+          <table class="table-dark-custom">
+            <thead>
+              <tr>
+                <th><i class="fa-regular fa-calendar me-2"></i> Created</th>
+                <th>Workspace</th>
+                <th>Template</th>
+                <th>Type</th>
+                <th>Details (EAN / GS1)</th>
+                <th class="text-center">Qty</th>
+                <th>Created By</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for b in batches %}
+              <tr>
+                <td style="font-family: monospace; color: var(--color-text);">
+                  {{ b.created_at|date:"M d, Y" }}
+                  <span style="color:var(--color-muted); margin-left:4px;">{{ b.created_at|date:"H:i" }}</span>
+                </td>
+
+                <td>
+                  <span class="fw-semibold text-white">{{ b.workspace.name }}</span>
+                </td>
+
+                <td>
+                  {% if b.template %}
+                    <span class="fw-bold text-white">{{ b.template.name }}</span>
+                  {% else %}
+                    <span class="text small">—</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if b.mode == "MULTI" %}
+                    <span class="badge-pill badge-bulk"><i class="fa-solid fa-layer-group"></i> Bulk</span>
+                  {% else %}
+                    <span class="badge-pill badge-single"><i class="fa-regular fa-file"></i> Single</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if b.mode == "MULTI" %}
+                    <span class="text fst-italic small">Batch generated via CSV</span>
+                    <div class="small text-white mt-1"><i class="fa-solid fa-table me-1"></i> {{ b.row_count }} Rows</div>
+                  {% else %}
+                    {% if b.ean_code %}
+                      <div style="font-family:monospace;"><span class="text">EAN:</span> {{ b.ean_code }}</div>
+                    {% endif %}
+                    {% if b.gs1_code %}
+                      <div style="font-family:monospace; margin-top:2px;"><span class="text">GS1:</span> {{ b.gs1_code }}</div>
+                    {% endif %}
+                    {% if not b.ean_code and not b.gs1_code %}
+                      <span class="text small">—</span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+
+                <td class="text-center">
+                  <span class="fw-bold text-white" style="font-size:1.1rem;">{{ b.quantity }}</span>
+                </td>
+
+                <td>
+                  {% if b.created_by %}
+                    <div class="d-flex align-items-center gap-2">
+                      <div style="width:24px; height:24px; background:#333; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">
+                        {{ b.created_by.email|slice:":1"|upper }}
+                      </div>
+                      <span class="small">{{ b.created_by.email|truncatechars:20 }}</span>
+                    </div>
+                  {% else %}
+                    <span class="text small">—</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end">
+                  <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'label_generate_single_preview' b.workspace.id b.id %}"
+                       class="btn-action" data-bs-toggle="tooltip" title="View Preview">
+                      <i class="fa-regular fa-eye"></i>
+                    </a>
+
+                    <a href="{% url 'label_batch_print' b.workspace.id b.id %}"
+                       class="btn-action btn-print" data-bs-toggle="tooltip" title="Print Batch">
+                      <i class="fa-solid fa-print"></i>
+                    </a>
+
+                    <a href="{% url 'label_batch_export_csv' b.workspace.id b.id %}"
+                       class="btn-action btn-export" data-bs-toggle="tooltip" title="Export CSV">
+                      <i class="fa-solid fa-file-csv"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="history-card empty-history">
+        <div class="empty-icon">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <h3 class="h5 text-white">No history yet</h3>
+        <p class="mb-4">Generate your first label batch to see activity here.</p>
+        <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-outline-secondary">
+          Go to Workspaces
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el) })
+  });
+</script>
+{% endblock %}

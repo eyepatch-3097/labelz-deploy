@@ -97,4 +97,5 @@ urlpatterns = [
         views.label_generate_multi_export_template,
         name="label_generate_multi_export_template",
     ),
+    path("labels/history/", views.org_label_history, name="org_label_history"),
 ]

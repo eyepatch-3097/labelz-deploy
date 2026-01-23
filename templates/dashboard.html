@@ -232,7 +232,148 @@
 
 <div class="row justify-content-center">
   <div class="col-lg-12" style="max-width: 1400px;">
+    <style>
+    /* Grid Layout for horizontal alignment */
+    .qa-grid {
+        display: grid;
+        /* auto-fit ensures they stay horizontal as long as there is space (min 300px each), then wrap */
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
 
+    .quick-action-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
+        height: 100%;
+        padding: 24px;
+        transition: all 0.3s var(--ease-elastic);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        text-decoration: none; /* Ensure no underline on the card itself */
+    }
+
+    /* Subtle Gradient Border/Glow */
+    .quick-action-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: var(--radius-card);
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-4px);
+        background: var(--color-surface-hover);
+        box-shadow: var(--shadow-glow);
+        border-color: rgba(167, 105, 237, 0.3);
+    }
+
+    .qa-icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+    
+    .quick-action-card:hover .qa-icon-box {
+        transform: scale(1.1) rotate(-5deg);
+    }
+
+    .qa-content {
+        flex-grow: 1;
+        min-width: 0; /* Prevents flex items from overflowing */
+    }
+
+    .qa-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #fff;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .qa-arrow {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.3s ease;
+        color: var(--color-primary);
+        font-size: 1rem;
+    }
+
+    .quick-action-card:hover .qa-arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .qa-desc {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin: 0;
+    }
+</style>
+<div class="qa-grid">
+    
+    <!-- Generate Labels -->
+    <a href="{% url 'my_workspaces' %}" class="quick-action-card">
+        <div class="qa-icon-box" style="background: rgba(167, 105, 237, 0.15); border: 1px solid rgba(167, 105, 237, 0.3); color: var(--color-primary);">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="qa-content">
+            <div class="qa-title">
+                Generate Labels
+                <i class="fa-solid fa-arrow-right qa-arrow"></i>
+            </div>
+            <p class="qa-desc">Pick a workspace + template and start generating.</p>
+        </div>
+    </a>
+
+    <!-- Label History -->
+    <a href="{% url 'org_label_history' %}" class="quick-action-card">
+        <div class="qa-icon-box" style="background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.3); color: #2ecc71;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="qa-content">
+            <div class="qa-title">
+                Label History
+                <i class="fa-solid fa-arrow-right qa-arrow" style="color: #2ecc71;"></i>
+            </div>
+            <p class="qa-desc">See org-wide label generation activity logs.</p>
+        </div>
+    </a>
+
+    <!-- Billing & Invoices -->
+    <a href="{% url 'billing_invoices' %}" class="quick-action-card">
+        <div class="qa-icon-box" style="background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #ffc107;">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+        <div class="qa-content">
+            <div class="qa-title">
+                Billing & Invoices
+                <i class="fa-solid fa-arrow-right qa-arrow" style="color: #ffc107;"></i>
+            </div>
+            <p class="qa-desc">View invoices, plan details, and payments.</p>
+        </div>
+    </a>
+
+</div>
     <!-- Page Header -->
     <div class="dashboard-header">
       <div>
