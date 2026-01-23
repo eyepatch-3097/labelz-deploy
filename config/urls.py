@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.urls import re_path
+from django.views.static import serve as django_serve
 from django.conf.urls.static import static
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
