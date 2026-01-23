@@ -178,7 +178,7 @@ STATICFILES_DIRS = [
 #media
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = 'var/data/media'
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", "/var/data/media")
 
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
