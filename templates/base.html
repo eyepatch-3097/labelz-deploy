@@ -396,7 +396,7 @@
       
       {% if sidebar_recent_workspaces %}
         {% for w in sidebar_recent_workspaces %}
-          <a href="{% url 'workspace_detail' w.id %}" class="sidebar-link" style="margin-bottom: 6px; padding: 10px 12px;">
+          <a href="{% url 'my_workspace_detail' w.id %}" class="sidebar-link" style="margin-bottom: 6px; padding: 10px 12px;">
             <i class="fa-regular fa-folder-open"></i>
             <span class="text-truncate" style="max-width: 250px;">{{ w.name }}</span>
           </a>
