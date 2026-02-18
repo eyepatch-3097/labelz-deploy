@@ -208,4 +208,6 @@ if settings.DEBUG or os.getenv("SERVE_MEDIA", "0") == "1":
         re_path(r"^media/(?P<path>.*)$", django_serve, {"document_root": settings.MEDIA_ROOT}),
     ]
 
-urlpatterns += static("/download/", document_root = settings.MEDIA_ROOT)
+urlpatterns += [
+    re_path(r"^download/?P<path>.*)$", django_serve, {"document_root": settings.MEDIA_ROOT}),
+]
