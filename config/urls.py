@@ -201,6 +201,7 @@ urlpatterns = [
     path("workspaces/", include("workspaces.urls")),
     path("cms/", include("cms.urls")),
     path("billing/", include("billing.urls")),
+    path("chatbot/", include("chatbot.urls")),
 ]
 
 if settings.DEBUG or os.getenv("SERVE_MEDIA", "0") == "1":

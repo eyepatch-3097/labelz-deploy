@@ -320,6 +320,16 @@
         .navbar-toggler { border: none; color: #fff; }
         .navbar-toggler:focus { box-shadow: none; }
 
+        #chatbot-panel .dot{
+  width:6px; height:6px; border-radius:50%;
+  background: rgba(255,255,255,.7);
+  display:inline-block;
+  animation: chatDot 1s infinite ease-in-out;
+}
+#chatbot-panel .dot:nth-child(2){ animation-delay: .15s; }
+#chatbot-panel .dot:nth-child(3){ animation-delay: .3s; }
+@keyframes chatDot { 0%,80%,100% { transform: translateY(0); opacity:.4 } 40% { transform: translateY(-4px); opacity:1 } }
+
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -566,9 +576,208 @@
     </div>
 </main>
 
+<!-- Floating Chat Button -->
+<div id="chatbot-button" style="
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg,#A769ED,#8E4EC6);
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 0 25px rgba(167,105,237,.6);
+    z-index:2000;">
+    <i class="fa-solid fa-robot text-white"></i>
+</div>
+
+<!-- Chat Panel -->
+<div id="chatbot-panel" style="
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 380px;
+    max-height: 600px;
+    background: #111;
+    border:1px solid #333;
+    border-radius:16px;
+    display:none;
+    flex-direction:column;
+    z-index:2000;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.6);">
+
+    <!-- Header -->
+    <div style="padding:16px; background:#1a1a1a; font-weight:700;">
+        Labelz AI Assistant
+    </div>
+
+    <!-- Messages -->
+    <div id="chatbot-messages" style="
+        flex:1;
+        padding:16px;
+        overflow-y:auto;
+        font-size:.9rem;">
+    </div>
+
+    <!-- Input -->
+    <div style="padding:12px; border-top:1px solid #333;">
+        <div class="d-flex">
+            <input id="chatbot-input" class="form-control form-control-sm"
+                   placeholder="Ask anything about Labelz..." />
+            <button id="chatbot-send" class="btn btn-sm btn-primary-glow ms-2">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
+const chatBtn = document.getElementById("chatbot-button");
+const chatPanel = document.getElementById("chatbot-panel");
+const chatMessages = document.getElementById("chatbot-messages");
+const chatInput = document.getElementById("chatbot-input");
+const chatSend = document.getElementById("chatbot-send");
 
+if (chatBtn) {
+    chatBtn.onclick = () => {
+        chatPanel.style.display = chatPanel.style.display === "flex" ? "none" : "flex";
+    };
+}
+
+function addMessage(text, isUser=false) {
+    const div = document.createElement("div");
+    div.style.marginBottom = "12px";
+    div.innerHTML = `
+        <div style="
+            background:${isUser ? "#A769ED" : "#222"};
+            padding:10px 14px;
+            border-radius:12px;
+            color:white;">
+            ${text}
+        </div>`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addCards(cards) {
+    cards.forEach(c => {
+        const div = document.createElement("div");
+        div.style.marginBottom = "12px";
+        div.innerHTML = `
+            <a href="${c.url}" target="_blank"
+               style="display:block; text-decoration:none;">
+                <div style="
+                    background:#1a1a1a;
+                    padding:12px;
+                    border-radius:12px;
+                    border:1px solid #333;">
+                    <div style="font-weight:700;">${c.title}</div>
+                    <div style="font-size:.8rem; color:#aaa;">
+                        ${c.description || ""}
+                    </div>
+                </div>
+            </a>`;
+        chatMessages.appendChild(div);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+let typingEl = null;
+
+function addTyping() {
+    // Prevent duplicates
+    if (typingEl) return;
+
+    const wrap = document.createElement("div");
+    wrap.style.marginBottom = "12px";
+
+    wrap.innerHTML = `
+        <div style="
+            background:#222;
+            padding:10px 14px;
+            border-radius:12px;
+            color:white;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;">
+            <span style="opacity:.85;">Thinking</span>
+            <span style="display:inline-flex; gap:6px; align-items:center;">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </span>
+        </div>
+    `;
+
+    typingEl = wrap;
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTyping() {
+    if (typingEl) {
+        typingEl.remove();
+        typingEl = null;
+    }
+}
+
+
+let sending = false;
+
+async function sendMessage() {
+    const msg = chatInput.value.trim();
+    if (!msg || sending) return;
+
+    sending = true;
+    chatSend.disabled = true;
+    chatInput.disabled = true;
+
+    addMessage(msg, true);
+    chatInput.value = "";
+
+    addTyping();
+
+    try {
+        const res = await fetch("/chatbot/api/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+                // Remove CSRF header for now because backend is csrf_exempt
+            },
+            body: JSON.stringify({ message: msg })
+        });
+
+        const data = await res.json();
+        removeTyping();
+
+        if (data.ok) {
+            addMessage(data.answer);
+            if (data.cards?.length) addCards(data.cards);
+        } else {
+            addMessage("I couldn’t complete that. Please email support at shyamagupta94@gmail.com.");
+        }
+    } catch (e) {
+        removeTyping();
+        addMessage("Network error. Please try again, or email support at shyamagupta94@gmail.com.");
+    } finally {
+        sending = false;
+        chatSend.disabled = false;
+        chatInput.disabled = false;
+        chatInput.focus();
+    }
+}
+
+if (chatSend) {
+    chatSend.onclick = sendMessage;
+    chatInput.addEventListener("keypress", e => {
+        if (e.key === "Enter") sendMessage();
+    });
+}
+</script>
 <script>
     function toggleSidebar() {
         const sidebar = document.getElementById('appSidebar');
