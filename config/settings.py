@@ -68,7 +68,8 @@ INSTALLED_APPS = [
     'accounts',
     'workspaces',
     'cms',
-    'billing'
+    'billing',
+    'chatbot',
 ]
 
 MIDDLEWARE = [
