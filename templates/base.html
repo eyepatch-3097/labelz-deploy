@@ -364,10 +364,53 @@
     <!-- Navigation -->
     <ul class="sidebar-menu">
         <li>
-            <a href="{% url 'my_workspaces' %}" class="sidebar-link">
-                <i class="fa-solid fa-laptop-file"></i> My Workspaces
-            </a>
-        </li>
+  <a href="{% url 'dashboard' %}" class="sidebar-link">
+    <i class="fa-solid fa-gauge-high"></i> Dashboard
+  </a>
+</li>
+        <li>
+  <!-- Main row: click goes to Workspaces list -->
+  <div class="d-flex align-items-center gap-2">
+    <a href="{% url 'my_workspaces' %}" class="sidebar-link flex-grow-1 mb-0">
+      <i class="fa-solid fa-laptop-file"></i> My Workspaces
+    </a>
+
+    <!-- Chevron: click toggles collapse (does NOT navigate) -->
+    <button
+      class="btn btn-sm btn-ghost"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#wsQuickLinks"
+      aria-expanded="false"
+      aria-controls="wsQuickLinks"
+      style="height: 44px; width: 44px; border-radius: 12px;"
+      onclick="event.stopPropagation();"
+    >
+      <i class="fa-solid fa-chevron-down"></i>
+    </button>
+  </div>
+
+  <!-- Collapsed content -->
+  <div class="collapse mt-2 ms-2" id="wsQuickLinks">
+    <div class="p-2" style="background: rgba(255,255,255,0.02); border: 1px solid var(--color-border); border-radius: 12px;">
+      
+      {% if sidebar_recent_workspaces %}
+        {% for w in sidebar_recent_workspaces %}
+          <a href="{% url 'workspace_detail' w.id %}" class="sidebar-link" style="margin-bottom: 6px; padding: 10px 12px;">
+            <i class="fa-regular fa-folder-open"></i>
+            <span class="text-truncate" style="max-width: 250px;">{{ w.name }}</span>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="text-muted small px-2 py-1">No workspaces yet.</div>
+      {% endif %}
+
+      <a href="{% url 'my_workspaces' %}" class="sidebar-link" style="margin-bottom: 0; padding: 10px 12px;">
+        <i class="fa-solid fa-layer-group"></i> All Workspaces
+      </a>
+    </div>
+  </div>
+</li>
 
         <li class="sidebar-label">Access Control</li>
         <li>
