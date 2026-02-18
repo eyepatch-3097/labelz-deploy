@@ -112,7 +112,7 @@ def build_context_blocks(query: str, user=None):
             "kind": "cms",
             "title": d.title,
             "type": d.type,
-            "url": f"/cms/{d.slug}/" if hasattr(d, "slug") else "",
+            "url": f"/cms/post/{d.slug}/" if hasattr(d, "slug") else "",
             "description": (
                 (d.meta_description or "")[:160]
                 if d.type == d.TYPE_BLOG
