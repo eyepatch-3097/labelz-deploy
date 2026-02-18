@@ -1,19 +1,16 @@
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
 
-# Virtual env
+# Virtualenv
 venv/
 .env
-*.env
 
-# Django
+# Local DB / media dumps
 db.sqlite3
-/staticfiles/
-/media/
+*.dump
+*.tar.gz
 
-# IDE
-.vscode/
-.idea/
-*.swp
+# OS
+.DS_Store
+Thumbs.db
