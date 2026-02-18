@@ -15,7 +15,7 @@ import os
 import dj_database_url
 import dotenv
 dotenv.load_dotenv()
-
+from openai import OpenAI
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only")
 #API KEYS
-
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
 #PAYMENT
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
