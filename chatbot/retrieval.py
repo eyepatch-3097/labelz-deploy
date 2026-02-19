@@ -33,13 +33,42 @@ def kb_search(search_terms, intent="support", limit: int = 5):
     if hasattr(LabelzKBEntry, "is_active"):
         qs = qs.filter(is_active=True)
 
-    # ✅ intent hint: pricing should prefer pricing category entries
-    if intent == "pricing" and hasattr(LabelzKBEntry, "category"):
+    qs = LabelzKBEntry.objects.filter(is_active=True)
+
+    # 1️⃣ Filter by category first (strong signal)
+    if intent == "pricing":
         qs = qs.filter(category=LabelzKBEntry.CATEGORY_PRICING)
+    elif intent == "general":
+        qs = qs.filter(category=LabelzKBEntry.CATEGORY_GENERAL)
+    elif intent == "feature":
+        qs = qs.filter(category=LabelzKBEntry.CATEGORY_FEATURES)
+    elif intent == "support":
+        qs = qs.filter(category__in=[
+            LabelzKBEntry.CATEGORY_SUPPORT,
+            LabelzKBEntry.CATEGORY_FEATURES
+        ])
 
-    qs = qs.filter(Q(title__icontains=key) | Q(content__icontains=key))
+    # 2️⃣ Then optionally refine
+    if key:
+        qs = qs.filter(
+            Q(title__icontains=key) |
+            Q(content__icontains=key) |
+            Q(tags__icontains=key)
+        )
+    
+    results = list(qs[:limit])
 
-    # ✅ only if updated_at exists
+    # 3️⃣ Fallback: if nothing matched, return category-level entries anyway
+    if not results:
+        results = list(
+            LabelzKBEntry.objects.filter(
+                category=qs.query.where.children[0].rhs  # category filter
+            )[:limit]
+        )
+    
+    return results
+    
+# ✅ only if updated_at exists
     if hasattr(LabelzKBEntry, "updated_at"):
         qs = qs.order_by("-updated_at", "-id")
     else:
@@ -106,9 +135,11 @@ def build_context_blocks(query, user=None, intent="support", search_terms=None):
     kb = kb_search(search_terms, intent=intent)
     links = links_search(search_terms, intent=intent) if intent in ("general","pricing") else []
     docs = cms_search(search_terms, intent=intent)  # still small
-
+    
     user_block = ""
     user_cards = []
+
+    pinned = LabelzKBEntry.objects.filter(is_active=True, is_pinned=True)[:2]
 
     if user and intent in ("support","feature"):
         user_block, user_cards = build_user_context(user, query=query)
