@@ -4,6 +4,7 @@ import re
 from cms.models import CMSPost
 from .models import LabelzKBEntry, ImportantLink
 from django.db import connection
+from .user_context import build_user_context
 
 
 def _norm(q: str) -> str:
@@ -34,7 +35,7 @@ def kb_search(search_terms, intent="support", limit: int = 5):
 
     # ✅ intent hint: pricing should prefer pricing category entries
     if intent == "pricing" and hasattr(LabelzKBEntry, "category"):
-        qs = qs.filter(category__iexact="Pricing")
+        qs = qs.filter(category=LabelzKBEntry.CATEGORY_PRICING)
 
     qs = qs.filter(Q(title__icontains=key) | Q(content__icontains=key))
 
@@ -110,8 +111,8 @@ def build_context_blocks(query, user=None, intent="support", search_terms=None):
     user_cards = []
 
     if user and intent in ("support","feature"):
-        user_block = user_context_summary(user)   # you already added this
-        # no user_cards needed unless you want
+        user_block, user_cards = build_user_context(user, query=query)
+       
 
     # Build tiny context_text (clip aggressively)
     def clip(s, n): return (s or "").strip()[:n]
@@ -151,5 +152,5 @@ def build_context_blocks(query, user=None, intent="support", search_terms=None):
             "description": clip(l.description, 160),
             "image_url": "",
         })
-
+    doc_cards = (user_cards or []) + doc_cards
     return "\n\n".join(parts).strip(), doc_cards
