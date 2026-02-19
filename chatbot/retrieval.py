@@ -68,73 +68,57 @@ def cms_search(query: str, limit=5):
     return list(qs[:limit])
 
 
-def build_context_blocks(query: str, user=None):
-    """
-    Returns:
-      context_text (string)
-      doc_cards (list of dict for UI)
-    """
-    kb = kb_search(query)
-    links = links_search(query)
-    docs = cms_search(query)
+def build_context_blocks(query, user=None, intent="support", search_terms=None):
+    search_terms = search_terms or [query]
+
+    kb = kb_search(search_terms, intent=intent)
+    links = links_search(search_terms, intent=intent) if intent in ("general","pricing") else []
+    docs = cms_search(search_terms, intent=intent)  # still small
+
+    user_block = ""
+    user_cards = []
+
+    if user and intent in ("support","feature"):
+        user_block = user_context_summary(user)   # you already added this
+        # no user_cards needed unless you want
+
+    # Build tiny context_text (clip aggressively)
+    def clip(s, n): return (s or "").strip()[:n]
 
     parts = []
-    doc_cards = []
+    if intent == "pricing":
+        parts.append("## Pricing\n" + "\n".join(f"- {clip(e.content, 700)}" for e in kb))
+    else:
+        if kb:
+            parts.append("## KB\n" + "\n".join(f"- {e.title}: {clip(e.content, 450)}" for e in kb))
 
-    if kb:
-        parts.append("## Labelz Knowledge Base\n" + "\n\n".join(
-            f"- **{e.title}** ({e.category})\n{e.content.strip()[:1200]}"
-            for e in kb
-        ))
-
-    if links:
-        parts.append("## Important Links\n" + "\n\n".join(
-            f"- **{l.title}**: {l.url}\n{(l.description or '').strip()[:400]}"
-            for l in links
-        ))
+    if user_block:
+        parts.append("## User Context\n" + clip(user_block, 900))
 
     if docs:
-        parts.append("## Support Docs (Blogs/Videos)\n" + "\n\n".join(
-            f"- **{d.title}** ({d.type})\n" +
-            (
-                (d.meta_description or '').strip()[:400]
-                if d.type == d.TYPE_BLOG
-                else (d.video_description or '').strip()[:400]
-            )
-            for d in docs
+        parts.append("## Support Docs\n" + "\n".join(
+            f"- {d.title}: {clip(d.meta_description, 250)}" for d in docs
         ))
 
-    
-
-    
-    for d in docs[:3]:
+    # Cards: only CMS + links
+    doc_cards = []
+    for d in docs[:2]:
         doc_cards.append({
             "kind": "cms",
             "title": d.title,
             "type": d.type,
-            "url": f"/cms/post/{d.slug}/" if hasattr(d, "slug") else "",
-            "description": (
-                (d.meta_description or "")[:160]
-                if d.type == d.TYPE_BLOG
-                else (d.video_description or "")[:160]
-            ),
+            "url": f"/cms/post/{d.slug}/",  # ✅ FIXED
+            "description": clip(d.meta_description, 160),
             "image_url": d.preview_image.url if getattr(d, "preview_image", None) else "",
         })
-    for l in links[:2]:
+    for l in links[:1]:
         doc_cards.append({
             "kind": "link",
             "title": l.title,
             "type": "LINK",
             "url": l.url,
-            "description": (l.description or "")[:160],
+            "description": clip(l.description, 160),
             "image_url": "",
         })
-
-    from .user_context import build_user_context
-
-    if user is not None:
-        user_ctx_text, user_cards = build_user_context(user, query=query)
-        parts.append("## User Context\n" + user_ctx_text)
-        doc_cards = (user_cards or []) + (doc_cards or [])
 
     return "\n\n".join(parts).strip(), doc_cards
