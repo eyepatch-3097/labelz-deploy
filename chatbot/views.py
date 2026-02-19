@@ -36,8 +36,6 @@ def chat_public(request):
 
     context_text, cards = build_context_blocks(user_msg, user=None)
 
-    # TODO: call OpenAI here (Phase 7)
-    # For now: stub response
     answer = f"(stub) You asked: {user_msg}\n\nContext found:\n{context_text[:600]}"
 
     return JsonResponse({"answer": answer, "cards": cards})
@@ -46,16 +44,10 @@ def chat_public(request):
 @login_required
 @require_POST
 def chat_authed(request):
-    """
-    Logged-in bot: includes user knowledge (Phase 6).
-    """
     body = json.loads(request.body.decode("utf-8") or "{}")
     user_msg = (body.get("message") or "").strip()
 
     context_text, cards = build_context_blocks(user_msg, user=request.user)
-
-    # TODO: add user knowledge block here in Phase 6
-    # TODO: call OpenAI here (Phase 7)
 
     answer = f"(stub authed) You asked: {user_msg}\n\nContext found:\n{context_text[:600]}"
     return JsonResponse({"answer": answer, "cards": cards})
@@ -93,7 +85,7 @@ User question: {user_query}
 Context (use ONLY this):
 {context_text}
 
-Return only the answer text (20–35 words).
+Return only the answer text (40-50 words).
 """.strip()
 
     def _needs_docs(q: str) -> bool:
@@ -134,9 +126,9 @@ Return only the answer text (20–35 words).
 
     # Cards policy: show only if user seems to want help/steps/docs
     cards_to_send = []
-    if _needs_docs(user_query):
+    if route["needs_docs"]:
         cms_cards = [c for c in (doc_cards or []) if c.get("kind") == "cms"]
-        cards_to_send = doc_cards if route["needs_docs"] else []
+        cards_to_send = cms_cards[:2]
 
 
     return JsonResponse({
