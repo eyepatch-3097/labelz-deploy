@@ -98,7 +98,7 @@ Return only the answer text (40-50 words).
         ]
         return any(h in q for h in hints)
 
-    def _clamp_words(text: str, max_words: int = 30) -> str:
+    def _clamp_words(text: str, max_words: int = 50) -> str:
         words = (text or "").strip().split()
         if len(words) <= max_words:
             return (text or "").strip()
@@ -121,8 +121,8 @@ Return only the answer text (40-50 words).
     if not answer:
         answer = f"I don’t have that in my Labelz docs yet. Please email {SUPPORT_EMAIL} and we’ll help you quickly."
 
-    # Hard enforce 20–30 words max (we enforce max; min is controlled by prompt)
-    answer = _clamp_words(answer, 30)
+    
+    answer = _clamp_words(answer, 50)
 
     # Cards policy: show only if user seems to want help/steps/docs
     cards_to_send = []
