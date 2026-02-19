@@ -70,6 +70,11 @@ def chat_api(request):
     user = request.user if getattr(request, "user", None) and request.user.is_authenticated else None
     is_authed = bool(getattr(request, "user", None) and request.user.is_authenticated)
     route = route_intent(user_query, is_authed=is_authed)
+
+    if route["intent"] == "pricing":
+        route["search_terms"] = route["search_terms"] + ["pricing", "plan", "starter", "pro"]
+        route["search_terms"] = route["search_terms"][:5]
+        
     user = request.user if (is_authed and route["needs_user_context"]) else None
     context_text, doc_cards = build_context_blocks(
         user_query,
