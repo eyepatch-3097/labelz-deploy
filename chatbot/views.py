@@ -7,24 +7,23 @@ import re
 from .retrieval import build_context_blocks
 from django.conf import settings
 from openai import OpenAI
-
+from .router import route_intent
 # later: from openai import OpenAI
 client = OpenAI(api_key=getattr(settings, "OPENAI_API_KEY", None) or None)
 
 SUPPORT_EMAIL = "shyamagupta94@gmail.com"
 
 SYSTEM_INSTRUCTIONS = f"""
-You are Labelz Support Assistant.
+You are Labelz Support Assistant. Labelz is a label design and generation tool for fashion, FMCG and any D2C/SMB retail brand. You can come design your packaging and label stickers like Canva and create unique single labels or in bulk in minutes
 
-GOAL:
-Answer the user's question about Labelz using ONLY the provided context.
+Style:
+- Friendly, simple, helpful and not technical.
+- 40-50 words max.
+- If unsure, say you are not sure and ask them to email {SUPPORT_EMAIL}.
 
-RULES (must follow):
-1) Use ONLY the context provided in the user message. Do NOT invent features, UI paths, or docs.
-2) Answer in 20–30 words. One short paragraph. No headings. No bullet points.
-3) Be support-first: explain quickly what it is / what to do next.
-4) If context does not contain the answer, say you don’t have it in Labelz docs yet and ask them to email {SUPPORT_EMAIL}.
-5) Never mention "public blogs" or "workspace blogs". If docs are helpful, rely on the provided Support Docs only.
+Rules:
+- Use ONLY the provided Context.
+- Do not invent features or UI paths.
 """
 
 @require_POST
@@ -77,17 +76,24 @@ def chat_api(request):
         return JsonResponse({"ok": False, "error": "Message is required"}, status=400)
 
     user = request.user if getattr(request, "user", None) and request.user.is_authenticated else None
-
-    context_text, doc_cards = build_context_blocks(user_query, user=user)
+    is_authed = bool(getattr(request, "user", None) and request.user.is_authenticated)
+    route = route_intent(user_query, is_authed=is_authed)
+    user = request.user if (is_authed and route["needs_user_context"]) else None
+    context_text, doc_cards = build_context_blocks(
+        user_query,
+        user=user,
+        intent=route["intent"],
+        search_terms=route["search_terms"],
+    )
 
     prompt = f"""
-User question:
-{user_query}
+Intent: {route['intent']}
+User question: {user_query}
 
 Context (use ONLY this):
 {context_text}
 
-Write ONLY the answer text. 20–30 words.
+Return only the answer text (20–35 words).
 """.strip()
 
     def _needs_docs(q: str) -> bool:
@@ -130,7 +136,7 @@ Write ONLY the answer text. 20–30 words.
     cards_to_send = []
     if _needs_docs(user_query):
         cms_cards = [c for c in (doc_cards or []) if c.get("kind") == "cms"]
-        cards_to_send = (cms_cards[:2] if cms_cards else (doc_cards or [])[:2])
+        cards_to_send = doc_cards if route["needs_docs"] else []
 
 
     return JsonResponse({
