@@ -3,6 +3,7 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 import re
 from cms.models import CMSPost
 from .models import LabelzKBEntry, ImportantLink
+from django.db import connection
 
 
 def _norm(q: str) -> str:
@@ -11,59 +12,89 @@ def _norm(q: str) -> str:
     q = re.sub(r"\s+", " ", q)
     return q
 
-def kb_search(query: str, limit: int = 5):
+def _terms_to_text(search_terms, fallback=""):
+    if isinstance(search_terms, (list, tuple)):
+        return " ".join([str(t).strip() for t in search_terms if str(t).strip()])
+    return (search_terms or fallback or "").strip()
+
+def kb_search(search_terms, intent="support", limit: int = 5):
+    query = _terms_to_text(search_terms)
     q = _norm(query)
     if not q:
         return LabelzKBEntry.objects.none()
 
-    # optional: treat questions like "what is a workspace" as keyword "workspace"
-    tokens = [t for t in q.split() if t not in {"what", "is", "a", "an", "the", "define", "explain", "meaning"}]
+    tokens = [t for t in q.split() if t not in {"what","is","a","an","the","define","explain","meaning"}]
     key = " ".join(tokens) if tokens else q
 
-    return (
-        LabelzKBEntry.objects
-        .filter(is_active=True)  # if you have it; otherwise remove
-        .filter(
-            Q(title__icontains=key) |
-            Q(content__icontains=key)
-        )
-        .order_by("-updated_at", "-id")[:limit]
-    )
+    qs = LabelzKBEntry.objects.all()
 
+    # ✅ only if these fields exist in your model:
+    if hasattr(LabelzKBEntry, "is_active"):
+        qs = qs.filter(is_active=True)
 
-def links_search(query: str, limit=5):
-    if not query:
-        return list(ImportantLink.objects.filter(is_active=True)[:3])
+    # ✅ intent hint: pricing should prefer pricing category entries
+    if intent == "pricing" and hasattr(LabelzKBEntry, "category"):
+        qs = qs.filter(category__iexact="Pricing")
 
-    qs = ImportantLink.objects.filter(is_active=True).filter(
-        Q(title__icontains=query) |
-        Q(tags__icontains=query) |
-        Q(description__icontains=query)
-    ).order_by("-created_at")
+    qs = qs.filter(Q(title__icontains=key) | Q(content__icontains=key))
+
+    # ✅ only if updated_at exists
+    if hasattr(LabelzKBEntry, "updated_at"):
+        qs = qs.order_by("-updated_at", "-id")
+    else:
+        qs = qs.order_by("-id")
 
     return list(qs[:limit])
 
 
-def cms_search(query: str, limit=5):
+def links_search(search_terms, intent="support", limit=5):
+    query = _terms_to_text(search_terms)
+    qs = ImportantLink.objects.all()
+    if hasattr(ImportantLink, "is_active"):
+        qs = qs.filter(is_active=True)
+
+    if not query:
+        return list(qs.order_by("-id")[:3])
+
+    qs = qs.filter(
+        Q(title__icontains=query) |
+        Q(tags__icontains=query) |
+        Q(description__icontains=query)
+    ).order_by("-id")
+
+    return list(qs[:limit])
+
+
+def cms_search(search_terms, intent="support", limit=5):
+    query = _terms_to_text(search_terms)
     if not query:
         return []
 
-    search_query = SearchQuery(query)
+    qs = CMSPost.objects.filter(status=CMSPost.STATUS_PUBLISHED)
 
-    vector = (
-        SearchVector("title", weight="A") +
-        SearchVector("meta_description", weight="B") +
-        SearchVector("blog_html", weight="C") +
-        SearchVector("video_description", weight="C")
-    )
+    if connection.vendor == "postgresql":
+        from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
-    qs = (
-        CMSPost.objects
-        .filter(status=CMSPost.STATUS_PUBLISHED)
-        .annotate(rank=SearchRank(vector, search_query))
-        .filter(rank__gte=0.05)
-        .order_by("-rank", "-published_at", "-id")
-    )
+        search_query = SearchQuery(query)
+        vector = (
+            SearchVector("title", weight="A") +
+            SearchVector("meta_description", weight="B") +
+            SearchVector("blog_html", weight="C") +
+            SearchVector("video_description", weight="C")
+        )
+        qs = (
+            qs.annotate(rank=SearchRank(vector, search_query))
+              .filter(rank__gte=0.05)
+              .order_by("-rank", "-published_at", "-id")
+        )
+    else:
+        # ✅ SQLite/dev fallback
+        qs = qs.filter(
+            Q(title__icontains=query) |
+            Q(meta_description__icontains=query) |
+            Q(blog_html__icontains=query) |
+            Q(video_description__icontains=query)
+        ).order_by("-published_at", "-id")
 
     return list(qs[:limit])
 
