@@ -21,59 +21,45 @@ def _terms_to_text(search_terms, fallback=""):
 def kb_search(search_terms, intent="support", limit: int = 5):
     query = _terms_to_text(search_terms)
     q = _norm(query)
-    if not q:
-        return LabelzKBEntry.objects.none()
 
-    tokens = [t for t in q.split() if t not in {"what","is","a","an","the","define","explain","meaning"}]
-    key = " ".join(tokens) if tokens else q
-
-    qs = LabelzKBEntry.objects.all()
-
-    # ✅ only if these fields exist in your model:
-    if hasattr(LabelzKBEntry, "is_active"):
-        qs = qs.filter(is_active=True)
-
+    # Always start with active KB
     qs = LabelzKBEntry.objects.filter(is_active=True)
 
-    # 1️⃣ Filter by category first (strong signal)
+    # Category-first (strong signal)
+    category_filter = None
     if intent == "pricing":
-        qs = qs.filter(category=LabelzKBEntry.CATEGORY_PRICING)
+        category_filter = LabelzKBEntry.CATEGORY_PRICING
+        qs = qs.filter(category=category_filter)
     elif intent == "general":
-        qs = qs.filter(category=LabelzKBEntry.CATEGORY_GENERAL)
+        category_filter = LabelzKBEntry.CATEGORY_GENERAL
+        qs = qs.filter(category=category_filter)
     elif intent == "feature":
-        qs = qs.filter(category=LabelzKBEntry.CATEGORY_FEATURES)
+        category_filter = LabelzKBEntry.CATEGORY_FEATURES
+        qs = qs.filter(category=category_filter)
     elif intent == "support":
-        qs = qs.filter(category__in=[
-            LabelzKBEntry.CATEGORY_SUPPORT,
-            LabelzKBEntry.CATEGORY_FEATURES
-        ])
+        # support can draw from support + features
+        qs = qs.filter(category__in=[LabelzKBEntry.CATEGORY_SUPPORT, LabelzKBEntry.CATEGORY_FEATURES])
 
-    # 2️⃣ Then optionally refine
-    if key:
-        qs = qs.filter(
+    # Prefer latest updates
+    qs = qs.order_by("-updated_at", "-id")
+
+    # Keyword refine (optional)
+    if q:
+        tokens = [t for t in q.split() if t not in {"what","is","a","an","the","define","explain","meaning"}]
+        key = " ".join(tokens) if tokens else q
+
+        refined = qs.filter(
             Q(title__icontains=key) |
             Q(content__icontains=key) |
             Q(tags__icontains=key)
         )
-    
-    results = list(qs[:limit])
+        refined_results = list(refined[:limit])
 
-    # 3️⃣ Fallback: if nothing matched, return category-level entries anyway
-    if not results:
-        results = list(
-            LabelzKBEntry.objects.filter(
-                category=qs.query.where.children[0].rhs  # category filter
-            )[:limit]
-        )
-    
-    return results
-    
-# ✅ only if updated_at exists
-    if hasattr(LabelzKBEntry, "updated_at"):
-        qs = qs.order_by("-updated_at", "-id")
-    else:
-        qs = qs.order_by("-id")
+        # If refine hits, use it
+        if refined_results:
+            return refined_results
 
+    # Fallback: category-level results (no refine)
     return list(qs[:limit])
 
 
@@ -133,13 +119,17 @@ def build_context_blocks(query, user=None, intent="support", search_terms=None):
     search_terms = search_terms or [query]
 
     kb = kb_search(search_terms, intent=intent)
+
+    pinned = list(LabelzKBEntry.objects.filter(is_active=True, is_pinned=True).order_by("-updated_at", "-id")[:2])
+    kb = pinned + [x for x in kb if x.id not in {p.id for p in pinned}]
+    
     links = links_search(search_terms, intent=intent) if intent in ("general","pricing") else []
     docs = cms_search(search_terms, intent=intent)  # still small
     
     user_block = ""
     user_cards = []
 
-    pinned = LabelzKBEntry.objects.filter(is_active=True, is_pinned=True)[:2]
+    
 
     if user and intent in ("support","feature"):
         user_block, user_cards = build_user_context(user, query=query)
@@ -150,7 +140,9 @@ def build_context_blocks(query, user=None, intent="support", search_terms=None):
 
     parts = []
     if intent == "pricing":
-        parts.append("## Pricing\n" + "\n".join(f"- {clip(e.content, 700)}" for e in kb))
+        parts.append("## Pricing\n" + "\n".join(
+            f"- {e.title}: {clip(e.content, 700)}" for e in kb
+        ))
     else:
         if kb:
             parts.append("## KB\n" + "\n".join(f"- {e.title}: {clip(e.content, 450)}" for e in kb))
