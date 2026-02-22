@@ -138,6 +138,32 @@
   .label, .pl-el, .pl-shape{
     background-clip: padding-box !important;
   }
+
+    body * {
+    visibility: hidden !important;
+  }
+
+  /* Show ONLY the print viewport and its children */
+  #pagesViewport, #pagesViewport * {
+    visibility: visible !important;
+  }
+
+  /* Move print viewport to top-left so it prints cleanly */
+  #pagesViewport {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+
+  /* pagesWrap must not be scaled */
+  #pagesWrap {
+    transform: none !important;
+  }
 }
 </style>
 
