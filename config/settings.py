@@ -33,6 +33,9 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "")
+PAYPAL_CLIENT_SECRET = os.environ.get("PAYPAL_CLIENT_SECRET", "")
+PAYPAL_ENV = os.environ.get("PAYPAL_ENV", "SANDBOX")  # or LIVE
 
 # EMAIL SETTINGS
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
@@ -71,6 +74,7 @@ INSTALLED_APPS = [
     'cms',
     'billing',
     'chatbot',
+    'django_countries',
 ]
 
 MIDDLEWARE = [
