@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from .sanitize import sanitize_blog_html, sanitize_youtube_embed_html
+from django.urls import reverse
 
 class CMSPost(models.Model):
     TYPE_BLOG = "BLOG"
@@ -107,3 +108,6 @@ class CMSPost(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+def get_absolute_url(self):
+    return reverse("cms_post_detail", kwargs={"slug": self.slug})
