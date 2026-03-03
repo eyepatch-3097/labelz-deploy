@@ -35,6 +35,9 @@ def landingpage(request):
         "recent_videos": recent_videos,
     })
 
+def affiliate(request):
+    return render(request, "affiliate.html")
+
 
 def _parse_date(s: str):
     """
@@ -196,7 +199,7 @@ urlpatterns = [
 
     # ✅ Logged-in dashboard
     path("dashboard/", dashboard_view, name="dashboard"),
-
+    path("affiliate/", affiliate, name="affiliate"),
     path("accounts/", include("accounts.urls")),
     path("workspaces/", include("workspaces.urls")),
     path("cms/", include("cms.urls")),
