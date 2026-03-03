@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labelz Affiliate Program | Partner With Us</title>
+    
+    <!-- BRAND FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --color-primary: #A769ED;
+            --color-secondary: #FFFFFF;
+            --color-accent-blue: #C2E0FF;
+            --color-accent-orange: #FF7D00;
+            --color-accent-green: #2ecc71;
+            
+            --color-bg: #050505;
+            --color-surface: #111111;
+            --color-surface-hover: #1A1A1A;
+            --color-text: #E0E0E0;
+            --color-muted: #9CA3AF;
+            --color-border: #333333;
+            
+            --font-main: "Zalando Sans", sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.3);
+            --shadow-glow: 0 0 40px rgba(167, 105, 237, 0.2);
+            --shadow-orange: 0 0 40px rgba(255, 125, 0, 0.2);
+            
+            --ease-elastic: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-main); background-color: var(--color-bg); color: var(--color-text); line-height: 1.6; overflow-x: hidden; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+        section { padding: 100px 0; position: relative; }
+
+        /* --- BACKGROUND GRADIENTS --- */
+        .gradient-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .blob { position: absolute; filter: blur(100px); opacity: 0.25; animation: pulse-blob 10s infinite alternate; }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--color-accent-orange); }
+        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: var(--color-primary); animation-delay: -5s; }
+        @keyframes pulse-blob { 0% { transform: scale(1); opacity: 0.2; } 100% { transform: scale(1.1); opacity: 0.35; } }
+
+        /* --- COMPONENTS --- */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 32px; border-radius: var(--radius-full); font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: all 0.3s var(--ease-elastic); border: 1px solid transparent; text-decoration: none; position: relative; z-index: 2; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: linear-gradient(135deg, var(--color-primary), #8E4EC6); color: #fff; box-shadow: var(--shadow-glow); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-dark { background: rgba(255,255,255,0.05); color: #fff; backdrop-filter: blur(10px); border: 1px solid var(--color-border); }
+        .btn-dark:hover { background: rgba(255,255,255,0.1); border-color: #555; }
+        .btn-orange { background: linear-gradient(135deg, var(--color-accent-orange), #FF5500); color: #fff; box-shadow: var(--shadow-orange); }
+
+        .section-header { text-align: center; max-width: 800px; margin: 0 auto 50px; }
+        .section-tag { display: inline-block; background: rgba(255, 125, 0, 0.15); color: var(--color-accent-orange); padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border: 1px solid rgba(255, 125, 0, 0.3); }
+        .section-title { font-size: 2.8rem; font-weight: 900; margin-bottom: 16px; line-height: 1.1; color: var(--color-secondary); }
+
+        .card { background: var(--color-surface); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-border); transition: all 0.4s var(--ease-elastic); position: relative; overflow: hidden; z-index: 1; }
+        .card::before { content: ''; position: absolute; inset: 0; border-radius: var(--radius-lg); padding: 1px; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+        .card:hover { transform: translateY(-6px); background: var(--color-surface-hover); box-shadow: var(--shadow-glow); border-color: rgba(167, 105, 237, 0.3); }
+
+        /* --- HEADER --- */
+        header { position: fixed; top: 0; left: 0; right: 0; background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(16px); z-index: 1000; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--color-secondary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo i { color: var(--color-primary); font-size: 1.6rem; text-shadow: 0 0 10px rgba(167, 105, 237, 0.5); }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { text-decoration: none; color: var(--color-muted); font-weight: 600; transition: color 0.2s; display: flex; align-items: center; gap: 6px; font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--color-secondary); }
+
+        /* --- HERO --- */
+        .hero { padding-top: 160px; padding-bottom: 60px; text-align: center; border-bottom: 1px solid var(--color-border); }
+        .hero-title { font-size: 4.5rem; font-weight: 900; line-height: 1.05; margin-bottom: 24px; color: var(--color-secondary); letter-spacing: -1.5px; }
+        .hero-title span { background: linear-gradient(135deg, var(--color-accent-orange), var(--color-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-desc { font-size: 1.25rem; color: var(--color-muted); margin: 0 auto 40px; max-width: 700px; line-height: 1.6; }
+        
+        .highlights-grid { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 60px; }
+        .highlight-pill { background: rgba(255,255,255,0.03); border: 1px solid var(--color-border); padding: 12px 24px; border-radius: 50px; display: flex; align-items: center; gap: 12px; font-weight: 700; color: #fff; font-size: 0.95rem; backdrop-filter: blur(10px); }
+        .highlight-pill i { color: var(--color-accent-orange); font-size: 1.2rem; }
+
+        /* --- SPLIT INFO SECTION --- */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .info-card h3 { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .info-card h3 i { color: var(--color-primary); }
+        .info-list { list-style: none; padding: 0; }
+        .info-list li { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; color: var(--color-muted); font-size: 1.05rem; }
+        .info-list li i { color: var(--color-accent-blue); margin-top: 4px; font-size: 1.2rem; }
+
+        /* --- COMMISSION & PLANS --- */
+        .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .plan-card { text-align: center; display: flex; flex-direction: column; }
+        .plan-name { font-size: 1.2rem; font-weight: 800; color: var(--color-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .plan-price { font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 16px; }
+        .plan-desc { color: var(--color-muted); font-size: 0.9rem; margin-bottom: 30px; flex-grow: 1; }
+        .commission-box { background: rgba(255, 125, 0, 0.1); border: 1px solid rgba(255, 125, 0, 0.2); padding: 20px; border-radius: 16px; margin-top: auto; }
+        .commission-label { color: var(--color-accent-orange); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+        .commission-val { color: #fff; font-size: 1.5rem; font-weight: 900; }
+
+        /* --- TRACKING & RESOURCES --- */
+        .tracking-banner { background: linear-gradient(90deg, #110515 0%, #000 100%); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-bottom: 60px; }
+        .track-method { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px solid var(--color-border); margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+        .track-method i { font-size: 2rem; color: var(--color-primary); }
+        .track-method h4 { color: #fff; font-weight: 800; margin-bottom: 4px; }
+        .track-method p { color: var(--color-muted); font-size: 0.9rem; margin: 0; }
+
+        /* --- RULES & FOOTER --- */
+        .rules-section { text-align: center; max-width: 800px; margin: 0 auto; color: var(--color-muted); font-size: 0.95rem; }
+        .rules-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; list-style: none; margin-top: 20px; }
+        .rules-list li { background: #111; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--color-border); }
+
+        .cta-bottom { background: radial-gradient(circle at 50% 50%, rgba(167, 105, 237, 0.15) 0%, var(--color-bg) 70%); text-align: center; padding: 120px 24px; border-top: 1px solid var(--color-border); }
+
+        @media (max-width: 900px) {
+            .hero-title { font-size: 3rem; }
+            .info-grid, .plans-grid, .tracking-banner { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header>
+        <div class="container nav-inner">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-barcode"></i> Labelz
+            </a>
+            <nav class="nav-links">
+                <a href="/#features">Features</a>
+                <a href="/#pricing">Pricing</a>
+                <a href="#" style="color: var(--color-secondary);">Affiliates</a>
+            </nav>
+            <div class="d-flex gap-3">
+                <a href="https://labelz.live/login" class="btn btn-dark" style="padding: 8px 20px;">Login</a>
+                <a href="#apply" class="btn btn-primary" style="padding: 8px 20px;">Apply Now</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="gradient-bg">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+        </div>
+        <div class="container">
+            <h1 class="hero-title">Earn <span>20% commission</span><br>by referring brands.</h1>
+            <p class="hero-desc">
+                Help D2C brands and manufacturers set up faster, cleaner label workflows—get paid for every customer who subscribes to Labelz.
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="#apply" class="btn btn-orange">Apply to Become an Affiliate</a>
+                <a href="#kit" class="btn btn-dark"><i class="fa-solid fa-download"></i> Download Affiliate Kit</a>
+            </div>
+            
+            <div class="highlights-grid">
+                <div class="highlight-pill"><i class="fa-solid fa-money-bill-trend-up"></i> 20% on Every Paid Signup</div>
+                <div class="highlight-pill"><i class="fa-solid fa-handshake"></i> For Agencies & Creators</div>
+                <div class="highlight-pill"><i class="fa-solid fa-link"></i> Simple Link Tracking</div>
+                <div class="highlight-pill"><i class="fa-regular fa-calendar-check"></i> Monthly Payouts</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHAT / WHO (SPLIT) -->
+    <section>
+        <div class="container info-grid">
+            <!-- What is Labelz -->
+            <div class="card info-card">
+                <h3><i class="fa-solid fa-layer-group"></i> What is Labelz?</h3>
+                <p style="color:var(--color-text); margin-bottom: 24px; font-size:1.1rem;">
+                    Labelz is a label creation and bulk generation platform for brands needing print-ready labels quickly and consistently.
+                </p>
+                <ul class="info-list">
+                    <li><i class="fa-solid fa-check-circle"></i> <div>Create templates once (layout, fields, styling).</div></li>
+                    <li><i class="fa-solid fa-check-circle"></i> <div>Generate single or bulk labels with serialized codes.</div></li>
+                    <li><i class="fa-solid fa-check-circle"></i> <div>Manage labels across teams with Org Workspaces.</div></li>
+                    <li><i class="fa-solid fa-check-circle"></i> <div>Print/export labels reliably for daily ops.</div></li>
+                </ul>
+            </div>
+
+            <!-- Who should apply -->
+            <div class="card info-card">
+                <h3><i class="fa-solid fa-bullseye"></i> Best-Fit Partners</h3>
+                <p style="color:var(--color-text); margin-bottom: 24px; font-size:1.1rem;">
+                    This program is ideal if you already work with brands that ship physical products.
+                </p>
+                <ul class="info-list">
+                    <li><i class="fa-solid fa-code"></i> <div><strong>D2C Agencies & Freelancers</strong> (Shopify, ops setup)</div></li>
+                    <li><i class="fa-solid fa-print"></i> <div><strong>Packaging Vendors & Print Shops</strong> (stickers, boxes)</div></li>
+                    <li><i class="fa-solid fa-boxes-packing"></i> <div><strong>Fulfillment / Ops Consultants</strong></div></li>
+                    <li><i class="fa-solid fa-video"></i> <div><strong>Creators & Educators</strong> in D2C & retail ops</div></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- PLANS & EARNINGS -->
+    <section style="background: #080808; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">The Offer</span>
+                <h2 class="section-title">Your Commission Structure</h2>
+                <p style="color:var(--color-muted); font-size:1.1rem;">Earn a 20% cut on the first successful payment of every referred subscriber.</p>
+            </div>
+
+            <div class="plans-grid">
+                <!-- Base -->
+                <div class="card plan-card">
+                    <div class="plan-name">Base Plan</div>
+                    <div class="plan-price">$29<span style="font-size:1rem; color:var(--color-muted);">/mo</span></div>
+                    <div class="plan-desc">Up to 3 templates + 3,000 labels/month. Ideal for emerging brands.</div>
+                    <div class="commission-box">
+                        <div class="commission-label">You Earn</div>
+                        <div class="commission-val">$5.80 <span style="font-size:0.9rem; font-weight:600; color:var(--color-accent-orange);">per signup</span></div>
+                    </div>
+                </div>
+                
+                <!-- Premium -->
+                <div class="card plan-card" style="border-color:var(--color-primary); box-shadow:var(--shadow-glow);">
+                    <div class="plan-name" style="color:var(--color-primary);">Premium Plan</div>
+                    <div class="plan-price">$60<span style="font-size:1rem; color:var(--color-muted);">/mo</span></div>
+                    <div class="plan-desc">Unlimited templates + 30,000 labels/month. Built for scaling operations.</div>
+                    <div class="commission-box">
+                        <div class="commission-label">You Earn</div>
+                        <div class="commission-val">$12.00 <span style="font-size:0.9rem; font-weight:600; color:var(--color-accent-orange);">per signup</span></div>
+                    </div>
+                </div>
+
+                <!-- Custom -->
+                <div class="card plan-card">
+                    <div class="plan-name">Custom Plan</div>
+                    <div class="plan-price">Usage Based</div>
+                    <div class="plan-desc">For higher usage or special API workflows. Handled by our sales team.</div>
+                    <div class="commission-box">
+                        <div class="commission-label">You Earn</div>
+                        <div class="commission-val">20% <span style="font-size:0.9rem; font-weight:600; color:var(--color-accent-orange);">of invoice</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRACKING & RESOURCES -->
+    <section>
+        <div class="container">
+            
+            <div class="tracking-banner">
+                <div>
+                    <h3 style="font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 16px;">Simple & Reliable Tracking</h3>
+                    <p style="color:var(--color-muted); font-size:1.1rem; margin-bottom: 24px;">
+                        Payments are processed via Razorpay. Conversions are recorded instantly when a payment is captured. Validated after 14 days, paid out monthly (Min threshold: $25).
+                    </p>
+                </div>
+                <div>
+                    <div class="track-method">
+                        <i class="fa-solid fa-link"></i>
+                        <div>
+                            <h4>Referral Link</h4>
+                            <p>Best for blogs, emails, and site integration. (Click → Signup → Subscribe)</p>
+                        </div>
+                    </div>
+                    <div class="track-method">
+                        <i class="fa-solid fa-ticket"></i>
+                        <div>
+                            <h4>Affiliate Code</h4>
+                            <p>Great for video creators & podcasts. Entered directly at checkout.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Kit -->
+            <div class="info-grid" id="kit">
+                <div class="card">
+                    <h3 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 20px;"><i class="fa-solid fa-box-open text-primary me-2"></i> What's in the Affiliate Kit?</h3>
+                    <ul class="info-list">
+                        <li><i class="fa-solid fa-file-lines"></i> <div>Ready-to-post captions (LinkedIn + Instagram)</div></li>
+                        <li><i class="fa-solid fa-clapperboard"></i> <div>Short demo scripts + visuals (30–60 sec)</div></li>
+                        <li><i class="fa-regular fa-image"></i> <div>High-res banners & UI screenshots</div></li>
+                        <li><i class="fa-solid fa-file-pdf"></i> <div>1-page summary PDF for agencies/vendors</div></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 20px;"><i class="fa-solid fa-lightbulb text-warning me-2"></i> What Converts Best?</h3>
+                    <ul class="info-list">
+                        <li><i class="fa-solid fa-quote-left"></i> <div><strong>Hook:</strong> "Stop making labels manually in Excel—create templates once and bulk generate."</div></li>
+                        <li><i class="fa-solid fa-video"></i> <div><strong>Format:</strong> 45-sec demo reel showing Template → Bulk Generate → Print.</div></li>
+                        <li><i class="fa-solid fa-list-check"></i> <div><strong>Format:</strong> Agency onboarding checklist featuring Labelz.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CTA & FOOTER -->
+    <section class="cta-bottom" id="apply">
+        <div class="container">
+            <h2 style="font-size: 3.5rem; font-weight: 900; color: #fff; margin-bottom: 20px; line-height: 1.1;">Ready to Partner?</h2>
+            <p style="font-size: 1.25rem; color: var(--color-muted); max-width: 600px; margin: 0 auto 40px;">
+                Become a Labelz Affiliate and start earning on your next client batch or video release.
+            </p>
+            <a href="mailto:partners@labelz.live" class="btn btn-primary" style="font-size: 1.2rem; padding: 18px 40px;">Apply to Become an Affiliate</a>
+            
+            <div style="margin-top: 40px; color: var(--color-muted);">
+                <p>Questions? Reach out to us.</p>
+                <div style="display: flex; gap: 20px; justify-content: center; font-weight: 700;">
+                    <a href="mailto:partners@labelz.live" style="color: #fff; text-decoration: none;"><i class="fa-solid fa-envelope text-primary"></i> partners@labelz.live</a>
+                    <a href="#" style="color: #fff; text-decoration: none;"><i class="fa-brands fa-whatsapp text-success"></i> WhatsApp Us</a>
+                </div>
+            </div>
+
+            <div class="rules-section" style="margin-top: 80px;">
+                <p class="text-uppercase" style="font-weight: 800; letter-spacing: 1px;">Program Rules</p>
+                <ul class="rules-list">
+                    <li>No fake signups or self-referrals</li>
+                    <li>No misleading claims or impersonation</li>
+                    <li>14-day validation window applies</li>
+                    <li>No keyword bidding on "Labelz"</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
