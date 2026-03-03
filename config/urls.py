@@ -24,7 +24,7 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Allow: /",
-        "Sitemap: https://labelz.live/sitemap.xml",
+        "Sitemap: https://www.labelz.live/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
