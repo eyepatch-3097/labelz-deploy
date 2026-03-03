@@ -1,6 +1,6 @@
 # billing/views.py
 from __future__ import annotations
-
+from django_countries import countries
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -26,9 +26,80 @@ from django.http import StreamingHttpResponse
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import csv
+import requests
+from decimal import Decimal, ROUND_HALF_UP
 
 def _rupees(paise: int) -> int:
     return int(int(paise or 0) / 100)
+
+def _is_india_country(country_code: str) -> bool:
+    c = (country_code or "").strip().upper()
+    return c in ("IN", "IND", "INDIA")
+
+def _money_str_from_minor(amount_minor: int) -> str:
+    # PayPal wants a string like "29.00"
+    amt = (Decimal(int(amount_minor or 0)) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return format(amt, "f")
+
+def _paypal_api_base() -> str:
+    env = (getattr(settings, "PAYPAL_ENV", "") or "SANDBOX").upper()
+    return "https://api-m.paypal.com" if env == "LIVE" else "https://api-m.sandbox.paypal.com"
+
+def _paypal_access_token() -> str:
+    if not settings.PAYPAL_CLIENT_ID or not settings.PAYPAL_CLIENT_SECRET:
+        raise ValueError("PayPal keys missing")
+
+    url = f"{_paypal_api_base()}/v1/oauth2/token"
+    r = requests.post(
+        url,
+        auth=(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET),
+        data={"grant_type": "client_credentials"},
+        headers={"Accept": "application/json", "Accept-Language": "en_US"},
+        timeout=20,
+    )
+    r.raise_for_status()
+    return r.json()["access_token"]
+
+def _paypal_create_order(*, amount_minor: int, currency: str, return_url: str, cancel_url: str, reference_id: str) -> dict:
+    token = _paypal_access_token()
+    url = f"{_paypal_api_base()}/v2/checkout/orders"
+
+    payload = {
+        "intent": "CAPTURE",
+        "purchase_units": [{
+            "reference_id": reference_id,
+            "amount": {
+                "currency_code": currency,
+                "value": _money_str_from_minor(amount_minor),
+            },
+        }],
+        "application_context": {
+            "return_url": return_url,
+            "cancel_url": cancel_url,
+            "brand_name": "Labelz",
+            "user_action": "PAY_NOW",
+        },
+    }
+
+    r = requests.post(
+        url,
+        json=payload,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+        timeout=20,
+    )
+    r.raise_for_status()
+    return r.json()
+
+def _paypal_capture_order(order_id: str) -> dict:
+    token = _paypal_access_token()
+    url = f"{_paypal_api_base()}/v2/checkout/orders/{order_id}/capture"
+    r = requests.post(
+        url,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+        timeout=20,
+    )
+    r.raise_for_status()
+    return r.json()
 
 @login_required
 def billing_invoices_csv(request):
@@ -183,10 +254,6 @@ def billing_checkout_start(request):
         messages.error(request, "Only org admins can purchase plans.")
         return redirect("billing_select_plan")
 
-    if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
-        messages.error(request, "Razorpay keys are not configured.")
-        return redirect("billing_select_plan")
-
     org = user.org
     sub = refresh_subscription_state(get_or_create_subscription(org))
     current_code = _plan_code_from_sub(sub)
@@ -196,56 +263,115 @@ def billing_checkout_start(request):
         messages.error(request, "Invalid plan.")
         return redirect("billing_select_plan")
 
-    # If already PRO/SUPER -> route to super page
     if current_code in ("PRO", "SUPER"):
         return redirect("billing_super_plan")
 
-    pv = _latest_pv(plan_code)
+    country = (request.POST.get("country") or "").strip().upper() or "IN"
+    request.session["billing_country"] = country  # remember choice
+
+    if _is_india_country(country):
+        # ----------------- INDIA => RAZORPAY (INR) -----------------
+        if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
+            messages.error(request, "Razorpay keys are not configured.")
+            return redirect("billing_select_plan")
+
+        pv = _latest_pv(plan_code, currency="INR")
+        if not pv or not pv.is_active:
+            messages.error(request, "Plan not configured for INR.")
+            return redirect("billing_select_plan")
+
+        amount_paise = int(pv.amount_cents or 0)
+        if amount_paise <= 0:
+            messages.error(request, "Plan price not set.")
+            return redirect("billing_select_plan")
+
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        receipt = f"org_{org.id}_pv_{pv.id}_{int(timezone.now().timestamp())}"
+        order = client.order.create({
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": receipt,
+            "notes": {"org_id": str(org.id), "plan_code": plan_code, "plan_version_id": str(pv.id), "country": country},
+        })
+
+        pe = PaymentEvent.objects.create(
+            org=org,
+            created_by=user,
+            plan_version=pv,
+            currency="INR",
+            amount_cents=amount_paise,
+            status=PaymentEvent.STATUS_CREATED,
+            provider="RAZORPAY",
+            provider_order_id=order["id"],
+        )
+
+        return render(request, "billing/checkout.html", {
+            "org": org,
+            "plan_code": plan_code,
+            "pv": pv,
+            "payment_event": pe,
+            "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+            "razorpay_order_id": order["id"],
+            "amount_paise": amount_paise,
+            "amount_rupees": int(amount_paise / 100),
+            "currency": "INR",
+            "country": country,
+        })
+
+    # ----------------- INTERNATIONAL => PAYPAL (USD) -----------------
+    if not getattr(settings, "PAYPAL_CLIENT_ID", None) or not getattr(settings, "PAYPAL_CLIENT_SECRET", None):
+        messages.error(request, "PayPal is not configured.")
+        return redirect("billing_select_plan")
+
+    pv = _latest_pv(plan_code, currency="USD")
     if not pv or not pv.is_active:
-        messages.error(request, "Plan not configured.")
+        messages.error(request, "Plan not configured for USD.")
         return redirect("billing_select_plan")
 
-    if (pv.currency or "").upper() != "INR":
-        messages.error(request, "Plan currency must be INR.")
-        return redirect("billing_select_plan")
-
-    amount_paise = int(pv.amount_cents or 0)
-    if amount_paise <= 0:
+    amount_cents = int(pv.amount_cents or 0)
+    if amount_cents <= 0:
         messages.error(request, "Plan price not set.")
         return redirect("billing_select_plan")
 
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    # Create PayPal order and redirect user to approval
+    return_url = request.build_absolute_uri("/billing/checkout/paypal/return/")
+    cancel_url = request.build_absolute_uri("/billing/checkout/paypal/cancel/")
 
-    receipt = f"org_{org.id}_pv_{pv.id}_{int(timezone.now().timestamp())}"
-    order = client.order.create({
-        "amount": amount_paise,
-        "currency": "INR",
-        "receipt": receipt,
-        "notes": {"org_id": str(org.id), "plan_code": plan_code, "plan_version_id": str(pv.id)},
-    })
+    try:
+        pp_order = _paypal_create_order(
+            amount_minor=amount_cents,
+            currency="USD",
+            return_url=return_url,
+            cancel_url=cancel_url,
+            reference_id=f"org_{org.id}_pv_{pv.id}",
+        )
+    except Exception:
+        messages.error(request, "Unable to start PayPal checkout. Please try again.")
+        return redirect("billing_select_plan")
 
-    pe = PaymentEvent.objects.create(
+    order_id = pp_order.get("id", "")
+    approve_url = ""
+    for link in (pp_order.get("links") or []):
+        if link.get("rel") == "approve":
+            approve_url = link.get("href", "")
+            break
+
+    if not order_id or not approve_url:
+        messages.error(request, "PayPal order creation failed.")
+        return redirect("billing_select_plan")
+
+    PaymentEvent.objects.create(
         org=org,
         created_by=user,
         plan_version=pv,
-        currency="INR",
-        amount_cents=amount_paise,
+        currency="USD",
+        amount_cents=amount_cents,
         status=PaymentEvent.STATUS_CREATED,
-        provider="RAZORPAY",
-        provider_order_id=order["id"],
+        provider="PAYPAL",
+        provider_order_id=order_id,
     )
 
-    return render(request, "billing/checkout.html", {
-        "org": org,
-        "plan_code": plan_code,
-        "pv": pv,
-        "payment_event": pe,
-        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-        "razorpay_order_id": order["id"],
-        "amount_paise": amount_paise,
-        "amount_rupees": int(amount_paise / 100),
-        "currency": "INR",
-    })
+    return redirect(approve_url)
 
 @login_required
 @transaction.atomic
@@ -378,11 +504,14 @@ def _labels_used_for_display(org, sub: OrgSubscription) -> int:
     return int(get_labels_used(org) or 0)
 
 
-def _latest_pv(code: str):
+def _latest_pv(code: str, currency: str | None = None):
     p = Plan.objects.filter(code=code, is_active=True).first()
     if not p:
         return None
-    return PlanVersion.objects.filter(plan=p, is_active=True).order_by("-version").first()
+    qs = PlanVersion.objects.filter(plan=p, is_active=True)
+    if currency:
+        qs = qs.filter(currency__iexact=currency.strip())
+    return qs.order_by("-version").first()
 
 
 @login_required
@@ -507,3 +636,84 @@ def billing_super_plan(request):
         "labels_limit": labels_limit,
         "labels_remaining": labels_remaining,
     })
+
+@login_required
+@transaction.atomic
+def paypal_return(request):
+    user = request.user
+    if not user.org:
+        return redirect("billing_select_plan")
+
+    org = user.org
+    order_id = (request.GET.get("token") or "").strip()  # PayPal returns ?token=ORDERID
+    if not order_id:
+        messages.error(request, "PayPal return missing order token.")
+        return redirect("billing_select_plan")
+
+    pe = PaymentEvent.objects.select_for_update().filter(
+        org=org, provider="PAYPAL", provider_order_id=order_id
+    ).first()
+    if not pe:
+        messages.error(request, "Payment record not found.")
+        return redirect("billing_select_plan")
+
+    # Idempotent
+    if pe.status == PaymentEvent.STATUS_SUCCESS:
+        messages.success(request, "Payment already captured. Plan active.")
+        return redirect("dashboard")
+
+    try:
+        capture = _paypal_capture_order(order_id)
+    except Exception:
+        pe.status = PaymentEvent.STATUS_FAILED
+        pe.save(update_fields=["status"])
+        messages.error(request, "PayPal capture failed. Please try again.")
+        return redirect("billing_select_plan")
+
+    status = (capture.get("status") or "").upper()
+    if status not in ("COMPLETED", "APPROVED"):  # mostly COMPLETED
+        pe.status = PaymentEvent.STATUS_FAILED
+        pe.save(update_fields=["status"])
+        messages.error(request, "PayPal payment not completed.")
+        return redirect("billing_select_plan")
+
+    # Try to extract capture id
+    capture_id = ""
+    try:
+        pu = (capture.get("purchase_units") or [])[0]
+        payments = pu.get("payments") or {}
+        captures = payments.get("captures") or []
+        if captures:
+            capture_id = captures[0].get("id", "")
+    except Exception:
+        capture_id = ""
+
+    pe.status = PaymentEvent.STATUS_SUCCESS
+    pe.provider_payment_id = capture_id or pe.provider_payment_id
+    pe.save(update_fields=["status", "provider_payment_id"])
+
+    # Activate subscription (same as Razorpay success)
+    sub = OrgSubscription.objects.select_for_update().get(org=org)
+    now = timezone.now()
+    sub.status = OrgSubscription.STATUS_ACTIVE
+    sub.plan_version = pe.plan_version
+    sub.current_period_start = now
+    sub.current_period_end = now + timedelta(days=30)
+    sub.cancel_at_period_end = False
+    sub.save()
+
+    ov = OrgLimitOverride.objects.filter(org=org).first()
+    if ov:
+        ov.workspace_limit_override = None
+        ov.template_limit_override = None
+        ov.labels_per_period_override = None
+        ov.save()
+
+    messages.success(request, "Payment successful. Plan activated.")
+    return redirect("dashboard")
+
+
+@login_required
+def paypal_cancel(request):
+    messages.info(request, "PayPal checkout canceled.")
+    return redirect("billing_select_plan")
