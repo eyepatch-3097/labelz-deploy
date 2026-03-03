@@ -10,7 +10,7 @@ from django.conf.urls.static import static
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 import json
 import os
 from cms.models import CMSPost
@@ -222,8 +222,18 @@ urlpatterns = [
     path("cms/", include("cms.urls")),
     path("billing/", include("billing.urls")),
     path("chatbot/", include("chatbot.urls")),
-    path("sitemap.xml", cache_page(60 * 15)(index), {"sitemaps": sitemaps}, name="sitemap-index"),
-    path("sitemap-<section>.xml", cache_page(60 * 15)(sitemap), {"sitemaps": sitemaps}, name="django-sitemap"),
+    path(
+        "sitemap.xml",
+        cache_page(60 * 15)(index),
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.index",
+    ),
+    path(
+        "sitemap-<section>.xml",
+        cache_page(60 * 15)(sitemap),
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
     path("robots.txt", robots_txt, name="robots_txt"),
 ]
 
