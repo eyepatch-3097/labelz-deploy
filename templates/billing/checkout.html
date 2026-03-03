@@ -157,6 +157,13 @@
         name: "Labelz",
         description: "{{ plan_code|upper }} Plan Subscription",
         order_id: "{{ razorpay_order_id }}",
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
+          emi: true
+        },
         theme: {
             color: "#A769ED" // Brand Primary
         },
