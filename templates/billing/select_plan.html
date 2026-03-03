@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Plans & Usage – Labelz{% endblock %}
-
+{% load countries %}
 {% block content %}
 <style>
     /* --- BILLING PAGE STYLES --- */
@@ -187,7 +187,8 @@
         <!-- Starter Plan -->
         <div class="price-card">
             <div class="plan-name">Starter</div>
-            <div class="plan-price">₹1900<span>/mo</span></div>
+            <div class="plan-price">₹2900<span>/mo</span></div>
+<div class="text small" style="margin-top:-14px;">$29 / mo (International)</div>
             
             <ul class="feature-list">
                 <li><i class="fa-solid fa-check"></i> 1 Workspace</li>
@@ -198,11 +199,15 @@
 
             <div class="mt-auto">
                 {% if can_upgrade %}
-                    <form method="post" action="{% url 'billing_checkout_start' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="plan_code" value="STARTER">
-                        <button class="btn btn-custom btn-ghost w-100">Select Starter</button>
-                    </form>
+                    <form method="post" action="{% url 'billing_checkout_start' %}" class="js-plan-form">
+  {% csrf_token %}
+  <input type="hidden" name="plan_code" value="STARTER">
+  <input type="hidden" name="country" class="js-country" value="{{ request.session.billing_country|default:'IN' }}">
+
+  <button type="button" class="btn btn-custom btn-ghost w-100 js-open-country">
+    Select Starter
+  </button>
+</form>
                 {% else %}
                     <button class="btn btn-custom btn-ghost w-100" disabled>Unavailable</button>
                 {% endif %}
@@ -215,6 +220,7 @@
             
             <div class="plan-name" style="color:var(--color-primary);">Pro</div>
             <div class="plan-price">₹6900<span>/mo</span></div>
+<div class="text small" style="margin-top:-14px;">$69 / mo (International)</div>
             
             <ul class="feature-list">
                 <li><i class="fa-solid fa-check"></i> <strong>Unlimited Workspaces</strong></li>
@@ -226,11 +232,15 @@
 
             <div class="mt-auto">
                 {% if can_upgrade %}
-                    <form method="post" action="{% url 'billing_checkout_start' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="plan_code" value="PRO">
-                        <button class="btn btn-custom btn-primary-glow w-100">Upgrade to Pro</button>
-                    </form>
+                    <form method="post" action="{% url 'billing_checkout_start' %}" class="js-plan-form">
+  {% csrf_token %}
+  <input type="hidden" name="plan_code" value="PRO">
+  <input type="hidden" name="country" class="js-country" value="{{ request.session.billing_country|default:'IN' }}">
+
+  <button type="button" class="btn btn-custom btn-primary-glow w-100 js-open-country">
+    Upgrade to Pro
+  </button>
+</form>
                 {% else %}
                     <button class="btn btn-custom btn-primary-glow w-100" disabled>Current / Unavailable</button>
                 {% endif %}
@@ -251,4 +261,117 @@
     </div>
 
 </div>
+
+<style>
+  /* --- Country Modal --- */
+  .cz-modal-backdrop{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,.55);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index: 9999;
+    padding: 18px;
+  }
+  .cz-modal{
+    width: 100%;
+    max-width: 520px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lg);
+    padding: 22px;
+  }
+  .cz-modal h3{
+    margin:0 0 6px 0;
+    color:#fff;
+    font-weight: 800;
+    font-size: 1.15rem;
+  }
+  .cz-modal p{
+    margin:0 0 14px 0;
+    color: var(--color-muted);
+    font-size: .9rem;
+  }
+  .cz-select{
+    width: 100%;
+    padding: 12px 14px;
+    background: #050505;
+    border: 1px solid var(--color-border);
+    color: #fff;
+    border-radius: 12px;
+    outline: none;
+  }
+  .cz-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap: 10px;
+    margin-top: 16px;
+  }
+</style>
+
+{% get_countries as countries %}
+
+<div class="cz-modal-backdrop" id="countryModal">
+  <div class="cz-modal">
+    <h3>Select your country</h3>
+    <p>India → Razorpay (UPI + Card). International → PayPal (Card).</p>
+
+    <select class="cz-select" id="countrySelect">
+      {% for c in countries %}
+        <option value="{{ c.code }}" {% if c.code == request.session.billing_country|default:'IN' %}selected{% endif %}>
+          {{ c.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <div class="cz-actions">
+      <button type="button" class="btn btn-custom btn-ghost" id="countryCancel">Cancel</button>
+      <button type="button" class="btn btn-custom btn-primary-glow" id="countryContinue">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const modal = document.getElementById("countryModal");
+  const countrySelect = document.getElementById("countrySelect");
+  const btnCancel = document.getElementById("countryCancel");
+  const btnContinue = document.getElementById("countryContinue");
+
+  let pendingForm = null;
+
+  function openModal(form){
+    pendingForm = form;
+    modal.style.display = "flex";
+  }
+  function closeModal(){
+    modal.style.display = "none";
+    pendingForm = null;
+  }
+
+  document.querySelectorAll(".js-open-country").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const form = btn.closest("form");
+      if (!form) return;
+      openModal(form);
+    });
+  });
+
+  btnCancel.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  btnContinue.addEventListener("click", () => {
+    if (!pendingForm) return;
+    const country = (countrySelect.value || "IN").toUpperCase();
+
+    const hidden = pendingForm.querySelector(".js-country");
+    if (hidden) hidden.value = country;
+
+    pendingForm.submit();
+  });
+})();
+</script>
 {% endblock %}
