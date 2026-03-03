@@ -15,7 +15,18 @@ import json
 import os
 from cms.models import CMSPost
 from workspaces.models import Workspace, LabelTemplate, LabelBatch
+from django.contrib.sitemaps.views import sitemap, index
+from django.views.decorators.cache import cache_page
+from cms.sitemaps import CMSPostSitemap, StaticViewSitemap
+from django.http import HttpResponse
 
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Sitemap: https://labelz.live/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
 
 def landingpage(request):
     recent_blogs = (
@@ -191,6 +202,12 @@ def dashboard_view(request):
 
     return render(request, "dashboard.html", ctx)
 
+
+sitemaps = {
+    "static": StaticViewSitemap,
+    "cms": CMSPostSitemap,
+}
+
 urlpatterns = [
     path("admin/", admin.site.urls),
 
@@ -205,6 +222,9 @@ urlpatterns = [
     path("cms/", include("cms.urls")),
     path("billing/", include("billing.urls")),
     path("chatbot/", include("chatbot.urls")),
+    path("sitemap.xml", cache_page(60 * 15)(index), {"sitemaps": sitemaps}, name="sitemap-index"),
+    path("sitemap-<section>.xml", cache_page(60 * 15)(sitemap), {"sitemaps": sitemaps}, name="django-sitemap"),
+    path("robots.txt", robots_txt, name="robots_txt"),
 ]
 
 if settings.DEBUG or os.getenv("SERVE_MEDIA", "0") == "1":
