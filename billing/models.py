@@ -44,8 +44,8 @@ class PlanVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [("plan", "version")]
-        ordering = ["plan__code", "-version"]
+        unique_together = [("plan", "currency", "version")]
+        ordering = ["plan__code", "currency", "-version"]
 
     def __str__(self) -> str:
         return f"{self.plan.code} v{self.version} ({self.currency} {self.amount_cents/100:.2f})"
