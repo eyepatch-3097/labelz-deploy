@@ -109,5 +109,7 @@ class CMSPost(models.Model):
         if errors:
             raise ValidationError(errors)
 
-def get_absolute_url(self):
-    return reverse("cms_post_detail", kwargs={"slug": self.slug})
+    def get_absolute_url(self):
+        return reverse("cms_post_detail", kwargs={"slug": self.slug})
+
+
