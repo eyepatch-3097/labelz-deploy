@@ -12,4 +12,6 @@ urlpatterns = [
     path("invoices/export.csv", views.billing_invoices_csv, name="billing_invoices_csv"),
     path("invoices/<int:payment_id>/pdf/", views.billing_invoice_pdf, name="billing_invoice_pdf"),
     path("cancel/", views.billing_cancel_plan, name="billing_cancel_plan"),
+    path("checkout/paypal/return/", views.paypal_return, name="paypal_return"),
+    path("checkout/paypal/cancel/", views.paypal_cancel, name="paypal_cancel"),
 ]
