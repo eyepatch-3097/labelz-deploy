@@ -2,6 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from .models import CMSPost
 
 class CMSPostSitemap(Sitemap):
+    protocol = "https"
     changefreq = "weekly"
     priority = 0.7
 
@@ -19,6 +20,7 @@ class CMSPostSitemap(Sitemap):
 from django.urls import reverse
 
 class StaticViewSitemap(Sitemap):
+    protocol = "https"
     changefreq = "monthly"
     priority = 0.6
 
