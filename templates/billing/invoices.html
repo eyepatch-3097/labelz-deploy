@@ -203,8 +203,12 @@
                 {% endif %}
               </td>
               <td class="text-end fw-bold text-white">
-                ₹{{ p.amount_cents|paise_to_inr }}
-              </td>
+  {% if p.currency == "INR" %}
+    ₹{{ p.amount_cents|paise_to_inr }}
+  {% else %}
+    ${{ p.amount_cents|cents_to_usd }}
+  {% endif %}
+</td>
               <td class="text-end">
                 <a href="{% url 'billing_invoice_pdf' p.id %}" class="btn-action" title="Download PDF">
                   <i class="fa-solid fa-file-pdf"></i>
