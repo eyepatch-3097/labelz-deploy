@@ -1,190 +1,399 @@
-<html>
-  <head>
-    <title>Labelz | Privacy Policy</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | Labelz</title>
+    
+    <!-- BRAND FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-  .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
-  .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
-  .legal-muted{color:#6b7280;font-size:14px}
-  .legal-wrap h1{margin:0 0 6px 0;font-size:28px}
-  .legal-wrap h2{margin-top:22px;font-size:18px}
-  .legal-wrap h3{margin-top:14px;font-size:15px}
-  .legal-wrap ul{padding-left:18px}
-  .legal-toc a{color:inherit;text-decoration:none}
-  .legal-toc a:hover{text-decoration:underline}
-  .legal-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
-  .legal-kv{display:grid;grid-template-columns:160px 1fr;gap:10px;font-size:14px}
-  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px;margin-left:8px}
-  .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
-</style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --color-primary: #A769ED;
+            --color-secondary: #FFFFFF;
+            --color-accent-blue: #C2E0FF;
+            --color-accent-orange: #FF7D00;
+            
+            --color-bg: #050505;
+            --color-surface: #111111;
+            --color-surface-hover: #1A1A1A;
+            --color-text: #E0E0E0;
+            --color-muted: #9CA3AF;
+            --color-border: #333333;
+            
+            --font-main: "Zalando Sans", sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.3);
+            --shadow-glow: 0 0 40px rgba(167, 105, 237, 0.1);
+        }
 
-  </head>
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--color-bg); 
+            color: var(--color-text); 
+            line-height: 1.7; 
+            overflow-x: hidden; 
+        }
+        
+        a { color: var(--color-primary); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: #fff; text-decoration: underline; }
+
+        /* --- HEADER --- */
+        header { 
+            padding: 24px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            color: var(--color-secondary); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            text-decoration: none; 
+        }
+        .logo:hover { text-decoration: none; color: #fff; }
+        .logo i { color: var(--color-primary); font-size: 1.6rem; text-shadow: 0 0 10px rgba(167, 105, 237, 0.5); }
+        .btn-back {
+            color: var(--color-muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+            transition: all 0.2s;
+        }
+        .btn-back:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            text-decoration: none;
+        }
+
+        /* --- LEGAL WRAPPER & CARD --- */
+        .legal-wrap { 
+            max-width: 900px; 
+            margin: 60px auto 100px; 
+            padding: 0 24px; 
+        }
+        
+        .legal-card { 
+            background: var(--color-surface); 
+            border: 1px solid var(--color-border); 
+            border-radius: var(--radius-lg); 
+            padding: 60px; 
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* --- TYPOGRAPHY & ELEMENTS --- */
+        .legal-card h1 { 
+            margin: 0 0 16px 0; 
+            font-size: 2.5rem; 
+            font-weight: 900; 
+            color: #fff;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            line-height: 1.2;
+        }
+        
+        .legal-card h2 { 
+            margin-top: 48px; 
+            margin-bottom: 16px;
+            font-size: 1.5rem; 
+            font-weight: 800;
+            color: #fff;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .legal-card h3 { 
+            margin-top: 32px; 
+            margin-bottom: 12px;
+            font-size: 1.15rem; 
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .legal-muted { color: var(--color-muted); font-size: 1rem; }
+        
+        .legal-card ul { 
+            padding-left: 24px; 
+            margin-bottom: 16px; 
+            color: var(--color-text);
+        }
+        .legal-card li { margin-bottom: 8px; }
+        .legal-card p { margin-bottom: 16px; }
+
+        .legal-hr { 
+            border: none; 
+            border-top: 1px solid var(--color-border); 
+            margin: 32px 0; 
+        }
+        
+        /* Table of Contents */
+        .legal-toc {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            list-style: none;
+        }
+        .legal-toc li { margin-bottom: 12px; }
+        .legal-toc li:last-child { margin-bottom: 0; }
+        .legal-toc a { 
+            color: var(--color-muted); 
+            font-weight: 600; 
+        }
+        .legal-toc a:hover { color: var(--color-primary); }
+
+        /* Contact Grid */
+        .legal-kv { 
+            display: grid; 
+            grid-template-columns: 120px 1fr; 
+            gap: 16px; 
+            font-size: 1rem; 
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .legal-kv strong { color: #fff; }
+
+        /* Badges & Callouts */
+        .badge { 
+            display: inline-block; 
+            padding: 6px 16px; 
+            border-radius: 20px; 
+            background: rgba(167, 105, 237, 0.15); 
+            color: var(--color-primary);
+            border: 1px solid rgba(167, 105, 237, 0.3);
+            font-size: 0.9rem; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+        
+        .callout { 
+            background: rgba(194, 224, 255, 0.05); 
+            border: 1px solid rgba(194, 224, 255, 0.1); 
+            border-left: 4px solid var(--color-accent-blue);
+            border-radius: 8px; 
+            padding: 20px; 
+            font-size: 0.95rem; 
+            color: var(--color-text);
+            margin: 32px 0;
+        }
+        .callout strong { color: var(--color-accent-blue); }
+
+        @media (max-width: 768px) {
+            .legal-card { padding: 30px 20px; }
+            .legal-card h1 { font-size: 2rem; }
+            .legal-kv { grid-template-columns: 1fr; gap: 8px; }
+        }
+    </style>
+</head>
 <body>
-  <div class="legal-wrap">
-  <div class="legal-card">
-    <h1>Privacy Policy <span class="badge">Labelz</span></h1>
-    <div class="legal-muted">
-      Effective date: <strong>March 2026</strong><br>
-      This Privacy Policy explains how <strong>Labelz Live</strong>
-      (“Labelz”, “we”, “us”) collects, uses, shares, and protects information when you use the Labelz web app (the “Service”).
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-barcode"></i> Labelz
+            </a>
+            <a href="/" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <div class="legal-wrap">
+        <div class="legal-card">
+            
+            <h1>Privacy Policy <span class="badge">Labelz</span></h1>
+            
+            <div class="legal-muted">
+                Effective date: <strong style="color:#fff;">March 2026</strong><br><br>
+                This Privacy Policy explains how <strong style="color:#fff;">Labelz Live</strong> (“Labelz”, “we”, “us”) collects, uses, shares, and protects information when you use the Labelz web app (the “Service”).
+            </div>
+
+            <hr class="legal-hr">
+
+            <div class="legal-kv legal-muted">
+                <div>Contact Info</div>
+                <div>
+                    Email: <strong>shyama@labelz.live</strong><br>
+                    Address: <strong>AVS Layout, Koramangala, Bangalore, 560034</strong>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong><i class="fa-solid fa-circle-info me-2"></i> Scope note:</strong> Labelz helps you create Organizations/Workspaces, design label templates (text, barcodes/QRs, images), and generate single or bulk serialized labels for printing/export. This policy is written specifically for that functionality.
+            </div>
+
+            <h2 id="toc">Contents</h2>
+            <ul class="legal-toc">
+                <li><a href="#data-we-collect">1. Information we collect</a></li>
+                <li><a href="#how-we-use">2. How we use information</a></li>
+                <li><a href="#sharing">3. How we share information</a></li>
+                <li><a href="#retention">4. Data retention</a></li>
+                <li><a href="#cookies">5. Cookies & similar technologies</a></li>
+                <li><a href="#security">6. Security</a></li>
+                <li><a href="#rights">7. Your rights & choices</a></li>
+                <li><a href="#children">8. Children</a></li>
+                <li><a href="#changes">9. Changes</a></li>
+            </ul>
+
+            <h2 id="data-we-collect">1. Information we collect</h2>
+
+            <h3>1.1 Account & profile data</h3>
+            <ul>
+                <li>Name, email, password (stored in hashed form), and basic profile information.</li>
+                <li>Authentication metadata such as last login time and account status.</li>
+            </ul>
+
+            <h3>1.2 Organization / Workspace data</h3>
+            <ul>
+                <li>Organization and Workspace names, member lists, roles/permissions (e.g., Admin, Editor, Viewer).</li>
+                <li>Activity metadata such as who created/updated a template or generated a batch.</li>
+            </ul>
+
+            <h3>1.3 Template designs & label content you create</h3>
+            <ul>
+                <li>Template configuration: layout, text fields, fonts, colors, placement rules, barcode/QR settings, image placements.</li>
+                <li>Label data you input or upload for generation (e.g., SKU, size, price, batch/lot number, serial numbers).</li>
+                <li>Images/assets you upload to include in labels (e.g., logos, product images, marketing badges).</li>
+            </ul>
+            <p class="legal-muted" style="font-size: 0.9rem; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--color-border);">
+                <i class="fa-solid fa-triangle-exclamation text-warning"></i> <strong>Important:</strong> You control what you put into label fields. Avoid placing sensitive personal information unless necessary for your use case.
+            </p>
+
+            <h3>1.4 Generated outputs & operational logs</h3>
+            <ul>
+                <li>Generated label batches (including serial ranges), print/export settings, and generation status.</li>
+                <li>Operational logs needed to run the Service, prevent abuse, and troubleshoot (e.g., error logs, request IDs).</li>
+            </ul>
+
+            <h3>1.5 Billing & payment data</h3>
+            <ul>
+                <li>Plan selection, subscription status, invoices, payment references, and transaction timestamps.</li>
+                <li><strong>We do not store your full card/bank details.</strong> Payments are processed by our payment partners (e.g., Razorpay/PayPal/Stripe—whichever you enable). Those partners handle sensitive payment credentials on their systems.</li>
+            </ul>
+
+            <h3>1.6 Support communications</h3>
+            <ul>
+                <li>Information you share with support (emails, attachments, screenshots, problem descriptions).</li>
+            </ul>
+
+            <h3>1.7 Cookies & device data (website usage)</h3>
+            <ul>
+                <li>Session and security cookies (e.g., login session, CSRF protection).</li>
+                <li>Basic device/browser data (IP address, user agent) for security and reliability.</li>
+                <li>If you enable analytics: usage events/pages to improve the Service.</li>
+            </ul>
+
+            <h2 id="how-we-use">2. How we use information</h2>
+            <ul>
+                <li><strong>Provide the Service:</strong> create orgs/workspaces, save templates, generate labels, and deliver exports/prints.</li>
+                <li><strong>Security & abuse prevention:</strong> protect accounts, detect suspicious activity, rate-limit and prevent misuse.</li>
+                <li><strong>Billing:</strong> manage subscriptions, invoices, credits/usage limits (if applicable), and payment verification.</li>
+                <li><strong>Support:</strong> respond to requests and troubleshoot issues.</li>
+                <li><strong>Improve Labelz:</strong> fix bugs, analyze feature usage, and enhance performance (especially if analytics is enabled).</li>
+                <li><strong>Legal compliance:</strong> enforce our Terms, comply with lawful requests, and resolve disputes.</li>
+            </ul>
+
+            <h2 id="sharing">3. How we share information</h2>
+            <p>We share information only as needed to run Labelz:</p>
+
+            <h3>3.1 Service providers (processors)</h3>
+            <ul>
+                <li><strong>Hosting & storage:</strong> infrastructure providers that store your data and uploaded assets.</li>
+                <li><strong>Email:</strong> transactional emails for verification, password resets, and service notices.</li>
+                <li><strong>Payments:</strong> payment processing providers for subscriptions and invoice settlement.</li>
+                <li><strong>Error monitoring (optional):</strong> diagnostics tools that capture errors to improve reliability.</li>
+            </ul>
+
+            <h3>3.2 Within your Organization/Workspace</h3>
+            <ul>
+                <li>Workspace members may see templates/labels depending on the permissions your Admin configures.</li>
+            </ul>
+
+            <h3>3.3 Legal / compliance</h3>
+            <ul>
+                <li>We may disclose information if required by law, court order, or to protect rights, safety, and integrity of Labelz and its users.</li>
+            </ul>
+
+            <h3>3.4 No sale of personal data</h3>
+            <p>We do not sell your personal information.</p>
+
+            <h2 id="retention">4. Data retention</h2>
+            <ul>
+                <li>We retain account, workspace, and template data while your account is active to provide the Service.</li>
+                <li>Billing records (invoices, payment references) may be retained longer to meet accounting/legal obligations.</li>
+                <li>Operational logs are retained for a limited period for security and troubleshooting.</li>
+            </ul>
+            <p class="legal-muted" style="margin-top: 16px;">
+                If you delete your account (or an Admin deletes a workspace), we will delete or de-identify data within a reasonable period, except where retention is required by law or for legitimate business purposes (e.g., invoices).
+            </p>
+
+            <h2 id="cookies">5. Cookies & similar technologies</h2>
+            <ul>
+                <li><strong>Essential cookies:</strong> authentication session, CSRF protection, and security-related cookies.</li>
+                <li><strong>Preferences:</strong> UI preferences (if implemented).</li>
+                <li><strong>Analytics (optional):</strong> if enabled by you, we may use analytics cookies to understand usage patterns.</li>
+            </ul>
+
+            <h2 id="security">6. Security</h2>
+            <p>
+                We use reasonable administrative, technical, and organizational safeguards to protect your data. See our Security Policy for more detail.
+            </p>
+
+            <h2 id="rights">7. Your rights & choices</h2>
+            <ul>
+                <li><strong>Access & update:</strong> you can update profile and workspace information in the app (subject to role permissions).</li>
+                <li><strong>Export:</strong> you may export labels/invoices where the feature exists (e.g., PDF/CSV exports).</li>
+                <li><strong>Deletion:</strong> you can request account deletion by contacting us at <a href="mailto:shyama@labelz.live">shyama@labelz.live</a>.</li>
+                <li><strong>Marketing:</strong> if we send non-essential emails, you can opt out (transactional emails may still be sent).</li>
+            </ul>
+
+            <h2 id="children">8. Children</h2>
+            <p>The Service is not intended for use by children under 13 (or the age required by your local law).</p>
+
+            <h2 id="changes">9. Changes</h2>
+            <p class="legal-muted">
+                We may update this policy. We will change the “Effective date” at the top and, if the changes are material, provide notice within the Service or via email.
+            </p>
+            
+        </div>
     </div>
-
-    <hr class="legal-hr">
-
-    <div class="legal-kv legal-muted">
-      <div>Contact</div>
-      <div>
-        Email: <strong>shyama@labelz.live</strong><br>
-        Address: <strong>AVS Layout, Koramangala, Bangalore, 560034</strong>
-      </div>
-    </div>
-
-    <hr class="legal-hr">
-
-    <div class="callout">
-      <strong>Scope note:</strong> Labelz helps you create Organizations/Workspaces, design label templates (text, barcodes/QRs, images),
-      and generate single or bulk serialized labels for printing/export. This policy is written specifically for that functionality.
-    </div>
-
-    <h2 id="toc">Contents</h2>
-    <ul class="legal-toc legal-muted">
-      <li><a href="#data-we-collect">1. Information we collect</a></li>
-      <li><a href="#how-we-use">2. How we use information</a></li>
-      <li><a href="#sharing">3. How we share information</a></li>
-      <li><a href="#retention">4. Data retention</a></li>
-      <li><a href="#cookies">5. Cookies & similar technologies</a></li>
-      <li><a href="#security">6. Security</a></li>
-      <li><a href="#rights">7. Your rights & choices</a></li>
-      <li><a href="#children">8. Children</a></li>
-      <li><a href="#changes">9. Changes</a></li>
-    </ul>
-
-    <h2 id="data-we-collect">1. Information we collect</h2>
-
-    <h3>1.1 Account & profile data</h3>
-    <ul>
-      <li>Name, email, password (stored in hashed form), and basic profile information.</li>
-      <li>Authentication metadata such as last login time and account status.</li>
-    </ul>
-
-    <h3>1.2 Organization / Workspace data</h3>
-    <ul>
-      <li>Organization and Workspace names, member lists, roles/permissions (e.g., Admin, Editor, Viewer).</li>
-      <li>Activity metadata such as who created/updated a template or generated a batch.</li>
-    </ul>
-
-    <h3>1.3 Template designs & label content you create</h3>
-    <ul>
-      <li>Template configuration: layout, text fields, fonts, colors, placement rules, barcode/QR settings, image placements.</li>
-      <li>Label data you input or upload for generation (e.g., SKU, size, price, batch/lot number, serial numbers).</li>
-      <li>Images/assets you upload to include in labels (e.g., logos, product images, marketing badges).</li>
-    </ul>
-    <p class="legal-muted">
-      Important: You control what you put into label fields. Avoid placing sensitive personal information unless necessary for your use case.
-    </p>
-
-    <h3>1.4 Generated outputs & operational logs</h3>
-    <ul>
-      <li>Generated label batches (including serial ranges), print/export settings, and generation status.</li>
-      <li>Operational logs needed to run the Service, prevent abuse, and troubleshoot (e.g., error logs, request IDs).</li>
-    </ul>
-
-    <h3>1.5 Billing & payment data</h3>
-    <ul>
-      <li>Plan selection, subscription status, invoices, payment references, and transaction timestamps.</li>
-      <li><strong>We do not store your full card/bank details</strong>. Payments are processed by our payment partners (e.g., Razorpay/PayPal/Stripe—whichever you enable).
-      Those partners handle sensitive payment credentials on their systems.</li>
-    </ul>
-
-    <h3>1.6 Support communications</h3>
-    <ul>
-      <li>Information you share with support (emails, attachments, screenshots, problem descriptions).</li>
-    </ul>
-
-    <h3>1.7 Cookies & device data (website usage)</h3>
-    <ul>
-      <li>Session and security cookies (e.g., login session, CSRF protection).</li>
-      <li>Basic device/browser data (IP address, user agent) for security and reliability.</li>
-      <li>If you enable analytics: usage events/pages to improve the Service.</li>
-    </ul>
-
-    <h2 id="how-we-use">2. How we use information</h2>
-    <ul>
-      <li><strong>Provide the Service</strong>: create orgs/workspaces, save templates, generate labels, and deliver exports/prints.</li>
-      <li><strong>Security & abuse prevention</strong>: protect accounts, detect suspicious activity, rate-limit and prevent misuse.</li>
-      <li><strong>Billing</strong>: manage subscriptions, invoices, credits/usage limits (if applicable), and payment verification.</li>
-      <li><strong>Support</strong>: respond to requests and troubleshoot issues.</li>
-      <li><strong>Improve Labelz</strong>: fix bugs, analyze feature usage, and enhance performance (especially if analytics is enabled).</li>
-      <li><strong>Legal compliance</strong>: enforce our Terms, comply with lawful requests, and resolve disputes.</li>
-    </ul>
-
-    <h2 id="sharing">3. How we share information</h2>
-    <p>We share information only as needed to run Labelz:</p>
-
-    <h3>3.1 Service providers (processors)</h3>
-    <ul>
-      <li><strong>Hosting & storage</strong>: infrastructure providers that store your data and uploaded assets.</li>
-      <li><strong>Email</strong>: transactional emails for verification, password resets, and service notices.</li>
-      <li><strong>Payments</strong>: payment processing providers for subscriptions and invoice settlement.</li>
-      <li><strong>Error monitoring</strong> (optional): diagnostics tools that capture errors to improve reliability.</li>
-    </ul>
-
-    <h3>3.2 Within your Organization/Workspace</h3>
-    <ul>
-      <li>Workspace members may see templates/labels depending on the permissions your Admin configures.</li>
-    </ul>
-
-    <h3>3.3 Legal / compliance</h3>
-    <ul>
-      <li>We may disclose information if required by law, court order, or to protect rights, safety, and integrity of Labelz and its users.</li>
-    </ul>
-
-    <h3>3.4 No sale of personal data</h3>
-    <p>We do not sell your personal information.</p>
-
-    <h2 id="retention">4. Data retention</h2>
-    <ul>
-      <li>We retain account, workspace, and template data while your account is active to provide the Service.</li>
-      <li>Billing records (invoices, payment references) may be retained longer to meet accounting/legal obligations.</li>
-      <li>Operational logs are retained for a limited period for security and troubleshooting.</li>
-    </ul>
-    <p class="legal-muted">
-      If you delete your account (or an Admin deletes a workspace), we will delete or de-identify data within a reasonable period,
-      except where retention is required by law or for legitimate business purposes (e.g., invoices).
-    </p>
-
-    <h2 id="cookies">5. Cookies & similar technologies</h2>
-    <ul>
-      <li><strong>Essential cookies</strong>: authentication session, CSRF protection, and security-related cookies.</li>
-      <li><strong>Preferences</strong>: UI preferences (if implemented).</li>
-      <li><strong>Analytics</strong> (optional): if enabled by you, we may use analytics cookies to understand usage patterns.</li>
-    </ul>
-
-    <h2 id="security">6. Security</h2>
-    <p>
-      We use reasonable administrative, technical, and organizational safeguards to protect your data.
-      See our <a href="{% url 'security' %}">Security Policy</a> for more detail.
-    </p>
-
-    <h2 id="rights">7. Your rights & choices</h2>
-    <ul>
-      <li><strong>Access & update</strong>: you can update profile and workspace information in the app (subject to role permissions).</li>
-      <li><strong>Export</strong>: you may export labels/invoices where the feature exists (e.g., PDF/CSV exports).</li>
-      <li><strong>Deletion</strong>: you can request account deletion by contacting us at {{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}.</li>
-      <li><strong>Marketing</strong>: if we send non-essential emails, you can opt out (transactional emails may still be sent).</li>
-    </ul>
-
-    <h2 id="children">8. Children</h2>
-    <p>The Service is not intended for use by children under 13 (or the age required by your local law).</p>
-
-    <h2 id="changes">9. Changes</h2>
-    <p class="legal-muted">
-      We may update this policy. We will change the “Effective date” at the top and, if the changes are material,
-      provide notice within the Service or via email.
-    </p>
-  </div>
-</div>
-  
+    
 </body>
-
-  
 </html>
