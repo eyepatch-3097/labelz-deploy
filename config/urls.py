@@ -58,6 +58,8 @@ def terms(request):
 def security(request):
     return render(request, "security.html")
 
+def about(request):
+    return render(request, "about.html")
 
 def _parse_date(s: str):
     """
@@ -229,6 +231,7 @@ urlpatterns = [
     path("privacy/", privacy, name="privacy"),
     path("terms/", terms, name="terms"),
     path("security/", security, name="security"),
+    path("about/", about, name="about"),
     path("accounts/", include("accounts.urls")),
     path("workspaces/", include("workspaces.urls")),
     path("cms/", include("cms.urls")),
