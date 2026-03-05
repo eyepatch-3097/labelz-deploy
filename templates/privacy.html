@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy | Labelz{% endblock %}
+
+{% block content %}
+<style>
+  .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
+  .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
+  .legal-muted{color:#6b7280;font-size:14px}
+  .legal-wrap h1{margin:0 0 6px 0;font-size:28px}
+  .legal-wrap h2{margin-top:22px;font-size:18px}
+  .legal-wrap h3{margin-top:14px;font-size:15px}
+  .legal-wrap ul{padding-left:18px}
+  .legal-toc a{color:inherit;text-decoration:none}
+  .legal-toc a:hover{text-decoration:underline}
+  .legal-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
+  .legal-kv{display:grid;grid-template-columns:160px 1fr;gap:10px;font-size:14px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px;margin-left:8px}
+  .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
+</style>
+
+<div class="legal-wrap">
+  <div class="legal-card">
+    <h1>Privacy Policy <span class="badge">Labelz</span></h1>
+    <div class="legal-muted">
+      Effective date: <strong>{{ LEGAL_EFFECTIVE_DATE|default:"[Add date]" }}</strong><br>
+      This Privacy Policy explains how <strong>{{ LEGAL_ENTITY_NAME|default:"[Your company/legal entity]" }}</strong>
+      (“Labelz”, “we”, “us”) collects, uses, shares, and protects information when you use the Labelz web app (the “Service”).
+    </div>
+
+    <hr class="legal-hr">
+
+    <div class="legal-kv legal-muted">
+      <div>Contact</div>
+      <div>
+        Email: <strong>{{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}</strong><br>
+        Address: <strong>{{ LEGAL_ENTITY_ADDRESS|default:"[Your address]" }}</strong>
+      </div>
+    </div>
+
+    <hr class="legal-hr">
+
+    <div class="callout">
+      <strong>Scope note:</strong> Labelz helps you create Organizations/Workspaces, design label templates (text, barcodes/QRs, images),
+      and generate single or bulk serialized labels for printing/export. This policy is written specifically for that functionality.
+    </div>
+
+    <h2 id="toc">Contents</h2>
+    <ul class="legal-toc legal-muted">
+      <li><a href="#data-we-collect">1. Information we collect</a></li>
+      <li><a href="#how-we-use">2. How we use information</a></li>
+      <li><a href="#sharing">3. How we share information</a></li>
+      <li><a href="#retention">4. Data retention</a></li>
+      <li><a href="#cookies">5. Cookies & similar technologies</a></li>
+      <li><a href="#security">6. Security</a></li>
+      <li><a href="#rights">7. Your rights & choices</a></li>
+      <li><a href="#children">8. Children</a></li>
+      <li><a href="#changes">9. Changes</a></li>
+    </ul>
+
+    <h2 id="data-we-collect">1. Information we collect</h2>
+
+    <h3>1.1 Account & profile data</h3>
+    <ul>
+      <li>Name, email, password (stored in hashed form), and basic profile information.</li>
+      <li>Authentication metadata such as last login time and account status.</li>
+    </ul>
+
+    <h3>1.2 Organization / Workspace data</h3>
+    <ul>
+      <li>Organization and Workspace names, member lists, roles/permissions (e.g., Admin, Editor, Viewer).</li>
+      <li>Activity metadata such as who created/updated a template or generated a batch.</li>
+    </ul>
+
+    <h3>1.3 Template designs & label content you create</h3>
+    <ul>
+      <li>Template configuration: layout, text fields, fonts, colors, placement rules, barcode/QR settings, image placements.</li>
+      <li>Label data you input or upload for generation (e.g., SKU, size, price, batch/lot number, serial numbers).</li>
+      <li>Images/assets you upload to include in labels (e.g., logos, product images, marketing badges).</li>
+    </ul>
+    <p class="legal-muted">
+      Important: You control what you put into label fields. Avoid placing sensitive personal information unless necessary for your use case.
+    </p>
+
+    <h3>1.4 Generated outputs & operational logs</h3>
+    <ul>
+      <li>Generated label batches (including serial ranges), print/export settings, and generation status.</li>
+      <li>Operational logs needed to run the Service, prevent abuse, and troubleshoot (e.g., error logs, request IDs).</li>
+    </ul>
+
+    <h3>1.5 Billing & payment data</h3>
+    <ul>
+      <li>Plan selection, subscription status, invoices, payment references, and transaction timestamps.</li>
+      <li><strong>We do not store your full card/bank details</strong>. Payments are processed by our payment partners (e.g., Razorpay/PayPal/Stripe—whichever you enable).
+      Those partners handle sensitive payment credentials on their systems.</li>
+    </ul>
+
+    <h3>1.6 Support communications</h3>
+    <ul>
+      <li>Information you share with support (emails, attachments, screenshots, problem descriptions).</li>
+    </ul>
+
+    <h3>1.7 Cookies & device data (website usage)</h3>
+    <ul>
+      <li>Session and security cookies (e.g., login session, CSRF protection).</li>
+      <li>Basic device/browser data (IP address, user agent) for security and reliability.</li>
+      <li>If you enable analytics: usage events/pages to improve the Service.</li>
+    </ul>
+
+    <h2 id="how-we-use">2. How we use information</h2>
+    <ul>
+      <li><strong>Provide the Service</strong>: create orgs/workspaces, save templates, generate labels, and deliver exports/prints.</li>
+      <li><strong>Security & abuse prevention</strong>: protect accounts, detect suspicious activity, rate-limit and prevent misuse.</li>
+      <li><strong>Billing</strong>: manage subscriptions, invoices, credits/usage limits (if applicable), and payment verification.</li>
+      <li><strong>Support</strong>: respond to requests and troubleshoot issues.</li>
+      <li><strong>Improve Labelz</strong>: fix bugs, analyze feature usage, and enhance performance (especially if analytics is enabled).</li>
+      <li><strong>Legal compliance</strong>: enforce our Terms, comply with lawful requests, and resolve disputes.</li>
+    </ul>
+
+    <h2 id="sharing">3. How we share information</h2>
+    <p>We share information only as needed to run Labelz:</p>
+
+    <h3>3.1 Service providers (processors)</h3>
+    <ul>
+      <li><strong>Hosting & storage</strong>: infrastructure providers that store your data and uploaded assets.</li>
+      <li><strong>Email</strong>: transactional emails for verification, password resets, and service notices.</li>
+      <li><strong>Payments</strong>: payment processing providers for subscriptions and invoice settlement.</li>
+      <li><strong>Error monitoring</strong> (optional): diagnostics tools that capture errors to improve reliability.</li>
+    </ul>
+
+    <h3>3.2 Within your Organization/Workspace</h3>
+    <ul>
+      <li>Workspace members may see templates/labels depending on the permissions your Admin configures.</li>
+    </ul>
+
+    <h3>3.3 Legal / compliance</h3>
+    <ul>
+      <li>We may disclose information if required by law, court order, or to protect rights, safety, and integrity of Labelz and its users.</li>
+    </ul>
+
+    <h3>3.4 No sale of personal data</h3>
+    <p>We do not sell your personal information.</p>
+
+    <h2 id="retention">4. Data retention</h2>
+    <ul>
+      <li>We retain account, workspace, and template data while your account is active to provide the Service.</li>
+      <li>Billing records (invoices, payment references) may be retained longer to meet accounting/legal obligations.</li>
+      <li>Operational logs are retained for a limited period for security and troubleshooting.</li>
+    </ul>
+    <p class="legal-muted">
+      If you delete your account (or an Admin deletes a workspace), we will delete or de-identify data within a reasonable period,
+      except where retention is required by law or for legitimate business purposes (e.g., invoices).
+    </p>
+
+    <h2 id="cookies">5. Cookies & similar technologies</h2>
+    <ul>
+      <li><strong>Essential cookies</strong>: authentication session, CSRF protection, and security-related cookies.</li>
+      <li><strong>Preferences</strong>: UI preferences (if implemented).</li>
+      <li><strong>Analytics</strong> (optional): if enabled by you, we may use analytics cookies to understand usage patterns.</li>
+    </ul>
+
+    <h2 id="security">6. Security</h2>
+    <p>
+      We use reasonable administrative, technical, and organizational safeguards to protect your data.
+      See our <a href="{% url 'legal_security' %}">Security Policy</a> for more detail.
+    </p>
+
+    <h2 id="rights">7. Your rights & choices</h2>
+    <ul>
+      <li><strong>Access & update</strong>: you can update profile and workspace information in the app (subject to role permissions).</li>
+      <li><strong>Export</strong>: you may export labels/invoices where the feature exists (e.g., PDF/CSV exports).</li>
+      <li><strong>Deletion</strong>: you can request account deletion by contacting us at {{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}.</li>
+      <li><strong>Marketing</strong>: if we send non-essential emails, you can opt out (transactional emails may still be sent).</li>
+    </ul>
+
+    <h2 id="children">8. Children</h2>
+    <p>The Service is not intended for use by children under 13 (or the age required by your local law).</p>
+
+    <h2 id="changes">9. Changes</h2>
+    <p class="legal-muted">
+      We may update this policy. We will change the “Effective date” at the top and, if the changes are material,
+      provide notice within the Service or via email.
+    </p>
+  </div>
+</div>
+{% endblock %}
