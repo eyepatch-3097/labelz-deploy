@@ -1,8 +1,8 @@
 
-{% block title %}Terms & Conditions | Labelz{% endblock %}
-
-{% block content %}
-<style>
+<html>
+<head>
+  <title>Labelz | Terms & Conditions</title>
+  <style>
   .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
   .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
   .legal-muted{color:#6b7280;font-size:14px}
@@ -16,14 +16,15 @@
   .legal-toc a{color:inherit;text-decoration:none}
   .legal-toc a:hover{text-decoration:underline}
 </style>
-
-<div class="legal-wrap">
+</head>
+  <body>
+    <div class="legal-wrap">
   <div class="legal-card">
     <h1>Terms & Conditions <span class="badge">Labelz</span></h1>
     <div class="legal-muted">
-      Effective date: <strong>{{ LEGAL_EFFECTIVE_DATE|default:"[Add date]" }}</strong><br>
+      Effective date: <strong>March 2026</strong><br>
       These Terms govern your use of the Labelz web application (“Service”) provided by
-      <strong>{{ LEGAL_ENTITY_NAME|default:"[Your company/legal entity]" }}</strong> (“Labelz”, “we”, “us”).
+      <strong>Labelz Live</strong> (“Labelz”, “we”, “us”).
       By using the Service, you agree to these Terms.
     </div>
 
@@ -115,12 +116,12 @@
 
     <h3>5.5 Refunds</h3>
     <p class="legal-muted">
-      Refund policy: <strong>{{ LEGAL_REFUND_POLICY|default:"[Define your refund policy here: e.g., 'Refunds are not provided except where required by law.' or plan-specific rules.]" }}</strong>
+      Refund policy: <strong>Purchases made are non-refundable once purchase is made. Credits purchased are non-refundable as well.</strong>
     </p>
 
     <h2 id="ip">6. Intellectual property</h2>
     <ul>
-      <li>Labelz and its software, UI, and underlying technology are owned by {{ LEGAL_ENTITY_NAME|default:"[Your company/legal entity]" }} and protected by applicable laws.</li>
+      <li>Labelz and its software, UI, and underlying technology are owned by Labelz Live and protected by applicable laws.</li>
       <li>These Terms do not grant you any rights to use our trademarks, logos, or brand assets without permission.</li>
     </ul>
 
@@ -141,7 +142,7 @@
       To the maximum extent permitted by law, Labelz will not be liable for indirect, incidental, special, consequential,
       or punitive damages, or any loss of profits, revenue, data, or goodwill arising from your use of the Service.
       Our total liability for claims relating to the Service will not exceed the amount you paid to Labelz in the
-      <strong>{{ LEGAL_LIABILITY_CAP_WINDOW|default:"[e.g., 3 months]" }}</strong> preceding the event giving rise to the claim.
+      <strong>3 Months</strong> preceding the event giving rise to the claim.
     </p>
 
     <h2 id="termination">10. Suspension & termination</h2>
@@ -153,17 +154,22 @@
 
     <h2 id="law">11. Governing law</h2>
     <p class="legal-muted">
-      Governing law and venue: <strong>{{ LEGAL_GOVERNING_LAW|default:"[Add jurisdiction, e.g., 'India — courts at Bengaluru']" }}</strong>
+      Governing law and venue: <strong>Bangalore, Karnataka</strong>
     </p>
 
     <h2 id="contact">12. Contact</h2>
     <p>
-      Questions about these Terms? Email us at <strong>{{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}</strong>.
+      Questions about these Terms? Email us at <strong>shyama@labelz.live</strong>.
     </p>
 
     <p class="legal-muted">
-      Also see: <a href="{% url 'legal_privacy' %}">Privacy Policy</a> and <a href="{% url 'legal_security' %}">Security Policy</a>.
+      Also see: <a href="{% url 'privacy' %}">Privacy Policy</a> and <a href="{% url 'security' %}">Security Policy</a>.
     </p>
   </div>
 </div>
-{% endblock %}
+
+
+  </body>
+</html>
+
+
