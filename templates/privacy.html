@@ -1,8 +1,7 @@
-
-{% block title %}Privacy Policy | Labelz{% endblock %}
-
-{% block content %}
-<style>
+<html>
+  <head>
+    <title>Labelz | Privacy Policy</title>
+    <style>
   .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
   .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
   .legal-muted{color:#6b7280;font-size:14px}
@@ -18,12 +17,14 @@
   .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
 </style>
 
-<div class="legal-wrap">
+  </head>
+<body>
+  <div class="legal-wrap">
   <div class="legal-card">
     <h1>Privacy Policy <span class="badge">Labelz</span></h1>
     <div class="legal-muted">
-      Effective date: <strong>{{ LEGAL_EFFECTIVE_DATE|default:"[Add date]" }}</strong><br>
-      This Privacy Policy explains how <strong>{{ LEGAL_ENTITY_NAME|default:"[Your company/legal entity]" }}</strong>
+      Effective date: <strong>March 2026</strong><br>
+      This Privacy Policy explains how <strong>Labelz Live</strong>
       (“Labelz”, “we”, “us”) collects, uses, shares, and protects information when you use the Labelz web app (the “Service”).
     </div>
 
@@ -32,8 +33,8 @@
     <div class="legal-kv legal-muted">
       <div>Contact</div>
       <div>
-        Email: <strong>{{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}</strong><br>
-        Address: <strong>{{ LEGAL_ENTITY_ADDRESS|default:"[Your address]" }}</strong>
+        Email: <strong>shyama@labelz.live</strong><br>
+        Address: <strong>AVS Layout, Koramangala, Bangalore, 560034</strong>
       </div>
     </div>
 
@@ -161,7 +162,7 @@
     <h2 id="security">6. Security</h2>
     <p>
       We use reasonable administrative, technical, and organizational safeguards to protect your data.
-      See our <a href="{% url 'legal_security' %}">Security Policy</a> for more detail.
+      See our <a href="{% url 'security' %}">Security Policy</a> for more detail.
     </p>
 
     <h2 id="rights">7. Your rights & choices</h2>
@@ -182,4 +183,8 @@
     </p>
   </div>
 </div>
-{% endblock %}
+  
+</body>
+
+  
+</html>
