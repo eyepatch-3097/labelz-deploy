@@ -1,8 +1,7 @@
-
-{% block title %}Security Policy | Labelz{% endblock %}
-
-{% block content %}
-<style>
+<html>
+  <head>
+    <title>Labelz | Security Policy</title>
+    <style>
   .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
   .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
   .legal-muted{color:#6b7280;font-size:14px}
@@ -14,12 +13,13 @@
   .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px;margin-left:8px}
   .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
 </style>
-
-<div class="legal-wrap">
+  </head>
+  <body>
+    <div class="legal-wrap">
   <div class="legal-card">
     <h1>Security Policy <span class="badge">Labelz</span></h1>
     <div class="legal-muted">
-      Effective date: <strong>{{ LEGAL_EFFECTIVE_DATE|default:"[Add date]" }}</strong><br>
+      Effective date: <strong>March 2026</strong><br>
       This policy describes the security practices for Labelz and how to report security issues.
     </div>
 
@@ -83,7 +83,7 @@
       If you believe you found a security vulnerability, please report it responsibly:
     </p>
     <ul>
-      <li>Email: <strong>{{ LEGAL_SECURITY_EMAIL|default:LEGAL_CONTACT_EMAIL|default:"[security@yourdomain]" }}</strong></li>
+      <li>Email: <strong>shyama@dotswitch.space</strong></li>
       <li>Include: steps to reproduce, affected URL(s), screenshots/logs (if any), and impact assessment.</li>
       <li>Please do not publicly disclose the issue before we have a reasonable chance to investigate and address it.</li>
     </ul>
@@ -102,8 +102,10 @@
     </ul>
 
     <p class="legal-muted">
-      Also see: <a href="{% url 'legal_privacy' %}">Privacy Policy</a> and <a href="{% url 'legal_terms' %}">Terms & Conditions</a>.
+      Also see: <a href="{% url 'privacy' %}">Privacy Policy</a> and <a href="{% url 'terms' %}">Terms & Conditions</a>.
     </p>
   </div>
 </div>
-{% endblock %}
+  </body>
+</html>
+
