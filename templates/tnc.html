@@ -1,175 +1,383 @@
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Labelz | Terms & Conditions</title>
-  <style>
-  .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
-  .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
-  .legal-muted{color:#6b7280;font-size:14px}
-  .legal-wrap h1{margin:0 0 6px 0;font-size:28px}
-  .legal-wrap h2{margin-top:22px;font-size:18px}
-  .legal-wrap h3{margin-top:14px;font-size:15px}
-  .legal-wrap ul{padding-left:18px}
-  .legal-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
-  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px;margin-left:8px}
-  .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
-  .legal-toc a{color:inherit;text-decoration:none}
-  .legal-toc a:hover{text-decoration:underline}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions | Labelz</title>
+    
+    <!-- BRAND FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --color-primary: #A769ED;
+            --color-secondary: #FFFFFF;
+            --color-accent-blue: #C2E0FF;
+            --color-accent-orange: #FF7D00;
+            
+            --color-bg: #050505;
+            --color-surface: #111111;
+            --color-surface-hover: #1A1A1A;
+            --color-text: #E0E0E0;
+            --color-muted: #9CA3AF;
+            --color-border: #333333;
+            
+            --font-main: "Zalando Sans", sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.3);
+            --shadow-glow: 0 0 40px rgba(167, 105, 237, 0.1);
+        }
+
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--color-bg); 
+            color: var(--color-text); 
+            line-height: 1.7; 
+            overflow-x: hidden; 
+        }
+        
+        a { color: var(--color-primary); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: #fff; text-decoration: underline; }
+
+        /* --- HEADER --- */
+        header { 
+            padding: 24px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            color: var(--color-secondary); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            text-decoration: none; 
+        }
+        .logo:hover { text-decoration: none; color: #fff; }
+        .logo i { color: var(--color-primary); font-size: 1.6rem; text-shadow: 0 0 10px rgba(167, 105, 237, 0.5); }
+        .btn-back {
+            color: var(--color-muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+            transition: all 0.2s;
+        }
+        .btn-back:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            text-decoration: none;
+        }
+
+        /* --- LEGAL WRAPPER & CARD --- */
+        .legal-wrap { 
+            max-width: 900px; 
+            margin: 60px auto 100px; 
+            padding: 0 24px; 
+        }
+        
+        .legal-card { 
+            background: var(--color-surface); 
+            border: 1px solid var(--color-border); 
+            border-radius: var(--radius-lg); 
+            padding: 60px; 
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* --- TYPOGRAPHY & ELEMENTS --- */
+        .legal-card h1 { 
+            margin: 0 0 16px 0; 
+            font-size: 2.5rem; 
+            font-weight: 900; 
+            color: #fff;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            line-height: 1.2;
+        }
+        
+        .legal-card h2 { 
+            margin-top: 48px; 
+            margin-bottom: 16px;
+            font-size: 1.5rem; 
+            font-weight: 800;
+            color: #fff;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .legal-card h3 { 
+            margin-top: 32px; 
+            margin-bottom: 12px;
+            font-size: 1.15rem; 
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .legal-muted { color: var(--color-muted); font-size: 1rem; }
+        
+        .legal-card ul { 
+            padding-left: 24px; 
+            margin-bottom: 16px; 
+            color: var(--color-text);
+        }
+        .legal-card li { margin-bottom: 8px; }
+        .legal-card p { margin-bottom: 16px; }
+
+        .legal-hr { 
+            border: none; 
+            border-top: 1px solid var(--color-border); 
+            margin: 32px 0; 
+        }
+        
+        /* Table of Contents */
+        .legal-toc {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            list-style: none;
+        }
+        .legal-toc li { margin-bottom: 12px; }
+        .legal-toc li:last-child { margin-bottom: 0; }
+        .legal-toc a { 
+            color: var(--color-muted); 
+            font-weight: 600; 
+        }
+        .legal-toc a:hover { color: var(--color-primary); }
+
+        /* Badges & Callouts */
+        .badge { 
+            display: inline-block; 
+            padding: 6px 16px; 
+            border-radius: 20px; 
+            background: rgba(167, 105, 237, 0.15); 
+            color: var(--color-primary);
+            border: 1px solid rgba(167, 105, 237, 0.3);
+            font-size: 0.9rem; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+        
+        .callout { 
+            background: rgba(194, 224, 255, 0.05); 
+            border: 1px solid rgba(194, 224, 255, 0.1); 
+            border-left: 4px solid var(--color-accent-blue);
+            border-radius: 8px; 
+            padding: 20px; 
+            font-size: 0.95rem; 
+            color: var(--color-text);
+            margin: 32px 0;
+        }
+        .callout strong { color: var(--color-accent-blue); }
+
+        @media (max-width: 768px) {
+            .legal-card { padding: 30px 20px; }
+            .legal-card h1 { font-size: 2rem; }
+        }
+    </style>
 </head>
-  <body>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-barcode"></i> Labelz
+            </a>
+            <a href="/" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
     <div class="legal-wrap">
-  <div class="legal-card">
-    <h1>Terms & Conditions <span class="badge">Labelz</span></h1>
-    <div class="legal-muted">
-      Effective date: <strong>March 2026</strong><br>
-      These Terms govern your use of the Labelz web application (“Service”) provided by
-      <strong>Labelz Live</strong> (“Labelz”, “we”, “us”).
-      By using the Service, you agree to these Terms.
+        <div class="legal-card">
+            
+            <h1>Terms & Conditions <span class="badge">Labelz</span></h1>
+            
+            <div class="legal-muted">
+                Effective date: <strong style="color:#fff;">March 2026</strong><br><br>
+                These Terms govern your use of the Labelz web application (“Service”) provided by
+                <strong style="color:#fff;">Labelz Live</strong> (“Labelz”, “we”, “us”).
+                By using the Service, you agree to these Terms.
+            </div>
+
+            <hr class="legal-hr">
+
+            <div class="callout">
+                <strong><i class="fa-solid fa-circle-info me-2"></i> What Labelz does:</strong> create Organizations/Workspaces, design label templates, and generate single/bulk serialized labels for printing/export.
+            </div>
+
+            <h2 id="toc">Contents</h2>
+            <ul class="legal-toc">
+                <li><a href="#eligibility">1. Eligibility & account registration</a></li>
+                <li><a href="#orgs">2. Organizations, workspaces & roles</a></li>
+                <li><a href="#your-content">3. Your content (templates, label data, uploads)</a></li>
+                <li><a href="#acceptable-use">4. Acceptable use</a></li>
+                <li><a href="#plans">5. Plans, billing, taxes & refunds</a></li>
+                <li><a href="#ip">6. Intellectual property</a></li>
+                <li><a href="#availability">7. Availability & changes</a></li>
+                <li><a href="#disclaimers">8. Disclaimers</a></li>
+                <li><a href="#liability">9. Limitation of liability</a></li>
+                <li><a href="#termination">10. Suspension & termination</a></li>
+                <li><a href="#law">11. Governing law</a></li>
+                <li><a href="#contact">12. Contact</a></li>
+            </ul>
+
+            <h2 id="eligibility">1. Eligibility & account registration</h2>
+            <ul>
+                <li>You must be legally able to form a binding contract to use the Service.</li>
+                <li>You agree to provide accurate information and keep your account secure.</li>
+                <li>You are responsible for all activity that occurs under your account.</li>
+            </ul>
+
+            <h2 id="orgs">2. Organizations, workspaces & roles</h2>
+            <ul>
+                <li>Labelz may allow you to create an <strong>Organization</strong> and one or more <strong>Workspaces</strong>.</li>
+                <li>Organizations/Workspaces can have members with roles/permissions (e.g., Admin, Editor, Viewer).</li>
+                <li><strong>Admins</strong> control membership, permissions, and visibility of templates and generated labels inside that Organization/Workspace.</li>
+            </ul>
+
+            <h2 id="your-content">3. Your content (templates, label data, uploads)</h2>
+            
+            <h3>3.1 Ownership</h3>
+            <p>
+                You own the content you create or upload to the Service, including template designs, label field values, and uploaded assets (“Customer Content”).
+            </p>
+
+            <h3>3.2 License to operate the Service</h3>
+            <p>
+                You grant Labelz a limited, worldwide, non-exclusive license to host, store, reproduce, and process Customer Content
+                <strong>only</strong> to provide, maintain, and improve the Service, and as required by law.
+            </p>
+
+            <h3>3.3 Responsibility for Customer Content</h3>
+            <ul>
+                <li>You are responsible for the accuracy of label content (e.g., pricing, SKUs, regulatory text) and for ensuring you have rights to use uploaded assets (logos/images).</li>
+                <li>Do not upload content that violates law or third-party rights.</li>
+            </ul>
+
+            <h2 id="acceptable-use">4. Acceptable use</h2>
+            <p>You agree not to:</p>
+            <ul>
+                <li>Use the Service for unlawful, infringing, or abusive purposes.</li>
+                <li>Upload malware, attempt unauthorized access, or probe/scan the Service for vulnerabilities outside our disclosure process.</li>
+                <li>Reverse engineer or scrape the Service in a way that harms performance or bypasses access controls.</li>
+                <li>Generate labels intended to deceive customers (e.g., counterfeit branding, fake regulatory marks) or misrepresent product origin.</li>
+                <li>Exceed reasonable usage limits or intentionally disrupt batch generation/printing operations.</li>
+            </ul>
+
+            <h2 id="plans">5. Plans, billing, taxes & refunds</h2>
+            
+            <h3>5.1 Plans and usage limits</h3>
+            <ul>
+                <li>The Service may be offered on free and/or paid plans (e.g., workspace limits, template limits, label generation limits/credits).</li>
+                <li>Your plan details will be shown in-app (pricing page/billing page) and may include feature gating such as bulk generation, invoice exports, or advanced templates.</li>
+            </ul>
+
+            <h3>5.2 Payment processing</h3>
+            <ul>
+                <li>Payments are processed by third-party payment providers. We receive confirmations and references needed to activate your plan and generate invoices.</li>
+                <li>We do not store full payment card/bank credentials.</li>
+            </ul>
+
+            <h3>5.3 Taxes</h3>
+            <p>You are responsible for any applicable taxes, duties, or similar governmental assessments unless stated otherwise.</p>
+
+            <h3>5.4 Renewals and cancellation</h3>
+            <ul>
+                <li>Subscriptions (if enabled) renew according to the plan terms shown at checkout unless canceled before renewal.</li>
+                <li>If you cancel, you may retain access until the end of the current billing period, unless otherwise stated in-app.</li>
+            </ul>
+
+            <h3>5.5 Refunds</h3>
+            <p class="legal-muted" style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--color-border);">
+                Refund policy: <strong style="color:#fff;">Purchases made are non-refundable once purchase is made. Credits purchased are non-refundable as well.</strong>
+            </p>
+
+            <h2 id="ip">6. Intellectual property</h2>
+            <ul>
+                <li>Labelz and its software, UI, and underlying technology are owned by Labelz Live and protected by applicable laws.</li>
+                <li>These Terms do not grant you any rights to use our trademarks, logos, or brand assets without permission.</li>
+            </ul>
+
+            <h2 id="availability">7. Availability & changes</h2>
+            <ul>
+                <li>We aim for reliable availability, but the Service may occasionally be unavailable due to maintenance or outages.</li>
+                <li>We may update or modify features (including label template capabilities, batch generation flows, or billing rules) to improve the Service.</li>
+            </ul>
+
+            <h2 id="disclaimers">8. Disclaimers</h2>
+            <ul>
+                <li>The Service is provided “as is” and “as available”.</li>
+                <li>Labelz does not guarantee that generated labels meet every regulatory requirement for your products/market. You are responsible for verifying compliance (e.g., legal metrology, barcode standards, consumer protection labeling).</li>
+            </ul>
+
+            <h2 id="liability">9. Limitation of liability</h2>
+            <p class="legal-muted">
+                To the maximum extent permitted by law, Labelz will not be liable for indirect, incidental, special, consequential,
+                or punitive damages, or any loss of profits, revenue, data, or goodwill arising from your use of the Service.
+                Our total liability for claims relating to the Service will not exceed the amount you paid to Labelz in the
+                <strong style="color:#fff;">3 Months</strong> preceding the event giving rise to the claim.
+            </p>
+
+            <h2 id="termination">10. Suspension & termination</h2>
+            <ul>
+                <li>We may suspend or terminate access if you violate these Terms, misuse the Service, or create security risk.</li>
+                <li>You may stop using the Service at any time. You can request account deletion by contacting {{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}.</li>
+                <li>We may retain certain records as required by law (e.g., invoices) as described in our Privacy Policy.</li>
+            </ul>
+
+            <h2 id="law">11. Governing law</h2>
+            <p class="legal-muted">
+                Governing law and venue: <strong style="color:#fff;">Bangalore, Karnataka</strong>
+            </p>
+
+            <h2 id="contact">12. Contact</h2>
+            <p>
+                Questions about these Terms? Email us at <strong style="color:#fff;">shyama@labelz.live</strong>.
+            </p>
+
+            <hr class="legal-hr">
+
+            <p class="legal-muted">
+                Also see: <a href="{% url 'privacy' %}">Privacy Policy</a> and <a href="{% url 'security' %}">Security Policy</a>.
+            </p>
+            
+        </div>
     </div>
-
-    <hr class="legal-hr">
-
-    <div class="callout">
-      <strong>What Labelz does:</strong> create Organizations/Workspaces, design label templates, and generate single/bulk serialized labels for printing/export.
-    </div>
-
-    <h2>Contents</h2>
-    <ul class="legal-toc legal-muted">
-      <li><a href="#eligibility">1. Eligibility & account registration</a></li>
-      <li><a href="#orgs">2. Organizations, workspaces & roles</a></li>
-      <li><a href="#your-content">3. Your content (templates, label data, uploads)</a></li>
-      <li><a href="#acceptable-use">4. Acceptable use</a></li>
-      <li><a href="#plans">5. Plans, billing, taxes & refunds</a></li>
-      <li><a href="#ip">6. Intellectual property</a></li>
-      <li><a href="#availability">7. Availability & changes</a></li>
-      <li><a href="#disclaimers">8. Disclaimers</a></li>
-      <li><a href="#liability">9. Limitation of liability</a></li>
-      <li><a href="#termination">10. Suspension & termination</a></li>
-      <li><a href="#law">11. Governing law</a></li>
-      <li><a href="#contact">12. Contact</a></li>
-    </ul>
-
-    <h2 id="eligibility">1. Eligibility & account registration</h2>
-    <ul>
-      <li>You must be legally able to form a binding contract to use the Service.</li>
-      <li>You agree to provide accurate information and keep your account secure.</li>
-      <li>You are responsible for all activity that occurs under your account.</li>
-    </ul>
-
-    <h2 id="orgs">2. Organizations, workspaces & roles</h2>
-    <ul>
-      <li>Labelz may allow you to create an <strong>Organization</strong> and one or more <strong>Workspaces</strong>.</li>
-      <li>Organizations/Workspaces can have members with roles/permissions (e.g., Admin, Editor, Viewer).</li>
-      <li><strong>Admins</strong> control membership, permissions, and visibility of templates and generated labels inside that Organization/Workspace.</li>
-    </ul>
-
-    <h2 id="your-content">3. Your content (templates, label data, uploads)</h2>
-    <h3>3.1 Ownership</h3>
-    <p>
-      You own the content you create or upload to the Service, including template designs, label field values, and uploaded assets (“Customer Content”).
-    </p>
-
-    <h3>3.2 License to operate the Service</h3>
-    <p>
-      You grant Labelz a limited, worldwide, non-exclusive license to host, store, reproduce, and process Customer Content
-      <strong>only</strong> to provide, maintain, and improve the Service, and as required by law.
-    </p>
-
-    <h3>3.3 Responsibility for Customer Content</h3>
-    <ul>
-      <li>You are responsible for the accuracy of label content (e.g., pricing, SKUs, regulatory text) and for ensuring you have rights to use uploaded assets (logos/images).</li>
-      <li>Do not upload content that violates law or third-party rights.</li>
-    </ul>
-
-    <h2 id="acceptable-use">4. Acceptable use</h2>
-    <p>You agree not to:</p>
-    <ul>
-      <li>Use the Service for unlawful, infringing, or abusive purposes.</li>
-      <li>Upload malware, attempt unauthorized access, or probe/scan the Service for vulnerabilities outside our disclosure process.</li>
-      <li>Reverse engineer or scrape the Service in a way that harms performance or bypasses access controls.</li>
-      <li>Generate labels intended to deceive customers (e.g., counterfeit branding, fake regulatory marks) or misrepresent product origin.</li>
-      <li>Exceed reasonable usage limits or intentionally disrupt batch generation/printing operations.</li>
-    </ul>
-
-    <h2 id="plans">5. Plans, billing, taxes & refunds</h2>
-    <h3>5.1 Plans and usage limits</h3>
-    <ul>
-      <li>The Service may be offered on free and/or paid plans (e.g., workspace limits, template limits, label generation limits/credits).</li>
-      <li>Your plan details will be shown in-app (pricing page/billing page) and may include feature gating such as bulk generation, invoice exports, or advanced templates.</li>
-    </ul>
-
-    <h3>5.2 Payment processing</h3>
-    <ul>
-      <li>Payments are processed by third-party payment providers. We receive confirmations and references needed to activate your plan and generate invoices.</li>
-      <li>We do not store full payment card/bank credentials.</li>
-    </ul>
-
-    <h3>5.3 Taxes</h3>
-    <p>You are responsible for any applicable taxes, duties, or similar governmental assessments unless stated otherwise.</p>
-
-    <h3>5.4 Renewals and cancellation</h3>
-    <ul>
-      <li>Subscriptions (if enabled) renew according to the plan terms shown at checkout unless canceled before renewal.</li>
-      <li>If you cancel, you may retain access until the end of the current billing period, unless otherwise stated in-app.</li>
-    </ul>
-
-    <h3>5.5 Refunds</h3>
-    <p class="legal-muted">
-      Refund policy: <strong>Purchases made are non-refundable once purchase is made. Credits purchased are non-refundable as well.</strong>
-    </p>
-
-    <h2 id="ip">6. Intellectual property</h2>
-    <ul>
-      <li>Labelz and its software, UI, and underlying technology are owned by Labelz Live and protected by applicable laws.</li>
-      <li>These Terms do not grant you any rights to use our trademarks, logos, or brand assets without permission.</li>
-    </ul>
-
-    <h2 id="availability">7. Availability & changes</h2>
-    <ul>
-      <li>We aim for reliable availability, but the Service may occasionally be unavailable due to maintenance or outages.</li>
-      <li>We may update or modify features (including label template capabilities, batch generation flows, or billing rules) to improve the Service.</li>
-    </ul>
-
-    <h2 id="disclaimers">8. Disclaimers</h2>
-    <ul>
-      <li>The Service is provided “as is” and “as available”.</li>
-      <li>Labelz does not guarantee that generated labels meet every regulatory requirement for your products/market. You are responsible for verifying compliance (e.g., legal metrology, barcode standards, consumer protection labeling).</li>
-    </ul>
-
-    <h2 id="liability">9. Limitation of liability</h2>
-    <p class="legal-muted">
-      To the maximum extent permitted by law, Labelz will not be liable for indirect, incidental, special, consequential,
-      or punitive damages, or any loss of profits, revenue, data, or goodwill arising from your use of the Service.
-      Our total liability for claims relating to the Service will not exceed the amount you paid to Labelz in the
-      <strong>3 Months</strong> preceding the event giving rise to the claim.
-    </p>
-
-    <h2 id="termination">10. Suspension & termination</h2>
-    <ul>
-      <li>We may suspend or terminate access if you violate these Terms, misuse the Service, or create security risk.</li>
-      <li>You may stop using the Service at any time. You can request account deletion by contacting {{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}.</li>
-      <li>We may retain certain records as required by law (e.g., invoices) as described in our Privacy Policy.</li>
-    </ul>
-
-    <h2 id="law">11. Governing law</h2>
-    <p class="legal-muted">
-      Governing law and venue: <strong>Bangalore, Karnataka</strong>
-    </p>
-
-    <h2 id="contact">12. Contact</h2>
-    <p>
-      Questions about these Terms? Email us at <strong>shyama@labelz.live</strong>.
-    </p>
-
-    <p class="legal-muted">
-      Also see: <a href="{% url 'privacy' %}">Privacy Policy</a> and <a href="{% url 'security' %}">Security Policy</a>.
-    </p>
-  </div>
-</div>
-
-
-  </body>
+    
+</body>
 </html>
-
-
