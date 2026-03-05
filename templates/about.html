@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Labelz</title>
+    <meta name="description" content="The story behind Labelz — simplifying the physical commerce journey through better labelling and packaging." />
+    
+    <!-- BRAND FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --color-primary: #A769ED;
+            --color-secondary: #FFFFFF;
+            --color-accent-blue: #C2E0FF;
+            --color-accent-orange: #FF7D00;
+            --color-accent-green: #2ecc71;
+            
+            --color-bg: #050505;
+            --color-surface: #111111;
+            --color-surface-hover: #1A1A1A;
+            --color-text: #E0E0E0;
+            --color-muted: #9CA3AF;
+            --color-border: #333333;
+            
+            --font-main: "Zalando Sans", sans-serif;
+            
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --shadow-glow: 0 0 40px rgba(167, 105, 237, 0.2);
+            --ease-elastic: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--color-bg); 
+            color: var(--color-text); 
+            line-height: 1.7; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { color: inherit; text-decoration: none; transition: color 0.2s; }
+        
+        /* --- BACKGROUND ANIMATIONS --- */
+        .background-layer {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            background: radial-gradient(circle at 10% 10%, rgba(167, 105, 237, 0.1), transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(194, 224, 255, 0.05), transparent 50%);
+        }
+        
+        #particles-js {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.4;
+        }
+
+        /* --- HEADER --- */
+        header { 
+            padding: 24px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            color: var(--color-secondary); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .logo i { color: var(--color-primary); font-size: 1.6rem; text-shadow: 0 0 10px rgba(167, 105, 237, 0.5); }
+        
+        .btn-back {
+            color: var(--color-muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+            background: rgba(255,255,255,0.02);
+            transition: all 0.2s;
+        }
+        .btn-back:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            border-color: #666;
+        }
+
+        /* --- THE EMOTIONAL LETTER --- */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 60px auto 100px;
+            padding: 0 24px;
+            flex-grow: 1;
+        }
+
+        .letter-card {
+            background: rgba(17, 17, 17, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-lg);
+            padding: 80px 60px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
+        }
+        
+        /* Top Glow Edge */
+        .letter-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-accent-blue), var(--color-primary), var(--color-accent-orange));
+            opacity: 0.8;
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
+        }
+
+        /* --- ENDLESS DELIVERY ANIMATION --- */
+        .delivery-track {
+            position: absolute;
+            left: 40px;
+            top: 60px;
+            bottom: 60px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+        
+        .track-line {
+            position: absolute;
+            top: 15px; bottom: 15px;
+            width: 2px;
+            background-image: linear-gradient(to bottom, var(--color-border) 50%, transparent 50%);
+            background-size: 100% 12px;
+            animation: unwind 15s linear infinite;
+        }
+        
+        @keyframes unwind {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 1000px; }
+        }
+
+        .track-node {
+            position: absolute;
+            width: 40px; height: 40px;
+            background: #1a1a1a;
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            color: var(--color-muted);
+            z-index: 2;
+        }
+        
+        .node-1 { top: 0%; color: var(--color-accent-blue); }
+        .node-2 { top: 33%; color: var(--color-accent-orange); }
+        .node-3 { top: 66%; color: var(--color-primary); }
+        .node-4 { top: 100%; transform: translateY(-100%); color: var(--color-accent-green); }
+
+        .track-sprite {
+            position: absolute;
+            width: 40px; height: 40px;
+            background: var(--color-primary);
+            color: #fff;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            z-index: 3;
+            left: 0;
+            animation: delivery-run 10s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px var(--color-primary);
+        }
+
+        @keyframes delivery-run {
+            0% { top: 0%; opacity: 0; transform: scale(0.5); }
+            5% { top: 0%; opacity: 1; transform: scale(1); }
+            15% { top: 33%; }
+            45% { top: 33%; } /* Pause at warehouse */
+            55% { top: 66%; }
+            75% { top: 66%; } /* Pause at store */
+            85% { top: 100%; margin-top: -40px;}
+            95% { opacity: 1; transform: scale(1); }
+            100% { top: 100%; margin-top: -40px; opacity: 0; transform: scale(0.5); }
+        }
+
+
+        /* Spinning Stamp */
+        .stamp {
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><path id="circlePath" d="M 50, 50 m -40, 0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0"/></defs><circle cx="50" cy="50" r="48" fill="none" stroke="%23A769ED" stroke-width="2" stroke-dasharray="4 4"/><text font-family="monospace" font-size="12" font-weight="bold" fill="%23A769ED"><textPath href="%23circlePath" startOffset="0%">MADE WITH CARE ✷ BUILT FOR COMMERCE ✷ </textPath></text></svg>') no-radius;
+            animation: spin 15s linear infinite;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Content Layout */
+        .letter-content {
+            padding-left: 70px; /* Room for the delivery track */
+        }
+
+        .greeting {
+            font-size: 1.5rem;
+            color: var(--color-accent-blue);
+            font-style: italic;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .letter-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 40px;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+        .letter-title span {
+            background: linear-gradient(135deg, var(--color-accent-orange), var(--color-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .story-text {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.8;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .story-text strong {
+            color: #fff;
+            font-weight: 800;
+            background: rgba(167, 105, 237, 0.15);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        /* Conversational Quotes */
+        .chat-quote {
+            margin: 30px 0 30px -20px;
+            padding: 35px 30px 24px; /* Increased top padding to prevent overlap */
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            border-bottom-left-radius: 0;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .chat-quote::before {
+            content: '\f10d'; /* quote-left icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            top: -18px;
+            left: 20px;
+            font-size: 1.4rem;
+            color: var(--color-primary);
+            background: #1a1a1a; /* Solid background to cover border */
+            border: 1px solid var(--color-border);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .chat-quote p {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.5;
+            font-style: italic;
+        }
+        
+        .chat-quote .speaker {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .speaker-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 0.8rem; font-weight: 900;
+        }
+        .speaker-name {
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        /* Second Quote Variant */
+        .chat-quote.alt {
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 0;
+            margin: 30px -20px 30px 0;
+            text-align: right;
+            border-color: rgba(255, 125, 0, 0.3);
+        }
+        .chat-quote.alt::before {
+            content: '\f10e'; /* quote-right */
+            left: auto;
+            right: 20px;
+            color: var(--color-accent-orange);
+        }
+        .chat-quote.alt .speaker {
+            justify-content: flex-end;
+        }
+        .chat-quote.alt .speaker-avatar { background: var(--color-accent-orange); }
+
+
+        /* --- SIGNATURE & CUSTOM SPRITE ANIMATION --- */
+        .signature-block {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .signature-text {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            font-style: italic;
+        }
+
+        /* Custom CSS Sprite: "Taggy" the Barcode Buddy 
+           A 4-frame animation built entirely from a Data URI SVG
+        */
+        .sprite-character {
+            width: 100px;
+            height: 100px;
+            background-image: url('data:image/svg+xml;utf8,<svg width="400" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,0)"><rect x="20" y="20" width="60" height="60" rx="12" fill="%23A769ED"/><rect x="30" y="30" width="40" height="12" rx="2" fill="%23fff"/><circle cx="35" cy="60" r="5" fill="%23fff"/><circle cx="65" cy="60" r="5" fill="%23fff"/></g><g transform="translate(100,0)"><rect x="20" y="20" width="60" height="60" rx="12" fill="%23A769ED"/><rect x="30" y="30" width="40" height="12" rx="2" fill="%23fff"/><circle cx="40" cy="60" r="5" fill="%23fff"/><circle cx="70" cy="60" r="5" fill="%23fff"/></g><g transform="translate(200,0)"><rect x="20" y="15" width="60" height="60" rx="12" fill="%23FF7D00"/><rect x="30" y="25" width="40" height="12" rx="2" fill="%23fff"/><path d="M 30 55 Q 35 50 40 55" stroke="%23fff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 60 55 Q 65 50 70 55" stroke="%23fff" stroke-width="3" fill="none" stroke-linecap="round"/></g><g transform="translate(300,0)"><rect x="20" y="20" width="60" height="60" rx="12" fill="%23A769ED"/><rect x="30" y="30" width="40" height="12" rx="2" fill="%23fff"/><circle cx="35" cy="60" r="5" fill="%23fff"/><circle cx="65" cy="60" r="5" fill="%23fff"/></g></svg>');
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            animation: taggy-dance 2s steps(4) infinite;
+            filter: drop-shadow(0 10px 20px rgba(167, 105, 237, 0.4));
+        }
+
+        @keyframes taggy-dance {
+            100% { background-position: -400px 0; }
+        }
+
+        /* --- FOOTER CTA --- */
+        .btn-primary-glow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            border-radius: var(--radius-full);
+            font-weight: 800;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, var(--color-primary), #8E4EC6);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: var(--shadow-glow);
+            transition: all 0.3s var(--ease-elastic);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary-glow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(167, 105, 237, 0.6);
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .letter-card { padding: 40px 20px; }
+            .delivery-track { display: none; } /* Hide track on mobile */
+            .letter-content { padding-left: 0; }
+            .stamp { width: 80px; height: 80px; top: -10px; right: -10px; }
+            .letter-title { font-size: 2.5rem; }
+            .chat-quote, .chat-quote.alt { margin: 30px 0; border-radius: 12px; }
+            .signature-block { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Particle Canvas -->
+    <div class="background-layer">
+        <canvas id="particles-js"></canvas>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-barcode"></i> Labelz
+            </a>
+            <a href="/" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        
+        <div class="letter-card">
+            
+            <!-- The Endless Delivery Track -->
+            <div class="delivery-track">
+                <div class="track-line"></div>
+                <div class="track-node node-1" title="Factory"><i class="fa-solid fa-industry"></i></div>
+                <div class="track-node node-2" title="Warehouse"><i class="fa-solid fa-warehouse"></i></div>
+                <div class="track-node node-3" title="Store"><i class="fa-solid fa-store"></i></div>
+                <div class="track-node node-4" title="Customer"><i class="fa-solid fa-house"></i></div>
+                <div class="track-sprite"><i class="fa-solid fa-truck-fast"></i></div>
+            </div>
+            
+            <div class="stamp"></div>
+
+            <div class="letter-content">
+                <div class="greeting">Hey there,</div>
+                
+                <h1 class="letter-title">We’re not here to <span>“revolutionize”</span> commerce.</h1>
+
+                <div class="story-text">
+                    <p>
+                        Let’s be honest. <strong>Labelz</strong> isn't some deep-tech AI paradigm shift. It’s an attempt to stop pulling our hair out over something that should be simple.
+                    </p>
+                    <p>
+                        Commerce has always been a game of physical logistics, but over time, bizarrely complex regulatory hurdles and clunky enterprise software crept in and made a mess of the basics.
+                    </p>
+
+                    <div class="chat-quote">
+                        <p>"Honestly? We just wanted to stop fighting with our thermal printers. That's how all this started."</p>
+                        <div class="speaker">
+                            <div class="speaker-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+                            <span class="speaker-name">The Founders</span>
+                        </div>
+                    </div>
+
+                    <p>
+                        Unlike pure software, physical products have a tangible journey. You see them, feel them, smell them. They go from a production line, to a cardboard box, to a dusty warehouse shelf, into a delivery van, and eventually, they land on your customer's table.
+                    </p>
+
+                    <p>
+                        In order to simplify this journey, there are a million critical touchpoints where tools come in to help you brand, label, pack, ship, and deliver. We, like many others, are just one piece of that puzzle. 
+                    </p>
+
+                    <div class="chat-quote alt">
+                        <p>"It's not just a sticker. A label is the very first thing your customer sees when they finally hold what they paid for."</p>
+                        <div class="speaker">
+                            <span class="speaker-name">Our Philosophy</span>
+                            <div class="speaker-avatar"><i class="fa-solid fa-heart"></i></div>
+                        </div>
+                    </div>
+
+                    <p>
+                        What makes us different is our obsession with <strong>experience triggers</strong>. We don't just build features; we look for the exact moments where the operational journey breaks for you, or where the unboxing experience breaks for your customer. We want to make that exchange feel fair, seamless, and professional.
+                    </p>
+
+                    <p>
+                        Labelling and packaging serialized barcodes is just the medium. <strong>Labelz</strong> is our first serious shot at solving a very real, very annoying commercial pain point.
+                    </p>
+
+                    <p>
+                        We hope you feel the care we've poured into this product. We're going to keep iterating, simplifying, and repeating until labeling is the easiest part of your day.
+                    </p>
+                </div>
+
+                <!-- Signature & Custom Animated Character -->
+                <div class="signature-block">
+                    <div>
+                        <div class="signature-text">Onwards and upwards, always.</div>
+                        <div style="color: var(--color-muted); font-size: 0.9rem; margin-top: 8px;">— The Labelz Team</div>
+                    </div>
+                    
+                    <!-- Taggy The Barcode Buddy (CSS Sprite Animation) -->
+                    <div class="sprite-character" title="Say hi to Taggy!"></div>
+                </div>
+
+                <div style="margin-top: 60px; text-align: center;">
+                    <a href="/dashboard/" class="btn-primary-glow">
+                        Enter Dashboard <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Particle Engine Script -->
+    <script>
+        const canvas = document.getElementById('particles-js');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resize() {
+            if(!canvas.parentElement) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.6;
+                this.vy = (Math.random() - 0.5) * 0.6;
+                this.size = Math.random() * 2.5 + 1;
+                const colors = ['#A769ED', '#C2E0FF', '#FF7D00', '#FFFFFF'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.alpha = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if(this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particles = [];
+            for(let i=0; i<60; i++) particles.push(new Particle());
+            animate();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            // Subtle glowing connections
+            ctx.lineWidth = 0.5;
+            for(let i=0; i<particles.length; i++) {
+                for(let j=i+1; j<particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 100) {
+                        ctx.strokeStyle = particles[i].color; 
+                        ctx.globalAlpha = 0.15 * (1 - dist/100);
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        init();
+    </script>
+</body>
+</html>
