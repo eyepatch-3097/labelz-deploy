@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Security Policy | Labelz{% endblock %}
+
+{% block content %}
+<style>
+  .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
+  .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
+  .legal-muted{color:#6b7280;font-size:14px}
+  .legal-wrap h1{margin:0 0 6px 0;font-size:28px}
+  .legal-wrap h2{margin-top:22px;font-size:18px}
+  .legal-wrap h3{margin-top:14px;font-size:15px}
+  .legal-wrap ul{padding-left:18px}
+  .legal-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px;margin-left:8px}
+  .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
+</style>
+
+<div class="legal-wrap">
+  <div class="legal-card">
+    <h1>Security Policy <span class="badge">Labelz</span></h1>
+    <div class="legal-muted">
+      Effective date: <strong>{{ LEGAL_EFFECTIVE_DATE|default:"[Add date]" }}</strong><br>
+      This policy describes the security practices for Labelz and how to report security issues.
+    </div>
+
+    <hr class="legal-hr">
+
+    <div class="callout">
+      Labelz stores organizations/workspaces, label templates, generated label batches, uploaded assets (like logos),
+      and billing records (invoices/payment references). We aim to protect this data with layered controls.
+    </div>
+
+    <h2>1. Core security controls</h2>
+
+    <h3>1.1 Transport security</h3>
+    <ul>
+      <li>HTTPS/TLS is used to protect data in transit between your browser and our servers.</li>
+      <li>We use secure cookies for authenticated sessions where supported.</li>
+    </ul>
+
+    <h3>1.2 Authentication & access control</h3>
+    <ul>
+      <li>Passwords are stored using secure hashing (Django’s password hashing framework).</li>
+      <li>Role-based access controls (RBAC) limit what members can view/edit inside an Organization/Workspace.</li>
+      <li>Administrative actions (like member/role changes) are restricted to authorized roles.</li>
+    </ul>
+
+    <h3>1.3 Data protection</h3>
+    <ul>
+      <li>We limit access to production systems to authorized personnel only.</li>
+      <li>We follow least-privilege principles for access to databases and storage.</li>
+      <li>Backups may be used to support disaster recovery and reliability.</li>
+    </ul>
+
+    <h3>1.4 Application security</h3>
+    <ul>
+      <li>CSRF protection is enabled for state-changing requests (Django CSRF middleware).</li>
+      <li>We validate and sanitize inputs to reduce injection and unsafe content risks.</li>
+      <li>Uploaded files may be restricted by type/size to reduce abuse and performance issues.</li>
+    </ul>
+
+    <h3>1.5 Payment security</h3>
+    <ul>
+      <li>Payment processing is handled by third-party providers. Labelz receives payment confirmation and references needed for plan activation and invoicing.</li>
+      <li>We do not store full card/bank credentials on Labelz servers.</li>
+    </ul>
+
+    <h2>2. Operational security</h2>
+    <h3>2.1 Logging & monitoring</h3>
+    <ul>
+      <li>We maintain operational logs for troubleshooting and security monitoring (e.g., errors, suspicious traffic patterns).</li>
+      <li>We may rate-limit or block abusive requests to protect stability.</li>
+    </ul>
+
+    <h3>2.2 Vulnerability management</h3>
+    <ul>
+      <li>We periodically review dependencies and apply security patches where feasible.</li>
+      <li>We test changes before production deployment to reduce regressions and security risk.</li>
+    </ul>
+
+    <h2>3. Responsible disclosure</h2>
+    <p>
+      If you believe you found a security vulnerability, please report it responsibly:
+    </p>
+    <ul>
+      <li>Email: <strong>{{ LEGAL_SECURITY_EMAIL|default:LEGAL_CONTACT_EMAIL|default:"[security@yourdomain]" }}</strong></li>
+      <li>Include: steps to reproduce, affected URL(s), screenshots/logs (if any), and impact assessment.</li>
+      <li>Please do not publicly disclose the issue before we have a reasonable chance to investigate and address it.</li>
+    </ul>
+
+    <h2>4. What’s not permitted during testing</h2>
+    <ul>
+      <li>Do not access or modify data belonging to other users/workspaces.</li>
+      <li>No denial-of-service (DoS) testing, automated high-volume scanning, or social engineering of our team/users.</li>
+      <li>No physical attacks or attempts to compromise infrastructure providers.</li>
+    </ul>
+
+    <h2>5. Incident response</h2>
+    <ul>
+      <li>We investigate suspected security incidents and take steps to contain, remediate, and recover.</li>
+      <li>If we determine a breach that affects your data, we will notify affected users when legally required and provide guidance on next steps.</li>
+    </ul>
+
+    <p class="legal-muted">
+      Also see: <a href="{% url 'legal_privacy' %}">Privacy Policy</a> and <a href="{% url 'legal_terms' %}">Terms & Conditions</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}
