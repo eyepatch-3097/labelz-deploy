@@ -49,6 +49,15 @@ def landingpage(request):
 def affiliate(request):
     return render(request, "affiliate.html")
 
+def privacy(request):
+    return render(request, "privacy.html")
+
+def terms(request):
+    return render(request, "tnc.html")
+
+def security(request):
+    return render(request, "security.html")
+
 
 def _parse_date(s: str):
     """
@@ -217,6 +226,9 @@ urlpatterns = [
     # ✅ Logged-in dashboard
     path("dashboard/", dashboard_view, name="dashboard"),
     path("affiliate/", affiliate, name="affiliate"),
+    path("privacy/", privacy, name="privacy"),
+    path("terms/", terms, name="terms"),
+    path("security/", security, name="security"),
     path("accounts/", include("accounts.urls")),
     path("workspaces/", include("workspaces.urls")),
     path("cms/", include("cms.urls")),
