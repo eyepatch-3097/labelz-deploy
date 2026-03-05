@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Terms & Conditions | Labelz{% endblock %}
+
+{% block content %}
+<style>
+  .legal-wrap{max-width:920px;margin:0 auto;padding:24px 16px;}
+  .legal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;}
+  .legal-muted{color:#6b7280;font-size:14px}
+  .legal-wrap h1{margin:0 0 6px 0;font-size:28px}
+  .legal-wrap h2{margin-top:22px;font-size:18px}
+  .legal-wrap h3{margin-top:14px;font-size:15px}
+  .legal-wrap ul{padding-left:18px}
+  .legal-hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f3f4f6;font-size:12px;margin-left:8px}
+  .callout{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:14px}
+  .legal-toc a{color:inherit;text-decoration:none}
+  .legal-toc a:hover{text-decoration:underline}
+</style>
+
+<div class="legal-wrap">
+  <div class="legal-card">
+    <h1>Terms & Conditions <span class="badge">Labelz</span></h1>
+    <div class="legal-muted">
+      Effective date: <strong>{{ LEGAL_EFFECTIVE_DATE|default:"[Add date]" }}</strong><br>
+      These Terms govern your use of the Labelz web application (“Service”) provided by
+      <strong>{{ LEGAL_ENTITY_NAME|default:"[Your company/legal entity]" }}</strong> (“Labelz”, “we”, “us”).
+      By using the Service, you agree to these Terms.
+    </div>
+
+    <hr class="legal-hr">
+
+    <div class="callout">
+      <strong>What Labelz does:</strong> create Organizations/Workspaces, design label templates, and generate single/bulk serialized labels for printing/export.
+    </div>
+
+    <h2>Contents</h2>
+    <ul class="legal-toc legal-muted">
+      <li><a href="#eligibility">1. Eligibility & account registration</a></li>
+      <li><a href="#orgs">2. Organizations, workspaces & roles</a></li>
+      <li><a href="#your-content">3. Your content (templates, label data, uploads)</a></li>
+      <li><a href="#acceptable-use">4. Acceptable use</a></li>
+      <li><a href="#plans">5. Plans, billing, taxes & refunds</a></li>
+      <li><a href="#ip">6. Intellectual property</a></li>
+      <li><a href="#availability">7. Availability & changes</a></li>
+      <li><a href="#disclaimers">8. Disclaimers</a></li>
+      <li><a href="#liability">9. Limitation of liability</a></li>
+      <li><a href="#termination">10. Suspension & termination</a></li>
+      <li><a href="#law">11. Governing law</a></li>
+      <li><a href="#contact">12. Contact</a></li>
+    </ul>
+
+    <h2 id="eligibility">1. Eligibility & account registration</h2>
+    <ul>
+      <li>You must be legally able to form a binding contract to use the Service.</li>
+      <li>You agree to provide accurate information and keep your account secure.</li>
+      <li>You are responsible for all activity that occurs under your account.</li>
+    </ul>
+
+    <h2 id="orgs">2. Organizations, workspaces & roles</h2>
+    <ul>
+      <li>Labelz may allow you to create an <strong>Organization</strong> and one or more <strong>Workspaces</strong>.</li>
+      <li>Organizations/Workspaces can have members with roles/permissions (e.g., Admin, Editor, Viewer).</li>
+      <li><strong>Admins</strong> control membership, permissions, and visibility of templates and generated labels inside that Organization/Workspace.</li>
+    </ul>
+
+    <h2 id="your-content">3. Your content (templates, label data, uploads)</h2>
+    <h3>3.1 Ownership</h3>
+    <p>
+      You own the content you create or upload to the Service, including template designs, label field values, and uploaded assets (“Customer Content”).
+    </p>
+
+    <h3>3.2 License to operate the Service</h3>
+    <p>
+      You grant Labelz a limited, worldwide, non-exclusive license to host, store, reproduce, and process Customer Content
+      <strong>only</strong> to provide, maintain, and improve the Service, and as required by law.
+    </p>
+
+    <h3>3.3 Responsibility for Customer Content</h3>
+    <ul>
+      <li>You are responsible for the accuracy of label content (e.g., pricing, SKUs, regulatory text) and for ensuring you have rights to use uploaded assets (logos/images).</li>
+      <li>Do not upload content that violates law or third-party rights.</li>
+    </ul>
+
+    <h2 id="acceptable-use">4. Acceptable use</h2>
+    <p>You agree not to:</p>
+    <ul>
+      <li>Use the Service for unlawful, infringing, or abusive purposes.</li>
+      <li>Upload malware, attempt unauthorized access, or probe/scan the Service for vulnerabilities outside our disclosure process.</li>
+      <li>Reverse engineer or scrape the Service in a way that harms performance or bypasses access controls.</li>
+      <li>Generate labels intended to deceive customers (e.g., counterfeit branding, fake regulatory marks) or misrepresent product origin.</li>
+      <li>Exceed reasonable usage limits or intentionally disrupt batch generation/printing operations.</li>
+    </ul>
+
+    <h2 id="plans">5. Plans, billing, taxes & refunds</h2>
+    <h3>5.1 Plans and usage limits</h3>
+    <ul>
+      <li>The Service may be offered on free and/or paid plans (e.g., workspace limits, template limits, label generation limits/credits).</li>
+      <li>Your plan details will be shown in-app (pricing page/billing page) and may include feature gating such as bulk generation, invoice exports, or advanced templates.</li>
+    </ul>
+
+    <h3>5.2 Payment processing</h3>
+    <ul>
+      <li>Payments are processed by third-party payment providers. We receive confirmations and references needed to activate your plan and generate invoices.</li>
+      <li>We do not store full payment card/bank credentials.</li>
+    </ul>
+
+    <h3>5.3 Taxes</h3>
+    <p>You are responsible for any applicable taxes, duties, or similar governmental assessments unless stated otherwise.</p>
+
+    <h3>5.4 Renewals and cancellation</h3>
+    <ul>
+      <li>Subscriptions (if enabled) renew according to the plan terms shown at checkout unless canceled before renewal.</li>
+      <li>If you cancel, you may retain access until the end of the current billing period, unless otherwise stated in-app.</li>
+    </ul>
+
+    <h3>5.5 Refunds</h3>
+    <p class="legal-muted">
+      Refund policy: <strong>{{ LEGAL_REFUND_POLICY|default:"[Define your refund policy here: e.g., 'Refunds are not provided except where required by law.' or plan-specific rules.]" }}</strong>
+    </p>
+
+    <h2 id="ip">6. Intellectual property</h2>
+    <ul>
+      <li>Labelz and its software, UI, and underlying technology are owned by {{ LEGAL_ENTITY_NAME|default:"[Your company/legal entity]" }} and protected by applicable laws.</li>
+      <li>These Terms do not grant you any rights to use our trademarks, logos, or brand assets without permission.</li>
+    </ul>
+
+    <h2 id="availability">7. Availability & changes</h2>
+    <ul>
+      <li>We aim for reliable availability, but the Service may occasionally be unavailable due to maintenance or outages.</li>
+      <li>We may update or modify features (including label template capabilities, batch generation flows, or billing rules) to improve the Service.</li>
+    </ul>
+
+    <h2 id="disclaimers">8. Disclaimers</h2>
+    <ul>
+      <li>The Service is provided “as is” and “as available”.</li>
+      <li>Labelz does not guarantee that generated labels meet every regulatory requirement for your products/market. You are responsible for verifying compliance (e.g., legal metrology, barcode standards, consumer protection labeling).</li>
+    </ul>
+
+    <h2 id="liability">9. Limitation of liability</h2>
+    <p class="legal-muted">
+      To the maximum extent permitted by law, Labelz will not be liable for indirect, incidental, special, consequential,
+      or punitive damages, or any loss of profits, revenue, data, or goodwill arising from your use of the Service.
+      Our total liability for claims relating to the Service will not exceed the amount you paid to Labelz in the
+      <strong>{{ LEGAL_LIABILITY_CAP_WINDOW|default:"[e.g., 3 months]" }}</strong> preceding the event giving rise to the claim.
+    </p>
+
+    <h2 id="termination">10. Suspension & termination</h2>
+    <ul>
+      <li>We may suspend or terminate access if you violate these Terms, misuse the Service, or create security risk.</li>
+      <li>You may stop using the Service at any time. You can request account deletion by contacting {{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}.</li>
+      <li>We may retain certain records as required by law (e.g., invoices) as described in our Privacy Policy.</li>
+    </ul>
+
+    <h2 id="law">11. Governing law</h2>
+    <p class="legal-muted">
+      Governing law and venue: <strong>{{ LEGAL_GOVERNING_LAW|default:"[Add jurisdiction, e.g., 'India — courts at Bengaluru']" }}</strong>
+    </p>
+
+    <h2 id="contact">12. Contact</h2>
+    <p>
+      Questions about these Terms? Email us at <strong>{{ LEGAL_CONTACT_EMAIL|default:"[support@yourdomain]" }}</strong>.
+    </p>
+
+    <p class="legal-muted">
+      Also see: <a href="{% url 'legal_privacy' %}">Privacy Policy</a> and <a href="{% url 'legal_security' %}">Security Policy</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}
