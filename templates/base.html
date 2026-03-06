@@ -576,64 +576,6 @@
     </div>
 </main>
 
-<!-- Floating Chat Button -->
-<div id="chatbot-button" style="
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg,#A769ED,#8E4EC6);
-    border-radius: 50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    box-shadow:0 0 25px rgba(167,105,237,.6);
-    z-index:2000;">
-    <i class="fa-solid fa-robot text-white"></i>
-</div>
-
-<!-- Chat Panel -->
-<div id="chatbot-panel" style="
-    position: fixed;
-    bottom: 100px;
-    right: 30px;
-    width: 380px;
-    max-height: 600px;
-    background: #111;
-    border:1px solid #333;
-    border-radius:16px;
-    display:none;
-    flex-direction:column;
-    z-index:2000;
-    overflow:hidden;
-    box-shadow:0 20px 50px rgba(0,0,0,.6);">
-
-    <!-- Header -->
-    <div style="padding:16px; background:#1a1a1a; font-weight:700;">
-        Labelz AI Assistant
-    </div>
-
-    <!-- Messages -->
-    <div id="chatbot-messages" style="
-        flex:1;
-        padding:16px;
-        overflow-y:auto;
-        font-size:.9rem;">
-    </div>
-
-    <!-- Input -->
-    <div style="padding:12px; border-top:1px solid #333;">
-        <div class="d-flex">
-            <input id="chatbot-input" class="form-control form-control-sm"
-                   placeholder="Ask anything about Labelz..." />
-            <button id="chatbot-send" class="btn btn-sm btn-primary-glow ms-2">
-                <i class="fa-solid fa-paper-plane"></i>
-            </button>
-        </div>
-    </div>
-</div>
     <elevenlabs-convai agent-id="agent_0901kk16g273e6asgvncspxmmfrj"></elevenlabs-convai><script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 
 <!-- Bootstrap JS -->
