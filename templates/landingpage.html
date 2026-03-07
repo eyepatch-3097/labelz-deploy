@@ -871,6 +871,49 @@
         font-size: 24px; /* Slightly smaller titles for mobile */
     }
 }
+
+        /* 1. Hide the hamburger by default (Desktop) */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+/* 2. Mobile Styles */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block; /* Show hamburger */
+        order: 2;
+    }
+
+    .logo { order: 1; }
+    
+    /* Hide the 'Get Started' button on tiny screens if it crowds the logo */
+    .nav-cta { display: none; } 
+
+    .nav-links {
+        display: none; /* Hide links by default */
+        flex-direction: column;
+        position: absolute;
+        top: 100%; /* Sits right under the header */
+        left: 0;
+        right: 0;
+        background: rgba(5, 5, 5, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 20px;
+        gap: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* 3. Class to show menu when active */
+    .nav-links.active {
+        display: flex;
+    }
+}
     </style>
 </head>
 <body>
@@ -881,6 +924,9 @@
             <div class="logo">
                 <i class="fa-solid fa-barcode"></i> Labelz
             </div>
+            <button class="menu-toggle" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars"></i>
+        </button>
             <nav class="nav-links">
                 <a href="#features"><i class="fa-solid fa-star"></i> Features</a>
                 <a href="#pricing"><i class="fa-solid fa-tag"></i> Pricing</a>
@@ -1446,7 +1492,22 @@
   
 
     <elevenlabs-convai agent-id="agent_0901kk16g273e6asgvncspxmmfrj"></elevenlabs-convai><script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+<script>
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
 
+    menuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        
+        // Bonus: Change icon to an 'X' when open
+        const icon = menuToggle.querySelector('i');
+        if (navLinks.classList.contains('active')) {
+            icon.classList.replace('fa-bars', 'fa-xmark');
+        } else {
+            icon.classList.replace('fa-xmark', 'fa-bars');
+        }
+    });
+</script>
 <script>
 const chatBtn = document.getElementById("chatbot-button");
 const chatPanel = document.getElementById("chatbot-panel");
