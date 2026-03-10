@@ -1,12 +1,11 @@
 from django.apps import AppConfig
+from django.conf import settings
 import posthog
 
+
 class AccountsConfig(AppConfig):
-    name = 'accounts'
+    name = "accounts"
 
-
-class AccountsAppConfig(AppConfig):  
-    name = "accounts"  
-    def ready(self):  
-        posthog.api_key = 'phc_6lykc5rzsPib7kA0aO7nNM9L3Y1nTU1jQ61GYA6WTK3' 
-        posthog.host = 'https://us.i.posthog.com'  
+    def ready(self):
+        posthog.api_key = settings.POSTHOG_API_KEY
+        posthog.host = getattr(settings, "POSTHOG_HOST", "https://us.i.posthog.com")
