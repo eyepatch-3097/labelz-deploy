@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'billing',
     'chatbot',
     'django_countries',
+    'accounts_labelz.apps.AccountsAppConfig',
 ]
 
 SITE_ID = 1
