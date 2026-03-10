@@ -13,6 +13,7 @@ from django.db import transaction
 from django.utils import timezone
 from .models import EmailOTP
 from .emailing import send_verification_otp_email, send_password_reset_otp_email
+import posthog
 
 class LabelcraftLoginView(LoginView):
     authentication_form = LoginForm
@@ -54,6 +55,20 @@ def signup_step1(request):
                         status=User.STATUS_PENDING,
                     )
                     OrgJoinRequest.objects.create(org=existing_org, user=user)
+                
+                    transaction.on_commit(lambda: posthog.capture(
+                        'user signed up',
+                        distinct_id=str(user.id),
+                        properties={
+                            'email_domain': domain,
+                            'is_generic_domain': False,
+                            'signup_path': 'existing_org_join_request',
+                            'user_role': user.role,
+                            'user_status': user.status,
+                            'org_id': existing_org.id,
+                            'org_domain': existing_org.domain,
+                        }
+                    ))
 
                 # TODO: send actual email notification to org admin(s)
                 return render(request, 'accounts/signup_pending.html', {
@@ -117,6 +132,22 @@ def signup_org(request):
                     role=User.ROLE_ADMIN,
                     status=User.STATUS_ACTIVE,
                 )
+
+                transaction.on_commit(lambda: posthog.capture(
+                    'user signed up',
+                    distinct_id=str(user.id),
+                    properties={
+                        'email_domain': domain,
+                        'is_generic_domain': is_generic_email_domain(domain),
+                        'signup_path': 'new_org_created',
+                        'user_role': user.role,
+                        'user_status': user.status,
+                        'org_id': org.id,
+                        'org_domain': org.domain,
+                        'org_name': org.name,
+                    }
+                ))
+                
             # Clean up session
             for key in ['signup_email', 'signup_password', 'signup_domain']:
                 request.session.pop(key, None)
