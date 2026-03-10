@@ -12,7 +12,7 @@ from .utils import split_email_domain, is_generic_email_domain
 from django.db import transaction
 from django.utils import timezone
 from .models import EmailOTP
-from .emailing import send_verification_otp_email, send_password_reset_otp_email
+from .emailing import send_verification_otp_email, send_password_reset_otp_email, send_welcome_email
 import posthog
 
 class LabelcraftLoginView(LoginView):
@@ -56,19 +56,9 @@ def signup_step1(request):
                     )
                     OrgJoinRequest.objects.create(org=existing_org, user=user)
                 
-                    transaction.on_commit(lambda: posthog.capture(
-                        'user signed up',
-                        distinct_id=str(user.id),
-                        properties={
-                            'email_domain': domain,
-                            'email': user.email,
-                            'is_generic_domain': False,
-                            'signup_path': 'existing_org_join_request',
-                            'user_role': user.role,
-                            'user_status': user.status,
-                            'org_id': existing_org.id,
-                            'org_domain': existing_org.domain,
-                        }
+                    transaction.on_commit(lambda: send_welcome_email(
+                        email=user.email,
+                        org_name=existing_org.name,
                     ))
 
                 # TODO: send actual email notification to org admin(s)
@@ -134,20 +124,9 @@ def signup_org(request):
                     status=User.STATUS_ACTIVE,
                 )
 
-                transaction.on_commit(lambda: posthog.capture(
-                    'user signed up',
-                    distinct_id=str(user.id),
-                    properties={
-                        'email': user.email,
-                        'email_domain': domain,
-                        'is_generic_domain': is_generic_email_domain(domain),
-                        'signup_path': 'new_org_created',
-                        'user_role': user.role,
-                        'user_status': user.status,
-                        'org_id': org.id,
-                        'org_domain': org.domain,
-                        'org_name': org.name,
-                    }
+                transaction.on_commit(lambda: send_welcome_email(
+                    email=user.email,
+                    org_name=org.name,
                 ))
                 
             # Clean up session
