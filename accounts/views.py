@@ -13,6 +13,7 @@ from django.db import transaction
 from django.core.mail import send_mail
 from django.utils import timezone
 from .models import EmailOTP
+from .emailing import send_verification_otp_email, send_password_reset_otp_email
 
 class LabelcraftLoginView(LoginView):
     authentication_form = LoginForm
@@ -202,19 +203,13 @@ def verify_email(request):
 
     # resend on GET (simple + works)
     if request.method == "GET":
-        otp_row, raw = EmailOTP.create_otp(
+       otp_row, raw = EmailOTP.create_otp(
             email=user.email,
             purpose=EmailOTP.PURPOSE_VERIFY,
             user=user,
             ttl_minutes=10,
         )
-        send_mail(
-            subject="Your Labelcraft verification OTP",
-            message=f"Your OTP is {raw}. It expires in 10 minutes.",
-            from_email=None,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+        send_verification_otp_email(user.email, raw)
         return render(request, "accounts/verify_email.html", {
             "email": user.email,
         })
@@ -283,13 +278,7 @@ def forgot_password(request):
             user=u,
             ttl_minutes=10,
         )
-        send_mail(
-            subject="Your Labelcraft password reset OTP",
-            message=f"Your OTP is {raw}. It expires in 10 minutes.",
-            from_email=None,
-            recipient_list=[email],
-            fail_silently=False,
-        )
+        send_password_reset_otp_email(email, raw)
 
         # store email + new password in session until OTP verifies
         request.session["fp_email"] = email
