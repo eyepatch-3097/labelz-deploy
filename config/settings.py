@@ -37,6 +37,11 @@ PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "")
 PAYPAL_CLIENT_SECRET = os.environ.get("PAYPAL_CLIENT_SECRET", "")
 PAYPAL_ENV = os.environ.get("PAYPAL_ENV", "SANDBOX")  # or LIVE
 
+#posthog
+
+POSTHOG_API_KEY = os.environ.get("POSTHOG_API_KEY", "")
+POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com")
+
 # EMAIL SETTINGS
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Labelcraft <no-reply@labelcraft.in>")
@@ -73,13 +78,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
-    'accounts',
+    'accounts.apps.AccountsConfig',
     'workspaces',
     'cms',
     'billing',
     'chatbot',
     'django_countries',
-    'accounts.apps.AccountsAppConfig',
 ]
 
 SITE_ID = 1
