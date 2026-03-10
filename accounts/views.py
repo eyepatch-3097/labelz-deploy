@@ -61,6 +61,7 @@ def signup_step1(request):
                         distinct_id=str(user.id),
                         properties={
                             'email_domain': domain,
+                            'email': user.email,
                             'is_generic_domain': False,
                             'signup_path': 'existing_org_join_request',
                             'user_role': user.role,
@@ -137,6 +138,7 @@ def signup_org(request):
                     'user signed up',
                     distinct_id=str(user.id),
                     properties={
+                        'email': user.email,
                         'email_domain': domain,
                         'is_generic_domain': is_generic_email_domain(domain),
                         'signup_path': 'new_org_created',
