@@ -10,7 +10,6 @@ from .forms import LoginForm, SignupStep1Form, SignupOrgForm
 from .models import Org, User, OrgJoinRequest
 from .utils import split_email_domain, is_generic_email_domain
 from django.db import transaction
-from django.core.mail import send_mail
 from django.utils import timezone
 from .models import EmailOTP
 from .emailing import send_verification_otp_email, send_password_reset_otp_email
@@ -203,7 +202,7 @@ def verify_email(request):
 
     # resend on GET (simple + works)
     if request.method == "GET":
-       otp_row, raw = EmailOTP.create_otp(
+        otp_row, raw = EmailOTP.create_otp(
             email=user.email,
             purpose=EmailOTP.PURPOSE_VERIFY,
             user=user,
