@@ -94,16 +94,21 @@ def signup_org(request):
             org_name = form.cleaned_data['org_name']
 
             with transaction.atomic():
-                org_domain = None if is_generic_email_domain(domain) else domain
-
-                org, created = Org.objects.get_or_create(
-                    domain=org_domain,
-                    defaults={"name": org_name},
-                )
-                # If org existed but had no name, we could update it (edge case)
-                if not created and not org.name:
-                    org.name = org_name
-                    org.save()
+                if is_generic_email_domain(domain):
+                # Generic email users must ALWAYS get their own org.
+                # Never reuse Org(domain=None).
+                    org = Org.objects.create(
+                        name=org_name,
+                        domain=None,
+                    )
+                else:
+                    org, created = Org.objects.get_or_create(
+                        domain=domain,
+                        defaults={"name": org_name},
+                    )
+                    if not created and not org.name:
+                        org.name = org_name
+                        org.save(update_fields=["name"])
 
                 user = User.objects.create_user(
                     email=email,
@@ -112,7 +117,6 @@ def signup_org(request):
                     role=User.ROLE_ADMIN,
                     status=User.STATUS_ACTIVE,
                 )
-
             # Clean up session
             for key in ['signup_email', 'signup_password', 'signup_domain']:
                 request.session.pop(key, None)
