@@ -1,6 +1,8 @@
 
 # LabelCraft
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/891a47944c2c4f279766474d3252f2c5)](https://app.codacy.com/gh/eyepatch-3097/labelz-deploy?utm_source=github.com&utm_medium=referral&utm_content=eyepatch-3097/labelz-deploy&utm_campaign=Badge_Grade)
+
 **Design, generate, and print product labels—fast.**  
 Labelcraft is a lightweight, workflow-first label system built for retail/D2C teams who want **pixel-perfect templates**, **batch-ready generation**, and **print-friendly output**—without wrestling spreadsheets or design tools.
 
