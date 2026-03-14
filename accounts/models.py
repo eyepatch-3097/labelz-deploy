@@ -120,6 +120,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     email_is_verified = models.BooleanField(default=False)
     email_verified_at = models.DateTimeField(null=True, blank=True)
+    verification_reminder_stage = models.PositiveSmallIntegerField(default=0)
 
     org = models.ForeignKey(
         Org,
