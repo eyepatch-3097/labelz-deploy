@@ -102,3 +102,33 @@ def send_welcome_email(email: str, org_name: str | None = None):
         text=text,
         html=html,
     )
+
+def send_verification_success_email(email: str):
+    subject = "Your Labelz email is verified"
+    text = (
+        "Your email has been successfully verified.\n\n"
+        "You can now continue using Labelz normally.\n\n"
+        "Need help getting started? Watch our tutorials here:\n"
+        "https://www.youtube.com/playlist?list=PLrfWFHU5RAQZNxhfV1Hh_XPRnhA6txMuz\n\n"
+        "- Team Labelz"
+    )
+    html = """
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+      <p>Hi,</p>
+      <p>Your email has been successfully <strong>verified</strong>.</p>
+      <p>You can now continue using Labelz normally.</p>
+      <p>
+        Need help getting started?
+        <a href="https://www.youtube.com/playlist?list=PLrfWFHU5RAQZNxhfV1Hh_XPRnhA6txMuz" target="_blank" rel="noopener noreferrer">
+          Watch the Labelz help tutorials
+        </a>.
+      </p>
+      <p>— Team Labelz</p>
+    </div>
+    """
+    return send_email_via_resend(
+        to_email=email,
+        subject=subject,
+        text=text,
+        html=html,
+    )
