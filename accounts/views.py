@@ -12,7 +12,7 @@ from .utils import split_email_domain, is_generic_email_domain
 from django.db import transaction
 from django.utils import timezone
 from .models import EmailOTP
-from .emailing import send_verification_otp_email, send_password_reset_otp_email, send_welcome_email
+from .emailing import send_verification_otp_email, send_password_reset_otp_email, send_welcome_email, send_verification_success_email
 import posthog
 
 class LabelcraftLoginView(LoginView):
@@ -245,6 +245,11 @@ def verify_email(request):
     user.email_is_verified = True
     user.email_verified_at = timezone.now()
     user.save(update_fields=["email_is_verified", "email_verified_at"])
+
+    try:
+        send_verification_success_email(user.email)
+    except Exception:
+        pass
 
     messages.success(request, "Email verified successfully.")
     return redirect("dashboard")
