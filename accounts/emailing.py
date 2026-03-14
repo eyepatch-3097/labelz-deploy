@@ -132,3 +132,61 @@ def send_verification_success_email(email: str):
         text=text,
         html=html,
     )
+
+VERIFICATION_HELP_URL = "https://www.labelz.live/accounts/verify/"
+HELP_PLAYLIST_URL = "https://www.youtube.com/playlist?list=PLrfWFHU5RAQZNxhfV1Hh_XPRnhA6txMuz"
+
+
+def send_verification_reminder_email(email: str, day: int):
+    subject = f"Reminder: verify your Labelz email"
+    text = (
+        f"Hi,\n\n"
+        f"This is a reminder to verify your Labelz email address.\n\n"
+        f"Please verify your email here:\n{VERIFICATION_HELP_URL}\n\n"
+        f"If you need help getting started, watch the tutorials here:\n{HELP_PLAYLIST_URL}\n\n"
+        f"— Team Labelz"
+    )
+    html = f"""
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+      <p>Hi,</p>
+      <p>This is a reminder to verify your <strong>Labelz</strong> email address.</p>
+      <p>
+        <a href="{VERIFICATION_HELP_URL}">Verify your email</a>
+      </p>
+      <p>
+        Need help getting started?
+        <a href="{HELP_PLAYLIST_URL}">Watch the tutorials</a>
+      </p>
+      <p>— Team Labelz</p>
+    </div>
+    """
+    return send_email_via_resend(
+        to_email=email,
+        subject=subject,
+        text=text,
+        html=html,
+    )
+
+
+def send_account_closure_email(email: str):
+    subject = "Your Labelz account has been removed"
+    text = (
+        "Hi,\n\n"
+        "Your Labelz account has been removed because the email address was not verified in time.\n\n"
+        "You can sign up again anytime and verify your email to continue.\n\n"
+        "— Team Labelz"
+    )
+    html = """
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+      <p>Hi,</p>
+      <p>Your <strong>Labelz</strong> account has been removed because the email address was not verified in time.</p>
+      <p>You can sign up again anytime and verify your email to continue.</p>
+      <p>— Team Labelz</p>
+    </div>
+    """
+    return send_email_via_resend(
+        to_email=email,
+        subject=subject,
+        text=text,
+        html=html,
+    )
