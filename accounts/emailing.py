@@ -190,3 +190,52 @@ def send_account_closure_email(email: str):
         text=text,
         html=html,
     )
+
+def send_join_request_notification_to_admin(admin_email: str, requester_email: str, org_name: str):
+    subject = f"New join request for {org_name}"
+    text = (
+        f"Hi,\n\n"
+        f"A new user has requested to join {org_name} on Labelz.\n\n"
+        f"Requester email: {requester_email}\n\n"
+        f"Please log in to review and approve the request.\n\n"
+        f"— Team Labelz"
+    )
+    html = f"""
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+      <p>Hi,</p>
+      <p>A new user has requested to join <strong>{org_name}</strong> on Labelz.</p>
+      <p><strong>Requester email:</strong> {requester_email}</p>
+      <p>Please log in to review and approve the request.</p>
+      <p>— Team Labelz</p>
+    </div>
+    """
+    return send_email_via_resend(
+        to_email=admin_email,
+        subject=subject,
+        text=text,
+        html=html,
+    )
+
+
+def send_join_request_approved_email(user_email: str, org_name: str):
+    subject = f"Your Labelz access for {org_name} is approved"
+    text = (
+        f"Hi,\n\n"
+        f"Your request to join {org_name} on Labelz has been approved.\n\n"
+        f"You can now log in and start using your account.\n\n"
+        f"— Team Labelz"
+    )
+    html = f"""
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+      <p>Hi,</p>
+      <p>Your request to join <strong>{org_name}</strong> on Labelz has been approved.</p>
+      <p>You can now log in and start using your account.</p>
+      <p>— Team Labelz</p>
+    </div>
+    """
+    return send_email_via_resend(
+        to_email=user_email,
+        subject=subject,
+        text=text,
+        html=html,
+    )

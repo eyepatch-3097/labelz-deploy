@@ -12,7 +12,7 @@ from .utils import split_email_domain, is_generic_email_domain
 from django.db import transaction
 from django.utils import timezone
 from .models import EmailOTP
-from .emailing import send_verification_otp_email, send_password_reset_otp_email, send_welcome_email, send_verification_success_email
+from .emailing import send_verification_otp_email, send_password_reset_otp_email, send_welcome_email, send_verification_success_email, send_join_request_notification_to_admin, send_join_request_approved_email
 import posthog
 
 class LabelcraftLoginView(LoginView):
@@ -45,7 +45,6 @@ def signup_step1(request):
                 existing_org = Org.objects.filter(domain=domain).first()
 
             if existing_org:
-                # Company org already exists -> create pending user & join request
                 with transaction.atomic():
                     user = User.objects.create_user(
                         email=email,
@@ -55,19 +54,44 @@ def signup_step1(request):
                         status=User.STATUS_PENDING,
                     )
                     OrgJoinRequest.objects.create(org=existing_org, user=user)
-                
-                    transaction.on_commit(lambda: send_welcome_email(
-                        email=user.email,
-                        org_name=existing_org.name,
-                    ))
 
-                # TODO: send actual email notification to org admin(s)
+                    admin_emails = list(
+                        existing_org.users.filter(
+                            role=User.ROLE_ADMIN,
+                            status=User.STATUS_ACTIVE,
+                        ).values_list("email", flat=True)
+                    )
+
+                    def after_commit():
+                        posthog.capture(
+                            'user signed up',
+                            distinct_id=str(user.id),
+                            properties={
+                                'email': user.email,
+                                'email_domain': domain,
+                                'is_generic_domain': False,
+                                'signup_path': 'existing_org_join_request',
+                                'user_role': user.role,
+                                'user_status': user.status,
+                                'org_id': existing_org.id,
+                                'org_domain': existing_org.domain,
+                            }
+                        )
+
+                        for admin_email in admin_emails:
+                            send_join_request_notification_to_admin(
+                                admin_email=admin_email,
+                                requester_email=user.email,
+                                org_name=existing_org.name or existing_org.domain or "your organisation",
+                            )
+
+                    transaction.on_commit(after_commit)
+
                 return render(request, 'accounts/signup_pending.html', {
                     "org": existing_org,
                     "email": email,
                 })
 
-            # Else: generic OR first company user -> go to org step
             request.session['signup_email'] = email
             request.session['signup_password'] = password
             request.session['signup_domain'] = domain
@@ -189,13 +213,18 @@ def approve_org_join_request(request, request_id):
         is_approved=False,
     )
 
-    # Approve
-    join_request.is_approved = True
-    join_request.save()
+    with transaction.atomic():
+        join_request.is_approved = True
+        join_request.save(update_fields=["is_approved"])
 
-    join_user = join_request.user
-    join_user.status = User.STATUS_ACTIVE
-    join_user.save()
+        join_user = join_request.user
+        join_user.status = User.STATUS_ACTIVE
+        join_user.save(update_fields=["status"])
+
+        transaction.on_commit(lambda: send_join_request_approved_email(
+            user_email=join_user.email,
+            org_name=user.org.name or user.org.domain or "your organisation",
+        ))
 
     # TODO: optional – send email notification to join_user
 
