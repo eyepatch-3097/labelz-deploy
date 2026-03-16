@@ -213,6 +213,10 @@ def dashboard_view(request):
 
     return render(request, "dashboard.html", ctx)
 
+def promotion_view(request):
+    return render(request, "promotions/promo.html")
+
+
 
 sitemaps = {
     "static": StaticViewSitemap,
@@ -237,6 +241,7 @@ urlpatterns = [
     path("cms/", include("cms.urls")),
     path("billing/", include("billing.urls")),
     path("chatbot/", include("chatbot.urls")),
+    path("labelzpromo/", promotion_view, name="promotions"),
     path(
         "sitemap.xml",
         cache_page(60 * 15)(index),
