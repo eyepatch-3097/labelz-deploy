@@ -68,7 +68,7 @@ def get_effective_entitlements(org: Org) -> Dict[str, Optional[int]]:
       - labels_limit
     NOTE: labels_limit is the unified key used everywhere in views/templates/pill.
     """
-    sub: Optional[OrgSubscription] = getattr(org, "subscription", None)
+    sub = refresh_subscription_state(get_or_create_subscription(org))
 
     # defaults
     ent: Dict[str, Optional[int]] = {

@@ -257,6 +257,9 @@ def billing_checkout_start(request):
     org = user.org
     sub = refresh_subscription_state(get_or_create_subscription(org))
     current_code = _plan_code_from_sub(sub)
+    billing_cycle = (request.POST.get("billing_cycle") or "MONTHLY").strip().upper()
+    if billing_cycle not in ("MONTHLY", "ANNUAL"):
+        billing_cycle = "MONTHLY"
 
     plan_code = (request.POST.get("plan_code") or "").strip().upper()
     if plan_code not in ("STARTER", "PRO"):
@@ -275,7 +278,7 @@ def billing_checkout_start(request):
             messages.error(request, "Razorpay keys are not configured.")
             return redirect("billing_select_plan")
 
-        pv = _latest_pv(plan_code, currency="INR")
+        pv = _latest_pv(plan_code, currency="INR", billing_cycle=billing_cycle)
         if not pv or not pv.is_active:
             messages.error(request, "Plan not configured for INR.")
             return redirect("billing_select_plan")
@@ -316,6 +319,7 @@ def billing_checkout_start(request):
             "amount_rupees": int(amount_paise / 100),
             "currency": "INR",
             "country": country,
+            "billing_cycle": billing_cycle,
         })
 
     # ----------------- INTERNATIONAL => PAYPAL (USD) -----------------
@@ -323,7 +327,7 @@ def billing_checkout_start(request):
         messages.error(request, "PayPal is not configured.")
         return redirect("billing_select_plan")
 
-    pv = _latest_pv(plan_code, currency="USD")
+    pv = _latest_pv(plan_code, currency="USD", billing_cycle=billing_cycle)
     if not pv or not pv.is_active:
         messages.error(request, "Plan not configured for USD.")
         return redirect("billing_select_plan")
@@ -412,13 +416,13 @@ def billing_verify_payment(request):
         pe.provider_payment_id = payment_id
         pe.provider_signature = signature
         pe.save(update_fields=["status", "provider_payment_id", "provider_signature"])
-
+        days = int(getattr(pe.plan_version, "period_days", 30) or 30)
         sub = OrgSubscription.objects.select_for_update().get(org=org)
         now = timezone.now()
         sub.status = OrgSubscription.STATUS_ACTIVE
         sub.plan_version = pe.plan_version
         sub.current_period_start = now
-        sub.current_period_end = now + timedelta(days=30)
+        sub.current_period_end = now + timedelta(days=days)
         sub.cancel_at_period_end = False
         sub.save()
 
@@ -465,14 +469,15 @@ def razorpay_webhook(request):
                     pe.status = PaymentEvent.STATUS_SUCCESS
                     pe.provider_payment_id = payment_id
                     pe.save(update_fields=["status", "provider_payment_id"])
-
+                    pv = pe.plan_version
+                    days = int(getattr(pv, "period_days", 30) or 30)
                     org = pe.org
                     sub = OrgSubscription.objects.select_for_update().get(org=org)
                     now = timezone.now()
                     sub.status = OrgSubscription.STATUS_ACTIVE
                     sub.plan_version = pe.plan_version
                     sub.current_period_start = now
-                    sub.current_period_end = now + timedelta(days=30)
+                    sub.current_period_end = now + timedelta(days=days)
                     sub.cancel_at_period_end = False
                     sub.save()
 
@@ -504,13 +509,15 @@ def _labels_used_for_display(org, sub: OrgSubscription) -> int:
     return int(get_labels_used(org) or 0)
 
 
-def _latest_pv(code: str, currency: str | None = None):
+def _latest_pv(code: str, currency: str | None = None, billing_cycle: str | None = None):
     p = Plan.objects.filter(code=code, is_active=True).first()
     if not p:
         return None
     qs = PlanVersion.objects.filter(plan=p, is_active=True)
     if currency:
         qs = qs.filter(currency__iexact=currency.strip())
+    if billing_cycle:
+        qs = qs.filter(billing_cycle=billing_cycle)
     return qs.order_by("-version").first()
 
 
@@ -691,14 +698,15 @@ def paypal_return(request):
     pe.status = PaymentEvent.STATUS_SUCCESS
     pe.provider_payment_id = capture_id or pe.provider_payment_id
     pe.save(update_fields=["status", "provider_payment_id"])
-
+    pv = pe.plan_version
+    days = int(getattr(pv, "period_days", 30) or 30)
     # Activate subscription (same as Razorpay success)
     sub = OrgSubscription.objects.select_for_update().get(org=org)
     now = timezone.now()
     sub.status = OrgSubscription.STATUS_ACTIVE
     sub.plan_version = pe.plan_version
     sub.current_period_start = now
-    sub.current_period_end = now + timedelta(days=30)
+    sub.current_period_end = now + timedelta(days=days)
     sub.cancel_at_period_end = False
     sub.save()
 

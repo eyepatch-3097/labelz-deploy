@@ -1,40 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Plans & Usage – Labelz{% endblock %}
 {% load countries %}
+
 {% block content %}
 <style>
     /* --- BILLING PAGE STYLES --- */
     
     .billing-header {
         text-align: center;
-        margin-bottom: 40px;
+        margin-bottom: 50px;
     }
     
     .page-title {
         font-size: 2.5rem;
-        font-weight: 800;
+        font-weight: 900;
         color: #fff;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
     }
     
     .current-plan-badge {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         background: rgba(167, 105, 237, 0.1);
         color: var(--color-primary);
         border: 1px solid rgba(167, 105, 237, 0.3);
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 1px;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        box-shadow: 0 0 15px rgba(167, 105, 237, 0.15);
     }
 
     /* Usage Stats Grid */
     .usage-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
+        gap: 24px;
         margin-bottom: 60px;
     }
 
@@ -42,34 +47,50 @@
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-card);
-        padding: 24px;
+        padding: 30px;
         text-align: center;
+        transition: all 0.3s var(--ease-elastic);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .usage-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-glow);
+        border-color: rgba(167, 105, 237, 0.3);
+    }
+    
+    .usage-card.usage-orange:hover {
+        box-shadow: var(--shadow-orange);
+        border-color: rgba(255, 125, 0, 0.3);
     }
     
     .usage-label {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         text-transform: uppercase;
         color: var(--color-muted);
-        font-weight: 700;
-        margin-bottom: 8px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
     }
     
     .usage-value {
-        font-size: 1.8rem;
-        font-weight: 800;
+        font-size: 2.2rem;
+        font-weight: 900;
         color: #fff;
+        line-height: 1;
+        margin-bottom: 8px;
     }
     
     .usage-limit {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         color: var(--color-muted);
-        margin-top: 4px;
     }
 
     /* Pricing Section */
     .pricing-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 30px;
         max-width: 900px;
         margin: 0 auto 60px;
@@ -82,43 +103,86 @@
         padding: 40px;
         position: relative;
         overflow: hidden;
-        transition: transform 0.3s var(--ease-elastic);
+        transition: transform 0.3s var(--ease-elastic), box-shadow 0.3s;
         display: flex;
         flex-direction: column;
     }
     
     .price-card:hover {
         transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
     }
     
     .price-card.featured {
         border-color: var(--color-primary);
-        box-shadow: 0 0 40px rgba(167, 105, 237, 0.15);
+        box-shadow: var(--shadow-glow);
         background: linear-gradient(180deg, rgba(167, 105, 237, 0.05) 0%, var(--color-surface) 100%);
     }
     
-    .plan-name { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
-    .plan-price { font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 20px; }
-    .plan-price span { font-size: 1rem; color: var(--color-muted); font-weight: 500; }
+    .price-card.featured:hover {
+        box-shadow: 0 15px 50px rgba(167, 105, 237, 0.25);
+    }
     
+    .plan-name { font-size: 1.8rem; font-weight: 900; color: #fff; margin-bottom: 16px; }
+    .plan-price { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1; margin-top: 10px; }
+    .plan-price span { font-size: 1.1rem; color: var(--color-muted); font-weight: 600; }
+    
+    /* Toggle Switch */
+    .plan-toggle {
+        display: flex;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid var(--color-border);
+        border-radius: 50px;
+        padding: 4px;
+        margin-bottom: 24px;
+    }
+    
+    .toggle-btn {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 40px;
+        background: transparent;
+        border: none;
+        color: var(--color-muted);
+        font-weight: 800;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .toggle-btn.is-active {
+        background: var(--color-surface-light);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
+    .price-card.featured .toggle-btn.is-active {
+        background: rgba(167, 105, 237, 0.15);
+        color: #fff;
+        border: 1px solid rgba(167, 105, 237, 0.3);
+    }
+
     .feature-list {
         list-style: none;
         padding: 0;
-        margin: 0 0 30px;
+        margin: 30px 0;
         text-align: left;
+        flex-grow: 1;
     }
     .feature-list li {
-        margin-bottom: 12px;
+        margin-bottom: 16px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         color: var(--color-text);
+        font-size: 1.05rem;
     }
-    .feature-list i { color: var(--color-primary); }
+    .feature-list i { color: var(--color-primary); font-size: 1.2rem; }
+    .price-card.featured .feature-list i { color: var(--color-accent-green); }
 
     /* Enterprise Banner */
     .enterprise-banner {
-        background: linear-gradient(90deg, #1a1a1a 0%, #000 100%);
+        background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,1) 100%);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-card);
         padding: 40px;
@@ -129,17 +193,92 @@
         gap: 20px;
         max-width: 900px;
         margin: 0 auto;
+        transition: all 0.3s;
+    }
+    
+    .enterprise-banner:hover {
+        border-color: #666;
+        background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,1) 100%);
     }
 
+    /* --- Modal Styles --- */
+    .cz-modal-backdrop {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center; justify-content: center;
+        z-index: 9999;
+        padding: 24px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .cz-modal-backdrop.show { opacity: 1; display: flex; }
+    
+    .cz-modal {
+        width: 100%;
+        max-width: 450px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-primary);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-glow);
+        padding: 40px;
+        transform: translateY(20px);
+        transition: transform 0.3s var(--ease-elastic);
+    }
+    .cz-modal-backdrop.show .cz-modal { transform: translateY(0); }
+    
+    .cz-modal h3 {
+        margin: 0 0 10px 0;
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .cz-modal p {
+        margin: 0 0 24px 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .cz-select {
+        width: 100%;
+        padding: 14px 16px;
+        background: #050505;
+        border: 1px solid var(--color-border);
+        color: #fff;
+        border-radius: 12px;
+        outline: none;
+        font-size: 1rem;
+        font-family: var(--font-main);
+        transition: all 0.2s;
+    }
+    .cz-select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(167, 105, 237, 0.15);
+    }
+    
+    .cz-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 30px;
+    }
+    
 </style>
 
-<div class="container-fluid" style="max-width: 1200px;">
+<div class="row justify-content-center">
+  <div class="col-lg-12" style="max-width: 1200px;">
     
     <!-- Header -->
     <div class="billing-header">
         <h1 class="page-title">Plans & Usage</h1>
         <div class="current-plan-badge">
-            Current Plan: {{ plan_code }}
+            <i class="fa-solid fa-circle-check"></i> Current Plan: {{ plan_code }}
         </div>
     </div>
 
@@ -147,7 +286,7 @@
     <div class="usage-grid">
         <!-- Workspaces -->
         <div class="usage-card">
-            <div class="usage-label"><i class="fa-solid fa-laptop-file me-2"></i> Workspaces</div>
+            <div class="usage-label"><i class="fa-solid fa-laptop-file me-2 text-primary"></i> Workspaces</div>
             <div class="usage-value">
                 {% if ws_limit is None %}∞{% else %}{{ ws_created }}{% endif %}
             </div>
@@ -158,7 +297,7 @@
 
         <!-- Templates -->
         <div class="usage-card">
-            <div class="usage-label"><i class="fa-solid fa-pen-ruler me-2"></i> Templates</div>
+            <div class="usage-label"><i class="fa-solid fa-pen-ruler me-2 text-primary"></i> Templates</div>
             <div class="usage-value">
                 {% if tpl_limit is None %}∞{% else %}{{ tpl_created }}{% endif %}
             </div>
@@ -168,7 +307,7 @@
         </div>
 
         <!-- Labels -->
-        <div class="usage-card" style="border-color: var(--color-accent-orange);">
+        <div class="usage-card usage-orange" style="border-color: rgba(255, 125, 0, 0.2);">
             <div class="usage-label" style="color:var(--color-accent-orange);"><i class="fa-solid fa-print me-2"></i> Labels</div>
             <div class="usage-value" style="color:var(--color-accent-orange);">
                 {% if lbl_limit is None %}∞{% else %}{{ lbl_used }}{% endif %}
@@ -180,69 +319,107 @@
     </div>
 
     <!-- Pricing Plans -->
-    <h2 class="text-center text-white mb-4 fw-bold">Available Plans</h2>
+    <h2 class="text-center text-white mb-5 fw-bold">Available Plans</h2>
     
     <div class="pricing-grid">
         
         <!-- Starter Plan -->
-        <div class="price-card">
+        <div class="price-card" data-plan-card
+             data-plan="STARTER"
+             data-inr-monthly="2900" data-inr-annual="14900"
+             data-usd-monthly="29"   data-usd-annual="149"
+             data-labels-monthly="3000" data-labels-annual="36000">
+
             <div class="plan-name">Starter</div>
-            <div class="plan-price">₹2900<span>/mo</span></div>
-<div class="text small" style="margin-top:-14px;">$29 / mo (International)</div>
-            
+
+            <!-- Toggle -->
+            <div class="plan-toggle" role="tablist" aria-label="Billing cycle">
+                <button type="button" class="toggle-btn is-active" data-cycle="MONTHLY">Monthly</button>
+                <button type="button" class="toggle-btn" data-cycle="ANNUAL">Annual</button>
+            </div>
+
+            <!-- Price -->
+            <div class="plan-price">
+                ₹<span class="js-price-inr" style="font-size: 3rem">2900</span><span class="js-price-suffix">/mo</span>
+            </div>
+            <div class="text small" style="margin-top:4px; font-weight:600;">
+                $<span class="js-price-usd">29</span><span class="js-price-suffix-2">/mo</span> (International)
+            </div>
+
             <ul class="feature-list">
                 <li><i class="fa-solid fa-check"></i> 1 Workspace</li>
                 <li><i class="fa-solid fa-check"></i> 3 Label Templates</li>
-                <li><i class="fa-solid fa-check"></i> 3,000 Labels / mo</li>
+                <li><i class="fa-solid fa-check"></i> 
+                    <div><span class="js-labels fw-bold text-white">3,000</span> Labels <span class="js-labels-suffix text fs-6">/ mo</span></div>
+                </li>
                 <li><i class="fa-solid fa-check"></i> Basic Support</li>
             </ul>
 
             <div class="mt-auto">
                 {% if can_upgrade %}
                     <form method="post" action="{% url 'billing_checkout_start' %}" class="js-plan-form">
-  {% csrf_token %}
-  <input type="hidden" name="plan_code" value="STARTER">
-  <input type="hidden" name="country" class="js-country" value="{{ request.session.billing_country|default:'IN' }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan_code" value="STARTER">
+                        <input type="hidden" name="billing_cycle" class="js-cycle" value="MONTHLY">
+                        <input type="hidden" name="country" class="js-country" value="{{ request.session.billing_country|default:'IN' }}">
 
-  <button type="button" class="btn btn-custom btn-ghost w-100 js-open-country">
-    Select Starter
-  </button>
-</form>
+                        <button type="button" class="btn btn-custom btn-ghost w-100 py-3 js-open-country">
+                            Select Starter
+                        </button>
+                    </form>
                 {% else %}
-                    <button class="btn btn-custom btn-ghost w-100" disabled>Unavailable</button>
+                    <button class="btn btn-custom btn-ghost w-100 py-3" disabled>Unavailable</button>
                 {% endif %}
             </div>
         </div>
 
         <!-- Pro Plan -->
-        <div class="price-card featured">
-            <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); background:var(--color-primary); color:#fff; font-size:0.7rem; font-weight:800; padding:4px 12px; border-radius:0 0 8px 8px; text-transform:uppercase; letter-spacing:1px;">Recommended</div>
+        <div class="price-card featured" data-plan-card
+             data-plan="PRO"
+             data-inr-monthly="6900" data-inr-annual="44900"
+             data-usd-monthly="69"   data-usd-annual="449"
+             data-labels-monthly="30000" data-labels-annual="360000">
+
+            <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); background:var(--color-primary); color:#fff; font-size:0.75rem; font-weight:800; padding:6px 20px; border-radius:0 0 12px 12px; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(167, 105, 237, 0.4);">Recommended</div>
             
             <div class="plan-name" style="color:var(--color-primary);">Pro</div>
-            <div class="plan-price">₹6900<span>/mo</span></div>
-<div class="text small" style="margin-top:-14px;">$69 / mo (International)</div>
-            
+
+            <div class="plan-toggle" role="tablist" aria-label="Billing cycle">
+                <button type="button" class="toggle-btn is-active" data-cycle="MONTHLY">Monthly</button>
+                <button type="button" class="toggle-btn" data-cycle="ANNUAL">Annual</button>
+            </div>
+
+            <div class="plan-price">
+                ₹<span class="js-price-inr text" style="font-size: 3rem">6900</span><span class="js-price-suffix">/mo</span>
+            </div>
+            <div class="text small" style="margin-top:4px; font-weight:600;">
+                $<span class="js-price-usd">69</span><span class="js-price-suffix-2">/mo</span> (International)
+            </div>
+
             <ul class="feature-list">
-                <li><i class="fa-solid fa-check"></i> <strong>Unlimited Workspaces</strong></li>
-                <li><i class="fa-solid fa-check"></i> <strong>Unlimited Templates</strong></li>
-                <li><i class="fa-solid fa-check"></i> <strong>30,000 Labels / mo</strong></li>
-                <li><i class="fa-solid fa-check"></i> Priority Support</li>
-                <li><i class="fa-solid fa-check"></i> Team Roles</li>
+                <li><i class="fa-solid fa-check-circle"></i> <strong class="text-white">Unlimited Workspaces</strong></li>
+                <li><i class="fa-solid fa-check-circle"></i> <strong class="text-white">Unlimited Templates</strong></li>
+                <li><i class="fa-solid fa-check-circle"></i> 
+                    <div><span class="js-labels fw-bold text-white">30,000</span> Labels <span class="js-labels-suffix text fs-6">/ mo</span></div>
+                </li>
+                <li><i class="fa-solid fa-check-circle"></i> Priority Support</li>
+                <li><i class="fa-solid fa-check-circle"></i> Team Roles</li>
             </ul>
 
             <div class="mt-auto">
                 {% if can_upgrade %}
                     <form method="post" action="{% url 'billing_checkout_start' %}" class="js-plan-form">
-  {% csrf_token %}
-  <input type="hidden" name="plan_code" value="PRO">
-  <input type="hidden" name="country" class="js-country" value="{{ request.session.billing_country|default:'IN' }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan_code" value="PRO">
+                        <input type="hidden" name="billing_cycle" class="js-cycle" value="MONTHLY">
+                        <input type="hidden" name="country" class="js-country" value="{{ request.session.billing_country|default:'IN' }}">
 
-  <button type="button" class="btn btn-custom btn-primary-glow w-100 js-open-country">
-    Upgrade to Pro
-  </button>
-</form>
+                        <button type="button" class="btn btn-custom btn-primary-glow w-100 py-3 js-open-country">
+                            Upgrade to Pro
+                        </button>
+                    </form>
                 {% else %}
-                    <button class="btn btn-custom btn-primary-glow w-100" disabled>Current / Unavailable</button>
+                    <button class="btn btn-custom btn-ghost w-100 py-3" disabled style="background: rgba(255,255,255,0.05); color: var(--color-muted); border:none;">Current / Unavailable</button>
                 {% endif %}
             </div>
         </div>
@@ -252,126 +429,134 @@
     <!-- Enterprise Banner -->
     <div class="enterprise-banner">
         <div>
-            <h3 class="h4 text-white fw-bold mb-2">Need a Custom Limit?</h3>
+            <h3 class="h4 text-white fw-bold mb-2"><i class="fa-solid fa-rocket text-primary me-2"></i> Need a Custom Limit?</h3>
             <p class="text mb-0">For high-volume needs, API access, or custom integrations.</p>
         </div>
-        <a href="{% url 'billing_super_plan' %}" class="btn btn-custom btn-outline-secondary text-white">
+        <a href="{% url 'billing_super_plan' %}" class="btn btn-custom btn-outline-secondary text-white py-3 px-4">
             Request Super Plan <i class="fa-solid fa-arrow-right ms-2"></i>
         </a>
     </div>
 
-</div>
-
-<style>
-  /* --- Country Modal --- */
-  .cz-modal-backdrop{
-    position:fixed; inset:0;
-    background: rgba(0,0,0,.55);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index: 9999;
-    padding: 18px;
-  }
-  .cz-modal{
-    width: 100%;
-    max-width: 520px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-lg);
-    padding: 22px;
-  }
-  .cz-modal h3{
-    margin:0 0 6px 0;
-    color:#fff;
-    font-weight: 800;
-    font-size: 1.15rem;
-  }
-  .cz-modal p{
-    margin:0 0 14px 0;
-    color: var(--color-muted);
-    font-size: .9rem;
-  }
-  .cz-select{
-    width: 100%;
-    padding: 12px 14px;
-    background: #050505;
-    border: 1px solid var(--color-border);
-    color: #fff;
-    border-radius: 12px;
-    outline: none;
-  }
-  .cz-actions{
-    display:flex;
-    justify-content:flex-end;
-    gap: 10px;
-    margin-top: 16px;
-  }
-</style>
-
-{% get_countries as countries %}
-
-<div class="cz-modal-backdrop" id="countryModal">
-  <div class="cz-modal">
-    <h3>Select your country</h3>
-    <p>India → Razorpay (UPI + Card). International → PayPal (Card).</p>
-
-    <select class="cz-select" id="countrySelect">
-      {% for c in countries %}
-        <option value="{{ c.code }}" {% if c.code == request.session.billing_country|default:'IN' %}selected{% endif %}>
-          {{ c.name }}
-        </option>
-      {% endfor %}
-    </select>
-
-    <div class="cz-actions">
-      <button type="button" class="btn btn-custom btn-ghost" id="countryCancel">Cancel</button>
-      <button type="button" class="btn btn-custom btn-primary-glow" id="countryContinue">Continue</button>
-    </div>
   </div>
 </div>
 
+{% get_countries as countries %}
+
+<!-- Country Modal -->
+<div class="cz-modal-backdrop" id="countryModal">
+    <div class="cz-modal">
+        <h3><i class="fa-solid fa-globe text-primary"></i> Select Billing Region</h3>
+        <p>Pricing and payment gateways adjust based on your region. <br>
+           <strong>India:</strong> Razorpay (UPI + Card) <br>
+           <strong>International:</strong> PayPal (Card)
+        </p>
+
+        <select class="cz-select" id="countrySelect">
+            {% for c in countries %}
+                <option value="{{ c.code }}" {% if c.code == request.session.billing_country|default:'IN' %}selected{% endif %}>
+                    {{ c.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <div class="cz-actions">
+            <button type="button" class="btn btn-custom btn-ghost" id="countryCancel">Cancel</button>
+            <button type="button" class="btn btn-custom btn-primary-glow" id="countryContinue">Proceed to Checkout</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
 (function(){
-  const modal = document.getElementById("countryModal");
-  const countrySelect = document.getElementById("countrySelect");
-  const btnCancel = document.getElementById("countryCancel");
-  const btnContinue = document.getElementById("countryContinue");
+    function fmt(n){
+        try { return Number(n).toLocaleString("en-IN"); } catch(e){ return String(n); }
+    }
 
-  let pendingForm = null;
+    document.querySelectorAll("[data-plan-card]").forEach(card => {
+        const cycleInput = card.querySelector(".js-cycle");
+        const inrEl = card.querySelector(".js-price-inr");
+        const usdEl = card.querySelector(".js-price-usd");
+        const suffix1 = card.querySelector(".js-price-suffix");
+        const suffix2 = card.querySelector(".js-price-suffix-2");
+        const labelsEl = card.querySelector(".js-labels");
+        const labelsSuffix = card.querySelector(".js-labels-suffix");
 
-  function openModal(form){
-    pendingForm = form;
-    modal.style.display = "flex";
-  }
-  function closeModal(){
-    modal.style.display = "none";
-    pendingForm = null;
-  }
+        function applyCycle(cycle){
+            const isAnnual = cycle === "ANNUAL";
 
-  document.querySelectorAll(".js-open-country").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const form = btn.closest("form");
-      if (!form) return;
-      openModal(form);
+            const inr = isAnnual ? card.dataset.inrAnnual : card.dataset.inrMonthly;
+            const usd = isAnnual ? card.dataset.usdAnnual : card.dataset.usdMonthly;
+            const labels = isAnnual ? card.dataset.labelsAnnual : card.dataset.labelsMonthly;
+
+            if (cycleInput) cycleInput.value = cycle;
+
+            if (inrEl) inrEl.textContent = fmt(inr);
+            if (usdEl) usdEl.textContent = fmt(usd);
+
+            if (suffix1) suffix1.textContent = isAnnual ? "/yr" : "/mo";
+            if (suffix2) suffix2.textContent = isAnnual ? "/yr" : "/mo";
+
+            if (labelsEl) labelsEl.textContent = fmt(labels);
+            if (labelsSuffix) labelsSuffix.textContent = isAnnual ? " / year" : " / mo";
+        }
+
+        // init monthly
+        applyCycle("MONTHLY");
+
+        card.querySelectorAll(".toggle-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const cycle = (btn.dataset.cycle || "MONTHLY").toUpperCase();
+                card.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("is-active"));
+                btn.classList.add("is-active");
+                applyCycle(cycle);
+            });
+        });
     });
-  });
 
-  btnCancel.addEventListener("click", closeModal);
+    // Modal Logic
+    const modal = document.getElementById("countryModal");
+    const countrySelect = document.getElementById("countrySelect");
+    const btnCancel = document.getElementById("countryCancel");
+    const btnContinue = document.getElementById("countryContinue");
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal();
-  });
+    let pendingForm = null;
 
-  btnContinue.addEventListener("click", () => {
-    if (!pendingForm) return;
-    const country = (countrySelect.value || "IN").toUpperCase();
+    function openModal(form){
+        pendingForm = form;
+        modal.classList.add("show");
+    }
+    
+    function closeModal(){
+        modal.classList.remove("show");
+        setTimeout(() => { pendingForm = null; }, 300); // clear after transition
+    }
 
-    const hidden = pendingForm.querySelector(".js-country");
-    if (hidden) hidden.value = country;
+    document.querySelectorAll(".js-open-country").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const form = btn.closest("form");
+            if (!form) return;
+            openModal(form);
+        });
+    });
 
-    pendingForm.submit();
-  });
+    btnCancel.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    btnContinue.addEventListener("click", () => {
+        if (!pendingForm) return;
+        const country = (countrySelect.value || "IN").toUpperCase();
+
+        const hidden = pendingForm.querySelector(".js-country");
+        if (hidden) hidden.value = country;
+
+        pendingForm.submit();
+    });
 })();
 </script>
 {% endblock %}

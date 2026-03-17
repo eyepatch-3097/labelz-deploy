@@ -115,7 +115,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Plan</span>
-                <span class="detail-value text-uppercase">{{ plan_code }}</span>
+                <span class="detail-value text-uppercase">{{ plan_code }}{{ pv.billing_cycle }}</span>
             </div>
             <div class="detail-row" style="border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; margin-top:12px;">
                 <span class="detail-label">Total</span>
@@ -155,7 +155,7 @@
         amount: "{{ amount_paise }}",
         currency: "{{ currency }}",
         name: "Labelz",
-        description: "{{ plan_code|upper }} Plan Subscription",
+        description: "{{ plan_code|upper }} {{ pv.billing_cycle }} Plan",
         order_id: "{{ razorpay_order_id }}",
         method: {
           upi: true,

@@ -25,10 +25,26 @@ class PlanVersion(models.Model):
     When pricing/limits change later, create a NEW PlanVersion row.
     Existing orgs remain on their plan_version until changed.
     """
+
+    BILLING_MONTHLY = "MONTHLY"
+    BILLING_ANNUAL = "ANNUAL"
+    BILLING_CHOICES = [
+        (BILLING_MONTHLY, "Monthly"),
+        (BILLING_ANNUAL, "Annual"),
+    ]
+
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name="versions")
     version = models.PositiveIntegerField(default=1)
 
     currency = models.CharField(max_length=8, default="USD")
+
+    billing_cycle = models.CharField(
+        max_length=10,
+        choices=BILLING_CHOICES,
+        default=BILLING_MONTHLY,
+    )
+
+    period_days = models.PositiveIntegerField(default=30)
     amount_cents = models.PositiveIntegerField(default=0)
 
     # Entitlements: None = unlimited
@@ -44,8 +60,8 @@ class PlanVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [("plan", "currency", "version")]
-        ordering = ["plan__code", "currency", "-version"]
+        unique_together = [("plan", "currency", "billing_cycle", "version")]
+        ordering = ["plan__code", "currency", "billing_cycle", "-version"]
 
     def __str__(self) -> str:
         return f"{self.plan.code} v{self.version} ({self.currency} {self.amount_cents/100:.2f})"
@@ -90,8 +106,11 @@ class OrgSubscription(models.Model):
             return
 
         if not self.current_period_start or not self.current_period_end:
+            days = 30
+            if self.plan_version and getattr(self.plan_version, "period_days", None):
+                days = int(self.plan_version.period_days)
             self.current_period_start = now
-            self.current_period_end = now + timedelta(days=30)
+            self.current_period_end = now + timedelta(days=days)
 
     def __str__(self) -> str:
         return f"{self.org_id} - {self.status}"

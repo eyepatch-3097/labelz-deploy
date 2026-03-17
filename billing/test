@@ -1,0 +1,106 @@
+exec("""
+from django.utils import timezone
+from datetime import timedelta
+from django.db import transaction
+
+from accounts.models import User
+from billing.models import PlanVersion, OrgSubscription, OrgLimitOverride
+from billing.usage import (
+    get_or_create_subscription, refresh_subscription_state,
+    get_effective_entitlements, get_labels_used, get_labels_remaining
+)
+
+def list_planversions():
+    print("\\n=== PlanVersions (active) ===")
+    qs = (PlanVersion.objects
+          .select_related("plan")
+          .filter(is_active=True)
+          .order_by("plan__code","currency","billing_cycle","-version"))
+    for pv in qs:
+        print(f"id={pv.id} {pv.plan.code} {pv.currency} {pv.billing_cycle} v{pv.version} "
+              f"amount_minor={pv.amount_cents} days={pv.period_days} labels={pv.labels_per_period}")
+    print("=== end ===\\n")
+
+def pv_for(plan_code, currency, cycle):
+    pv = (PlanVersion.objects
+          .filter(plan__code=plan_code, currency__iexact=currency, billing_cycle=cycle, is_active=True)
+          .order_by("-version").first())
+    if not pv:
+        raise ValueError(f"Missing active PV for {plan_code} {currency} {cycle}")
+    return pv
+
+def summary(org, title):
+    sub = refresh_subscription_state(get_or_create_subscription(org))
+    ent = get_effective_entitlements(org)
+    used = get_labels_used(org)  # creates usage period row for ACTIVE if missing
+    remaining = get_labels_remaining(org)
+
+    pv = sub.plan_version
+    pv_desc = "-"
+    if pv:
+        pv_desc = f"{pv.plan.code} {pv.currency} {pv.billing_cycle} v{pv.version} days={pv.period_days} labels={pv.labels_per_period}"
+
+    print("\\n---", title, "---")
+    print("status:", sub.status)
+    print("plan_version:", pv_desc)
+    print("period:", sub.current_period_start, "->", sub.current_period_end)
+    print("limits:", ent)
+    print("labels_used:", used, "labels_remaining:", remaining)
+
+def activate(org, pv):
+    with transaction.atomic():
+        sub = OrgSubscription.objects.select_for_update().get(org=org)
+        now = timezone.now()
+        sub.status = OrgSubscription.STATUS_ACTIVE
+        sub.plan_version = pv
+        sub.current_period_start = now
+        sub.current_period_end = now + timedelta(days=int(pv.period_days or 30))
+        sub.cancel_at_period_end = False
+        sub.save()
+
+        # clear overrides
+        ov = OrgLimitOverride.objects.filter(org=org).first()
+        if ov:
+            ov.workspace_limit_override = None
+            ov.template_limit_override = None
+            ov.labels_per_period_override = None
+            ov.save()
+
+def expire(org):
+    # force expiry and refresh
+    sub = OrgSubscription.objects.get(org=org)
+    sub.current_period_end = timezone.now() - timedelta(seconds=5)
+    sub.save(update_fields=["current_period_end","updated_at"])
+    refresh_subscription_state(sub, now=timezone.now())
+
+def run_scenario(org, plan_code, cycle, currency="INR"):
+    pv = pv_for(plan_code, currency, cycle)
+    activate(org, pv)
+    summary(org, f"After activating {plan_code} {cycle} ({currency})")
+    expire(org)
+    summary(org, f"After expiring {plan_code} {cycle} ({currency})")
+
+# 1) check PVs
+list_planversions()
+
+# 2) pick user
+u = User.objects.filter(email__iexact="sid@test.com").select_related("org").first()
+if not u:
+    raise ValueError("User siddharth@test.com not found.")
+if not u.org:
+    raise ValueError("User siddharth@test.com has no org linked.")
+
+org = u.org
+print("User:", u.email, "| Org:", org.id, org.name)
+
+# 3) initial state (trial/none/active)
+summary(org, "Initial state")
+
+# 4-7) scenarios (INR)
+run_scenario(org, "STARTER", "MONTHLY", "INR")
+run_scenario(org, "PRO",     "MONTHLY", "INR")
+run_scenario(org, "STARTER", "ANNUAL",  "INR")
+run_scenario(org, "PRO",     "ANNUAL",  "INR")
+
+print("\\n✅ Test scenarios complete.")
+""")
