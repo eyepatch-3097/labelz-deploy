@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment Successful | Labelz</title>
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root{
+      --color-primary:#A769ED;
+      --color-bg:#050505;
+      --color-surface:#111111;
+      --color-text:#E0E0E0;
+      --color-muted:#9CA3AF;
+      --color-border:#333333;
+      --radius-lg:24px;
+      --radius-md:12px;
+      --shadow-glow:0 0 40px rgba(167,105,237,.2);
+      --font-main:"Zalando Sans",sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:var(--font-main);
+      background: radial-gradient(circle at 20% 0%, rgba(167, 105, 237, 0.12), transparent 45%),
+                  radial-gradient(circle at 80% 100%, rgba(255, 125, 0, 0.06), transparent 55%),
+                  var(--color-bg);
+      color:var(--color-text);
+      min-height:100vh;
+    }
+    a{color:inherit;text-decoration:none}
+    .container{max-width:980px;margin:0 auto;padding:24px}
+    header{
+      padding:18px 0;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      background:rgba(5,5,5,0.85);
+      backdrop-filter: blur(16px);
+      position:sticky;top:0;z-index:10;
+    }
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:900;color:#fff;font-size:1.3rem}
+    .logo i{color:var(--color-primary)}
+    .btn-outline{
+      border:1px solid var(--color-border);
+      color:#fff;
+      padding:8px 16px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:.9rem;
+      background:rgba(255,255,255,0.03);
+    }
+    .hero{
+      padding:60px 0 30px;
+      text-align:center;
+    }
+    .card{
+      background:var(--color-surface);
+      border:1px solid rgba(167,105,237,0.25);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-glow);
+      padding:34px;
+      text-align:left;
+      max-width:860px;
+      margin:0 auto;
+    }
+    .status-row{
+      display:flex;
+      align-items:flex-start;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .check{
+      width:46px;height:46px;
+      border-radius:14px;
+      background:rgba(46,204,113,0.12);
+      border:1px solid rgba(46,204,113,0.25);
+      display:flex;align-items:center;justify-content:center;
+      color:#2ecc71;font-size:1.2rem;
+      flex-shrink:0;
+    }
+    h1{
+      font-size:2.1rem;
+      font-weight:900;
+      color:#fff;
+      margin-bottom:6px;
+      line-height:1.15;
+    }
+    .sub{
+      color:var(--color-muted);
+      font-size:1.05rem;
+      line-height:1.6;
+    }
+    .info-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      margin-top:22px;
+    }
+    .info{
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius-md);
+      padding:14px 16px;
+    }
+    .info .label{
+      color:var(--color-muted);
+      font-size:.78rem;
+      font-weight:800;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .info .value{
+      color:#fff;
+      font-weight:800;
+      font-size:1rem;
+      word-break:break-word;
+    }
+    .actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:22px;
+    }
+    .btn-primary{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:14px 20px;
+      border-radius:999px;
+      font-weight:900;
+      background:linear-gradient(135deg,var(--color-primary),#8E4EC6);
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:0 0 28px rgba(167,105,237,0.25);
+      color:#fff;
+    }
+    .btn-secondary{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:14px 20px;
+      border-radius:999px;
+      font-weight:900;
+      background:rgba(255,255,255,0.04);
+      border:1px solid var(--color-border);
+      color:#fff;
+    }
+    .video-section{
+      padding:28px 0 60px;
+      max-width:980px;
+      margin:0 auto;
+    }
+    .video-header{
+      text-align:center;
+      margin:38px 0 18px;
+    }
+    .video-header h2{
+      font-size:1.6rem;
+      font-weight:900;
+      color:#fff;
+      margin-bottom:8px;
+    }
+    .video-header p{
+      color:var(--color-muted);
+      max-width:720px;
+      margin:0 auto;
+      line-height:1.6;
+    }
+    .video-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap:16px;
+      margin-top:18px;
+    }
+    .yt{
+      background:#000;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px;
+      overflow:hidden;
+      aspect-ratio:16/9;
+      box-shadow:0 10px 24px rgba(0,0,0,0.35);
+    }
+    .yt iframe{width:100%;height:100%;border:0}
+    footer{
+      border-top:1px solid rgba(255,255,255,0.06);
+      padding:28px 0;
+      text-align:center;
+      color:var(--color-muted);
+      font-size:.92rem;
+      background:rgba(0,0,0,0.35);
+    }
+    @media (max-width:720px){
+      .info-grid{grid-template-columns:1fr}
+      h1{font-size:1.8rem}
+      .card{padding:26px}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container header-row">
+    <a href="/" class="logo"><i class="fa-solid fa-barcode"></i> Labelz</a>
+    <a href="/accounts/login/" class="btn-outline">Login</a>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div class="card">
+      <div class="status-row">
+        <div class="check"><i class="fa-solid fa-check"></i></div>
+        <div>
+          <h1>Payment successful 🎉</h1>
+          <div class="sub">
+            We’ve created your Labelz account and sent your login details to your email.<br/>
+            If you don’t see it in 2–3 minutes, check Spam/Promotions.
+          </div>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info">
+          <div class="label">Next step</div>
+          <div class="value">Login and start creating labels</div>
+        </div>
+        <div class="info">
+          <div class="label">Need help?</div>
+          <div class="value">
+            <a href="mailto:shyama@labelz.live">shyama@labelz.live</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn-primary" href="/accounts/login/">
+          <i class="fa-solid fa-right-to-bracket"></i> Go to Login
+        </a>
+        <a class="btn-secondary" href="mailto:shyama@labelz.live">
+          <i class="fa-solid fa-envelope"></i> Contact Support
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="video-section">
+    <div class="video-header">
+      <h2>Quick training videos</h2>
+      <p>These will help you set up your first workspace, create a template, and generate a batch in minutes.</p>
+    </div>
+
+    <div class="video-grid">
+      
+        <div class="yt">
+          <iframe src="https://www.youtube.com/embed/3qW_5aMF46c?si=RtbkNJthOVIFxzmE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+
+        <div class="yt">
+          <iframe src="https://www.youtube.com/embed/o1vqICw1Sx4?si=5Kir_wRk_-mtwy7J" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+
+        <div class="yt">
+          <iframe src="https://www.youtube.com/embed/Pder-Py3-t8?si=9S0U8g7fpS-4tlYd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+      
+    </div>
+  </section>
+</main>
+
+<footer>
+  © 2026 Labelz Live · Need help? <a href="mailto:shyama@labelz.live">shyama@labelz.live</a>
+</footer>
+
+</body>
+</html>

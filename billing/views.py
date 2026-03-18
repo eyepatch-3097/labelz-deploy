@@ -10,7 +10,7 @@ import razorpay, hmac, hashlib, json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseBadRequest
-from accounts.models import User
+from accounts.models import User, Org
 from billing.models import (
     OrgSubscription,
     Plan,
@@ -28,6 +28,43 @@ from io import BytesIO
 import csv
 import requests
 from decimal import Decimal, ROUND_HALF_UP
+from billing import views as billing_views
+from django.contrib.auth import login
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+import secrets
+from django.db import IntegrityError
+import logging
+logger = logging.getLogger(__name__)
+
+def _send_resend_email(to_email: str, subject: str, html: str):
+    api_key = getattr(settings, "RESEND_API_KEY", "") or ""
+    from_email = getattr(settings, "RESEND_FROM_EMAIL", "") or ""
+    if not api_key or not from_email:
+        # fallback: use Django email backend (console/smtp)
+        from django.core.mail import send_mail
+        send_mail(subject, "", from_email or settings.DEFAULT_FROM_EMAIL, [to_email], html_message=html, fail_silently=True)
+        return
+
+    try:
+        r = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": from_email,
+                "to": [to_email],
+                "subject": subject,
+                "html": html,
+            },
+            timeout=20,
+        )
+        r.raise_for_status()
+    except Exception:
+        # don't block checkout if email fails
+        pass
 
 def _rupees(paise: int) -> int:
     return int(int(paise or 0) / 100)
@@ -435,6 +472,9 @@ def billing_verify_payment(request):
             ov.save()
 
     messages.success(request, "Payment successful. Plan activated.")
+    redirect_to = request.session.pop("promo_postpay_redirect", "")
+    if redirect_to:
+        return redirect(redirect_to)
     return redirect("dashboard")
 
 @csrf_exempt
@@ -718,6 +758,9 @@ def paypal_return(request):
         ov.save()
 
     messages.success(request, "Payment successful. Plan activated.")
+    redirect_to = request.session.pop("promo_postpay_redirect", "")
+    if redirect_to:
+        return redirect(redirect_to)
     return redirect("dashboard")
 
 
@@ -725,3 +768,233 @@ def paypal_return(request):
 def paypal_cancel(request):
     messages.info(request, "PayPal checkout canceled.")
     return redirect("billing_select_plan")
+
+@require_http_methods(["GET"])
+def labelz_promo(request):
+    # Render your landing page with plan cards + popup form
+    return render(request, "labelzpromo.html")
+
+
+@require_http_methods(["POST"])
+@transaction.atomic
+def labelz_promo_start(request):
+    """
+    Promo flow:
+    1) collect company/email/phone/country + plan ($29 monthly or $149 annual)
+    2) create Org + User (admin) with auto password
+    3) email credentials via Resend
+    4) login user
+    5) start checkout using existing logic:
+       - India => Razorpay (INR)
+       - International => PayPal (USD)
+    """
+    company = (request.POST.get("company_name") or "").strip()
+    email = (request.POST.get("email") or "").strip().lower()
+    phone = (request.POST.get("phone") or "").strip()
+    country = (request.POST.get("country") or "IN").strip().upper()
+    billing_cycle = (request.POST.get("billing_cycle") or "MONTHLY").strip().upper()
+
+    if billing_cycle not in ("MONTHLY", "ANNUAL"):
+        billing_cycle = "MONTHLY"
+
+    if not company or not email:
+        messages.error(request, "Please enter company name and email.")
+        return redirect("labelz_promo")
+
+    # Promo page only sells Starter
+    plan_code = "STARTER"
+
+    # If user already exists, don't overwrite.
+    if User.objects.filter(email__iexact=email).exists():
+        messages.error(request, "This email is already registered. Please log in to continue checkout.")
+        return redirect("login")
+
+    # Create org (try to set domain if Org has it)
+    org_kwargs = {"name": company}
+    email_domain = email.split("@")[-1] if "@" in email else ""
+    if email_domain:
+        try:
+            # only if Org has 'domain' field
+            Org._meta.get_field("domain")
+            org_kwargs["domain"] = email_domain.lower()
+        except Exception:
+            pass
+
+    from django.db import IntegrityError
+    import logging
+    logger = logging.getLogger(__name__)
+
+    try:
+        org = Org.objects.create(**org_kwargs)
+    except IntegrityError:
+        logger.exception("Promo org create failed")
+        messages.error(request, "An account already exists for this company/email domain. Please login instead.")
+        return redirect("login")
+
+    # Create admin user with generated password
+    password = secrets.token_urlsafe(10)
+
+    create_kwargs = dict(email=email, password=password, org=org)
+    # set role/status if your User model supports these
+    if hasattr(User, "ROLE_ADMIN"):
+        create_kwargs["role"] = User.ROLE_ADMIN
+    if hasattr(User, "STATUS_ACTIVE"):
+        create_kwargs["status"] = User.STATUS_ACTIVE
+
+    user = User.objects.create_user(**create_kwargs)
+
+    # Log them in so PayPal return + Razorpay verify works (both are login_required)
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+    # Email credentials
+    login_url = request.build_absolute_uri(reverse("login"))
+    subject = "Your Labelz login details"
+    html = f"""
+    <p>Hi {company},</p>
+    <p>Your Labelz workspace is ready. Here are your login details:</p>
+    <ul>
+      <li><b>Login:</b> {login_url}</li>
+      <li><b>Email:</b> {email}</li>
+      <li><b>Password:</b> {password}</li>
+      <li><b>Organisation:</b> {company}</li>
+    </ul>
+    <p>Please complete payment to activate your selected plan.</p>
+    <p>If you need help, reach us at <a href="mailto:shyama@labelz.live">shyama@labelz.live</a>.</p>
+    """
+    _send_resend_email(email, subject, html)
+
+    # Remember promo intent and where to send user after successful payment
+    request.session["promo_postpay_redirect"] = reverse("labelz_thankyou")
+    request.session["billing_country"] = country  # re-use for defaults
+
+    # Now start checkout using the same core logic as billing_checkout_start
+    # (we call the same internal paths but with known inputs)
+
+    # If already PRO/SUPER somehow, route to super (unlikely here)
+    sub = refresh_subscription_state(get_or_create_subscription(org))
+    current_code = _plan_code_from_sub(sub)
+    if current_code in ("PRO", "SUPER"):
+        return redirect("billing_super_plan")
+
+    # India => Razorpay INR
+    if _is_india_country(country):
+        if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
+            messages.error(request, "Razorpay keys are not configured.")
+            return redirect("labelz_promo")
+
+        pv = _latest_pv(plan_code, currency="INR", billing_cycle=billing_cycle)
+        if not pv or not pv.is_active:
+            messages.error(request, "Plan not configured for INR.")
+            return redirect("labelz_promo")
+
+        amount_paise = int(pv.amount_cents or 0)
+        if amount_paise <= 0:
+            messages.error(request, "Plan price not set.")
+            return redirect("labelz_promo")
+
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        receipt = f"org_{org.id}_pv_{pv.id}_{int(timezone.now().timestamp())}"
+        order = client.order.create({
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": receipt,
+            "notes": {
+                "org_id": str(org.id),
+                "plan_code": plan_code,
+                "plan_version_id": str(pv.id),
+                "country": country,
+                "promo": "1",
+                "phone": phone,
+            },
+        })
+
+        pe = PaymentEvent.objects.create(
+            org=org,
+            created_by=user,
+            plan_version=pv,
+            currency="INR",
+            amount_cents=amount_paise,
+            status=PaymentEvent.STATUS_CREATED,
+            provider="RAZORPAY",
+            provider_order_id=order["id"],
+        )
+
+        return render(request, "billing/checkout.html", {
+            "org": org,
+            "plan_code": plan_code,
+            "pv": pv,
+            "payment_event": pe,
+            "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+            "razorpay_order_id": order["id"],
+            "amount_paise": amount_paise,
+            "amount_rupees": int(amount_paise / 100),
+            "currency": "INR",
+            "country": country,
+        })
+
+    # International => PayPal USD
+    if not getattr(settings, "PAYPAL_CLIENT_ID", None) or not getattr(settings, "PAYPAL_CLIENT_SECRET", None):
+        messages.error(request, "PayPal is not configured.")
+        return redirect("labelz_promo")
+
+    pv = _latest_pv(plan_code, currency="USD", billing_cycle=billing_cycle)
+    if not pv or not pv.is_active:
+        messages.error(request, "Plan not configured for USD.")
+        return redirect("labelz_promo")
+
+    amount_cents = int(pv.amount_cents or 0)
+    if amount_cents <= 0:
+        messages.error(request, "Plan price not set.")
+        return redirect("labelz_promo")
+
+    return_url = request.build_absolute_uri("/billing/checkout/paypal/return/")
+    cancel_url = request.build_absolute_uri("/billing/checkout/paypal/cancel/")
+
+    try:
+        pp_order = _paypal_create_order(
+            amount_minor=amount_cents,
+            currency="USD",
+            return_url=return_url,
+            cancel_url=cancel_url,
+            reference_id=f"promo_org_{org.id}_pv_{pv.id}",
+        )
+    except Exception:
+        messages.error(request, "Unable to start PayPal checkout. Please try again.")
+        return redirect("labelz_promo")
+
+    order_id = pp_order.get("id", "")
+    approve_url = ""
+    for link in (pp_order.get("links") or []):
+        if link.get("rel") == "approve":
+            approve_url = link.get("href", "")
+            break
+
+    if not order_id or not approve_url:
+        messages.error(request, "PayPal order creation failed.")
+        return redirect("labelz_promo")
+
+    PaymentEvent.objects.create(
+        org=org,
+        created_by=user,
+        plan_version=pv,
+        currency="USD",
+        amount_cents=amount_cents,
+        status=PaymentEvent.STATUS_CREATED,
+        provider="PAYPAL",
+        provider_order_id=order_id,
+    )
+
+    return redirect(approve_url)
+
+
+@require_http_methods(["GET"])
+@login_required
+def labelz_thankyou(request):
+    # YouTube embeds for training
+    videos = [
+        # replace with your real embed URLs
+        "https://www.youtube.com/embed/VIDEO_ID_1",
+        "https://www.youtube.com/embed/VIDEO_ID_2",
+        "https://www.youtube.com/embed/VIDEO_ID_3",
+    ]
+    return render(request, "labelzthankyou.html", {"videos": videos})

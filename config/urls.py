@@ -19,6 +19,7 @@ from django.contrib.sitemaps.views import sitemap, index
 from django.views.decorators.cache import cache_page
 from cms.sitemaps import CMSPostSitemap, StaticViewSitemap
 from django.http import HttpResponse
+from billing import views as billing_views
 
 def robots_txt(request):
     lines = [
@@ -213,8 +214,6 @@ def dashboard_view(request):
 
     return render(request, "dashboard.html", ctx)
 
-def promotion_view(request):
-    return render(request, "promotions/promo.html")
 
 
 
@@ -241,7 +240,9 @@ urlpatterns = [
     path("cms/", include("cms.urls")),
     path("billing/", include("billing.urls")),
     path("chatbot/", include("chatbot.urls")),
-    path("labelzpromo/", promotion_view, name="promotions"),
+    path("promo/", billing_views.labelz_promo, name="labelz_promo"),
+    path("promo/start/", billing_views.labelz_promo_start, name="labelz_promo_start"),
+    path("promo/thank-you/", billing_views.labelz_thankyou, name="labelz_thankyou"),
     path(
         "sitemap.xml",
         cache_page(60 * 15)(index),
