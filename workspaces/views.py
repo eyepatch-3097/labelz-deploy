@@ -2459,16 +2459,18 @@ def label_batch_print(request, workspace_id, batch_id):
 
             row_qty = int(getattr(row, "quantity", 1) or 1)
             serial_digits = max(3, len(str(row_qty)))
+            qr_value = build_qr_payload(row.ean_code, row.gs1_code, row_values, items_ui)
+            qr_img = make_qr_png(qr_value) if qr_value else None
 
             for j in range(1, row_qty + 1):
                 label_index += 1
                 serial = str(j).zfill(serial_digits)
 
                 barcode_value = f"{base}{serial}" if base else ""
-                qr_value = build_qr_payload(row.ean_code, row.gs1_code, row_values, items_ui)
+                
 
                 barcode_img = make_barcode_png(barcode_value) if barcode_value else None
-                qr_img = make_qr_png(qr_value) if qr_value else None
+                
 
                 label_items = []
                 for it in base_items_mm:
@@ -2499,15 +2501,16 @@ def label_batch_print(request, workspace_id, batch_id):
         # serial padding: at least 3 digits
         serial_digits = max(3, len(str(qty)))
 
+        qr_value = build_qr_payload(batch.ean_code, batch.gs1_code, user_values, items_ui)
+        qr_img = make_qr_png(qr_value) if qr_value else None
+
         for i in range(1, qty + 1):
             serial = str(i).zfill(serial_digits)
 
             # In SINGLE flow EAN is mandatory, so base should exist, but keep fallback safe
             barcode_value = f"{base}{serial}" if base else serial
-            qr_value = build_qr_payload(batch.ean_code, batch.gs1_code, user_values, items_ui)
-
             barcode_img = make_barcode_png(barcode_value) if barcode_value else None
-            qr_img = make_qr_png(qr_value) if qr_value else None
+            
 
             label_items = []
             for it in base_items_mm:

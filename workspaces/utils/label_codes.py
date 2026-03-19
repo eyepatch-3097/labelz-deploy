@@ -38,8 +38,8 @@ def make_qr_png(data: str) -> str:
     """
     qr = qrcode.QRCode(
         version=None,
-        error_correction=ERROR_CORRECT_H,  # more robust for print
-        box_size=10,                       # pixels per module
+        error_correction=ERROR_CORRECT_M,  # more robust for print
+        box_size=8,                       # pixels per module
         border=4,                          # quiet zone
     )
     qr.add_data(data)
