@@ -22,19 +22,17 @@
   .bp-warn{ font-size:12px; color:#b45309; margin-top:8px; display:none; }
   .bp-stat{ font-size:12px; color:#6b7280; margin-top:10px; }
 
-  /* Preview area */
   #pagesViewport{
     background:#0b0b0b;
     border-radius:14px;
     padding:14px;
     overflow:auto;
-    height: calc(100vh - 210px);
+    height: calc(100vh - 260px);
   }
   #pagesWrap{
     transform-origin: top left;
   }
 
-  /* Paper pages */
   .paper{
     background:#fff;
     position:relative;
@@ -51,7 +49,6 @@
     display:grid;
   }
 
-  /* Label itself */
   .label{
     width: calc(var(--label-w-mm) * 1mm);
     height: calc(var(--label-h-mm) * 1mm);
@@ -60,14 +57,12 @@
     overflow:hidden;
   }
 
-  /* elements inside label */
   .pl-el{ position:absolute; overflow:hidden; }
   .pl-txt{
     width:100%; height:100%;
     display:flex;
     flex-direction:column;
     justify-content:flex-start;
-    /* match UI padding but scaled */
     padding:
       calc(6 * var(--mm-per-px) * 1mm)
       calc(8 * var(--mm-per-px) * 1mm);
@@ -87,87 +82,135 @@
   .pl-shape-TRIANGLE{ clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
   .pl-shape-STAR{ clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 
-  /* Print rules */
+  .bp-preview-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+
+  .bp-pager{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  #printLoader{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(17,24,39,.55);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .bp-loader-card{
+    background:#fff;
+    padding:20px 24px;
+    border-radius:16px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    min-width:260px;
+    text-align:center;
+  }
+
+  .bp-spinner{
+    width:38px;
+    height:38px;
+    border:4px solid #e5e7eb;
+    border-top-color:#9E63DF;
+    border-radius:50%;
+    margin:0 auto 12px auto;
+    animation:spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
   @media print{
-  @page{ margin: 0mm !important; }
+    @page{ margin: 0mm !important; }
 
-  html, body{
-    margin:0 !important;
-    padding:0 !important;
-    background:#fff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+    html, body{
+      margin:0 !important;
+      padding:0 !important;
+      background:#fff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-  /* Force browsers to keep backgrounds/colors when allowed */
-  *{
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+    *{
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-  /* Hide app chrome coming from base.html */
-  nav, header, footer,
-  .navbar, .navbar * ,
-  .sidebar, .offcanvas, .toast, .toast-container,
-  .modal, .modal-backdrop{
-    display:none !important;
-    visibility:hidden !important;
-  }
+    nav, header, footer,
+    .navbar, .navbar *,
+    .sidebar, .offcanvas, .toast, .toast-container,
+    .modal, .modal-backdrop{
+      display:none !important;
+      visibility:hidden !important;
+    }
 
-  .no-print{ display:none !important; }
+    .no-print{ display:none !important; }
 
-  #pagesViewport{
-    background:#fff !important;
-    padding:0 !important;
-    height:auto !important;
-    overflow:visible !important;
-  }
+    #pagesViewport{
+      background:#fff !important;
+      padding:0 !important;
+      height:auto !important;
+      overflow:visible !important;
+    }
 
-  #pagesWrap{ transform:none !important; }
+    #pagesWrap{ transform:none !important; }
 
-  .paper{
-    box-shadow:none !important;
-    margin:0 !important;
-    page-break-after: always;
-    break-after: page;
-  }
+    .paper{
+      box-shadow:none !important;
+      margin:0 !important;
+      page-break-after: always;
+      break-after: page;
+    }
 
-  .paper.screen-outline{ outline:none !important; }
+    .paper.screen-outline{ outline:none !important; }
 
-  /* Ensure label backgrounds render (when background graphics ON) */
-  .label, .pl-el, .pl-shape{
-    background-clip: padding-box !important;
-  }
+    .label, .pl-el, .pl-shape{
+      background-clip: padding-box !important;
+    }
 
     body * {
-    visibility: hidden !important;
-  }
+      visibility: hidden !important;
+    }
 
-  /* Show ONLY the print viewport and its children */
-  #pagesViewport, #pagesViewport * {
-    visibility: visible !important;
-  }
+    #pagesViewport, #pagesViewport * {
+      visibility: visible !important;
+    }
 
-  /* Move print viewport to top-left so it prints cleanly */
-  #pagesViewport {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    background: #fff !important;
-    padding: 0 !important;
-  }
+    #pagesViewport {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+      background: #fff !important;
+      padding: 0 !important;
+    }
 
-  /* pagesWrap must not be scaled */
-  #pagesWrap {
-    transform: none !important;
+    #pagesWrap {
+      transform: none !important;
+    }
   }
-}
 </style>
 
 <style id="pageStyle"></style>
+
+<div id="printLoader" class="no-print">
+  <div class="bp-loader-card">
+    <div class="bp-spinner"></div>
+    <div style="font-weight:600;margin-bottom:4px;">Preparing print preview…</div>
+    <div style="font-size:13px;color:#6b7280;">Loading all pages with your current settings</div>
+  </div>
+</div>
 
 <div class="bp-wrap">
   <div class="bp-top">
@@ -180,25 +223,23 @@
         Tip: In print dialog keep <b>Scale = 100%</b> and disable “Fit to page”.
       </div>
     </div>
+
     <div class="bp-actions no-print" style="align-items:center;">
-  <a class="btn btn-outline-secondary" href="{% url 'label_generate_single_preview' workspace.id batch.id %}">← Back</a>
+      <a class="btn btn-outline-secondary" href="{% url 'label_generate_single_preview' workspace.id batch.id %}">← Back</a>
+      <button class="btn btn-outline-secondary" type="button" id="fitWidthBtn">Fit Width</button>
+      <button class="btn btn-outline-secondary" type="button" id="fitPageBtn">Fit Page</button>
 
-  <button class="btn btn-outline-secondary" type="button" id="fitWidthBtn">Fit Width</button>
-  <button class="btn btn-outline-secondary" type="button" id="fitPageBtn">Fit Page</button>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #2a2a2a;border-radius:12px;">
+        <span style="font-size:12px;opacity:.8;">Zoom</span>
+        <input id="zoomRange" type="range" min="0.3" max="2.5" step="0.05" value="1.2" />
+        <span id="zoomLabel" style="font-size:12px;opacity:.8;min-width:48px;text-align:right;">120%</span>
+      </div>
 
-  <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #2a2a2a;border-radius:12px;">
-    <span style="font-size:12px;opacity:.8;">Zoom</span>
-    <input id="zoomRange" type="range" min="0.3" max="2.5" step="0.05" value="1.2" />
-    <span id="zoomLabel" style="font-size:12px;opacity:.8;min-width:48px;text-align:right;">120%</span>
-  </div>
-
-  <button class="btn btn-primary" id="printBtn" type="button">Print</button>
-</div>
-
+      <button class="btn btn-primary" id="printBtn" type="button">Print</button>
+    </div>
   </div>
 
   <div class="bp-grid">
-    <!-- Settings -->
     <div class="bp-panel no-print">
       <h5 style="margin:0 0 10px 0;color:#9E63DF">Print Settings</h5>
 
@@ -232,7 +273,7 @@
         </div>
         <div>
           <label>Labels per Row</label>
-          <input id="labelsPerRow" type="number" min="1" max="10" value="2">
+          <input id="labelsPerRow" type="number" min="1" max="10" value="1">
         </div>
       </div>
 
@@ -298,15 +339,25 @@
       <div class="bp-stat" id="stats"></div>
     </div>
 
-    <!-- Preview -->
-    <div id="pagesViewport">
-      <div id="pagesWrap"></div>
+    <div>
+      <div class="bp-preview-top no-print">
+        <div class="bp-meta">
+          Showing <b>{{ page_label_count }}</b> labels · Page <b>{{ preview_page }}</b> of <b>{{ total_pages }}</b> · Total labels <b>{{ total_labels }}</b>
+        </div>
+        <div class="bp-pager">
+          <button class="btn btn-outline-secondary" type="button" id="prevPageBtn" {% if preview_page <= 1 %}disabled{% endif %}>← Prev</button>
+          <button class="btn btn-outline-secondary" type="button" id="nextPageBtn" {% if preview_page >= total_pages %}disabled{% endif %}>Next →</button>
+        </div>
+      </div>
+
+      <div id="pagesViewport">
+        <div id="pagesWrap"></div>
+      </div>
     </div>
   </div>
 </div>
 
-{# hidden label pool (we paginate by moving nodes into pages) #}
-<div id="allLabels" style="display:none;" style="--label-w-mm: {{ label_w_mm }}; --label-h-mm: {{ label_h_mm }};">
+<div id="currentLabels" style="display:none;">
   {% for L in labels %}
     <div class="label"
          data-idx="{{ L.index }}"
@@ -318,21 +369,19 @@
 
 <script>
   const PAGE_SIZES = {{ page_sizes_json|safe }};
-
   const defaults = {{ defaults|safe }};
-  const qty = {{ batch.quantity|default:1 }};
 
+  const qty = {{ batch.quantity|default:1 }};
   const labelW = {{ label_w_mm|floatformat:4 }};
   const labelH = {{ label_h_mm|floatformat:4 }};
-
-  const allLabels = Array.from(document.querySelectorAll("#allLabels .label"));
+  const currentPreviewPage = {{ preview_page }};
+  const totalPages = {{ total_pages }};
 
   const pagesWrap = document.getElementById("pagesWrap");
   const warnBox = document.getElementById("warnBox");
   const stats = document.getElementById("stats");
   const pageStyle = document.getElementById("pageStyle");
 
-  // inputs
   const stockType = document.getElementById("stockType");
   const orientation = document.getElementById("orientation");
   const pageSize = document.getElementById("pageSize");
@@ -352,13 +401,20 @@
   const offX = document.getElementById("offX");
   const offY = document.getElementById("offY");
 
+  const zoomRange = document.getElementById("zoomRange");
+  const zoomLabel = document.getElementById("zoomLabel");
+  const fitWidthBtn = document.getElementById("fitWidthBtn");
+  const fitPageBtn = document.getElementById("fitPageBtn");
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const nextPageBtn = document.getElementById("nextPageBtn");
+
   function setDefaults(){
     stockType.value = defaults.stock_type || "SHEET";
     orientation.value = defaults.orientation || "PORTRAIT";
     pageSize.value = defaults.page_size || "A4";
     customW.value = defaults.custom_w_mm || 210;
     customH.value = defaults.custom_h_mm || 297;
-    labelsPerRow.value = defaults.labels_per_row || 2;
+    labelsPerRow.value = defaults.labels_per_row || 1;
     gapX.value = defaults.gap_x_mm ?? 3;
     gapY.value = defaults.gap_y_mm ?? 3;
     mLeft.value = defaults.margin_left_mm ?? 5;
@@ -369,15 +425,29 @@
     offY.value = defaults.offset_y_mm ?? 0;
   }
 
+  function updateCustomRow(){
+    const isCustom = pageSize.value === "CUSTOM";
+    customSizeRow.style.display = isCustom ? "grid" : "none";
+  }
+
+  function applyStockUi(){
+    const isRoll = stockType.value === "ROLL";
+    pageSize.disabled = isRoll;
+    orientation.disabled = isRoll;
+    labelsPerRow.disabled = isRoll;
+    gapX.disabled = isRoll;
+    gapY.disabled = isRoll;
+    customW.disabled = isRoll;
+    customH.disabled = isRoll;
+  }
+
   function getPageWH(){
     let w, h;
 
     if (stockType.value === "ROLL"){
-      // One label per page on roll
       return { w: labelW, h: labelH };
     }
 
-    // SHEET
     let sizeKey = pageSize.value;
     if (sizeKey === "CUSTOM"){
       w = parseFloat(customW.value || "210");
@@ -387,7 +457,6 @@
       h = PAGE_SIZES[sizeKey].h;
     }
 
-    // orientation
     if (orientation.value === "LANDSCAPE"){
       return { w: h, h: w };
     }
@@ -395,21 +464,21 @@
   }
 
   function updatePageCss(w, h){
-    // This drives browser print preview page size
-    pageStyle.textContent =
-      `@page{ size: ${w}mm ${h}mm; margin: 0mm; }`;
+    pageStyle.textContent = `@page{ size: ${w}mm ${h}mm; margin: 0mm; }`;
   }
 
   function clearPages(){
-    // move all labels back to pool
-    const pool = document.getElementById("allLabels");
-    allLabels.forEach(n => pool.appendChild(n));
     pagesWrap.innerHTML = "";
   }
 
-  function paginate(){
+  function buildVisibleLabels(){
+    return Array.from(document.querySelectorAll("#currentLabels .label")).map(el => el.cloneNode(true));
+  }
+
+  function paginateClient(){
     clearPages();
 
+    const labels = buildVisibleLabels();
     const { w: pageW, h: pageH } = getPageWH();
     updatePageCss(pageW, pageH);
 
@@ -425,11 +494,9 @@
     const ox = Math.max(0, parseFloat(offX.value || "0"));
     const oy = Math.max(0, parseFloat(offY.value || "0"));
 
-    // available area
     const availW = pageW - ml - mr - ox;
     const availH = pageH - mt - mb - oy;
 
-    // compute rows that fit
     const reqW = cols * labelW + (cols - 1) * gx;
 
     let warning = "";
@@ -443,18 +510,16 @@
       rows = Math.max(1, rows);
     }
 
-    const perPage = cols * rows;
-    const pages = Math.ceil(allLabels.length / perPage);
+    const perPage = Math.max(1, cols * rows);
+    const localPages = Math.ceil(labels.length / perPage);
 
     warnBox.style.display = warning ? "block" : "none";
     warnBox.textContent = warning;
 
-    stats.textContent =
-      `Page: ${pageW.toFixed(1)}×${pageH.toFixed(1)}mm · Grid: ${cols}×${rows} · ${perPage} labels/page · ${pages} page(s)`;
+    stats.textContent = `Page: ${pageW.toFixed(1)}×${pageH.toFixed(1)}mm · Grid: ${cols}×${rows} · ${perPage} labels/page · Preview page chunk size: ${labels.length}`;
 
-    // build pages and append labels
     let idx = 0;
-    for (let p = 0; p < pages; p++){
+    for (let p = 0; p < localPages; p++){
       const paper = document.createElement("div");
       paper.className = "paper screen-outline";
       paper.style.width = `calc(${pageW} * 1mm)`;
@@ -473,116 +538,146 @@
       paper.appendChild(grid);
       pagesWrap.appendChild(paper);
 
-      for (let j = 0; j < perPage && idx < allLabels.length; j++, idx++){
-        grid.appendChild(allLabels[idx]);
+      for (let j = 0; j < perPage && idx < labels.length; j++, idx++){
+        grid.appendChild(labels[idx]);
       }
     }
 
     setZoom(parseFloat(zoomRange.value || "1.2"));
   }
 
-const zoomRange = document.getElementById("zoomRange");
-const zoomLabel = document.getElementById("zoomLabel");
-const fitWidthBtn = document.getElementById("fitWidthBtn");
-const fitPageBtn = document.getElementById("fitPageBtn");
-
-function setZoom(z){
-  const clamped = Math.max(0.3, Math.min(2.5, z));
-  pagesWrap.style.transform = `scale(${clamped})`;
-  zoomRange.value = clamped.toFixed(2);
-  zoomLabel.textContent = `${Math.round(clamped * 100)}%`;
-}
-
-function computeFitWidthScale(){
-  const viewport = document.getElementById("pagesViewport");
-  const firstPaper = pagesWrap.querySelector(".paper");
-  if (!firstPaper) return 1;
-
-  const pxPerMm = 96 / 25.4;
-  // firstPaper width is calc(X * 1mm) => extract X reliably:
-  const wStr = firstPaper.style.width || "";
-  const match = wStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
-  const paperWmm = match ? parseFloat(match[1]) : 210;
-  const paperWpx = paperWmm * pxPerMm;
-
-  const available = viewport.clientWidth - 40;
-  return available / paperWpx;
-}
-
-function computeFitPageScale(){
-  const viewport = document.getElementById("pagesViewport");
-  const firstPaper = pagesWrap.querySelector(".paper");
-  if (!firstPaper) return 1;
-
-  const pxPerMm = 96 / 25.4;
-
-  const wStr = firstPaper.style.width || "";
-  const hStr = firstPaper.style.height || "";
-  const mw = wStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
-  const mh = hStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
-
-  const paperWmm = mw ? parseFloat(mw[1]) : 210;
-  const paperHmm = mh ? parseFloat(mh[1]) : 297;
-
-  const paperWpx = paperWmm * pxPerMm;
-  const paperHpx = paperHmm * pxPerMm;
-
-  const availW = viewport.clientWidth - 40;
-  const availH = viewport.clientHeight - 40;
-
-  return Math.min(availW / paperWpx, availH / paperHpx);
-}
-
-// Hook up controls
-zoomRange.addEventListener("input", () => setZoom(parseFloat(zoomRange.value || "1")));
-fitWidthBtn.addEventListener("click", () => setZoom(computeFitWidthScale()));
-fitPageBtn.addEventListener("click", () => setZoom(computeFitPageScale()));
-
-window.addEventListener("resize", () => {
-  // keep whatever user set, don’t auto-shrink
-  setZoom(parseFloat(zoomRange.value || "1"));
-});
-
-  // UI toggles
-  function updateCustomRow(){
-    const isCustom = pageSize.value === "CUSTOM";
-    customSizeRow.style.display = isCustom ? "grid" : "none";
+  function setZoom(z){
+    const clamped = Math.max(0.3, Math.min(2.5, z));
+    pagesWrap.style.transform = `scale(${clamped})`;
+    zoomRange.value = clamped.toFixed(2);
+    zoomLabel.textContent = `${Math.round(clamped * 100)}%`;
   }
 
-  // Print
-  document.getElementById("printBtn").addEventListener("click", ()=>{
-    // ensure correct pagination then print
-    paginate();
-    window.print();
-  });
+  function computeFitWidthScale(){
+    const viewport = document.getElementById("pagesViewport");
+    const firstPaper = pagesWrap.querySelector(".paper");
+    if (!firstPaper) return 1;
 
-  // bindings
+    const pxPerMm = 96 / 25.4;
+    const wStr = firstPaper.style.width || "";
+    const match = wStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
+    const paperWmm = match ? parseFloat(match[1]) : 210;
+    const paperWpx = paperWmm * pxPerMm;
+
+    const available = viewport.clientWidth - 40;
+    return available / paperWpx;
+  }
+
+  function computeFitPageScale(){
+    const viewport = document.getElementById("pagesViewport");
+    const firstPaper = pagesWrap.querySelector(".paper");
+    if (!firstPaper) return 1;
+
+    const pxPerMm = 96 / 25.4;
+
+    const wStr = firstPaper.style.width || "";
+    const hStr = firstPaper.style.height || "";
+    const mw = wStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
+    const mh = hStr.match(/calc\(([\d.]+)\s*\*\s*1mm\)/);
+
+    const paperWmm = mw ? parseFloat(mw[1]) : 210;
+    const paperHmm = mh ? parseFloat(mh[1]) : 297;
+
+    const paperWpx = paperWmm * pxPerMm;
+    const paperHpx = paperHmm * pxPerMm;
+
+    const availW = viewport.clientWidth - 40;
+    const availH = viewport.clientHeight - 40;
+
+    return Math.min(availW / paperWpx, availH / paperHpx);
+  }
+
+  function buildQuery(page){
+    const params = new URLSearchParams();
+    params.set("preview_page", page);
+
+    params.set("stock_type", stockType.value);
+    params.set("orientation", orientation.value);
+    params.set("page_size", pageSize.value);
+    params.set("custom_w", customW.value);
+    params.set("custom_h", customH.value);
+    params.set("labels_per_row", labelsPerRow.value);
+    params.set("gap_x", gapX.value);
+    params.set("gap_y", gapY.value);
+    params.set("m_left", mLeft.value);
+    params.set("m_top", mTop.value);
+    params.set("m_right", mRight.value);
+    params.set("m_bottom", mBottom.value);
+    params.set("off_x", offX.value);
+    params.set("off_y", offY.value);
+
+    return params.toString();
+  }
+
+  function reloadPreview(page=1){
+    const qs = buildQuery(page);
+    window.location.href = `${window.location.pathname}?${qs}`;
+  }
+
+  function showPrintLoader(){
+    const el = document.getElementById("printLoader");
+    if (el) el.style.display = "flex";
+  }
+
+  function hidePrintLoader(){
+    const el = document.getElementById("printLoader");
+    if (el) el.style.display = "none";
+  }
+
+  zoomRange.addEventListener("input", () => setZoom(parseFloat(zoomRange.value || "1")));
+  fitWidthBtn.addEventListener("click", () => setZoom(computeFitWidthScale()));
+  fitPageBtn.addEventListener("click", () => setZoom(computeFitPageScale()));
+  window.addEventListener("resize", () => setZoom(parseFloat(zoomRange.value || "1.2")));
+
   [stockType, orientation, pageSize, customW, customH, labelsPerRow, gapX, gapY, mLeft, mTop, mRight, mBottom, offX, offY]
     .forEach(el => el.addEventListener("change", ()=>{
       updateCustomRow();
-      paginate();
+      applyStockUi();
+      reloadPreview(1);
     }));
 
-  window.addEventListener("resize", fitPreview);
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPreviewPage > 1) reloadPreview(currentPreviewPage - 1);
+    });
+  }
 
-  // init
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener("click", () => {
+      if (currentPreviewPage < totalPages) reloadPreview(currentPreviewPage + 1);
+    });
+  }
+
+  document.getElementById("printBtn").addEventListener("click", ()=>{
+    showPrintLoader();
+
+    const qs = buildQuery(1);
+    const url = "{% url 'label_batch_print_full' workspace.id batch.id %}?" + qs;
+
+    const printWindow = window.open(url, "_blank");
+
+    if (!printWindow) {
+      hidePrintLoader();
+      alert("Popup blocked. Please allow popups for printing.");
+      return;
+    }
+
+    const checkClosed = setInterval(() => {
+      if (printWindow.closed) {
+        clearInterval(checkClosed);
+        hidePrintLoader();
+      }
+    }, 500);
+  });
+
   setDefaults();
   updateCustomRow();
-
-  // disable some controls for roll
-  function applyStockUi(){
-    const isRoll = stockType.value === "ROLL";
-    pageSize.disabled = isRoll;
-    orientation.disabled = isRoll;
-    labelsPerRow.disabled = isRoll;
-    gapX.disabled = isRoll;
-    gapY.disabled = isRoll;
-    customW.disabled = isRoll;
-    customH.disabled = isRoll;
-  }
-  stockType.addEventListener("change", applyStockUi);
   applyStockUi();
-
-  paginate();
+  paginateClient();
 </script>
 {% endblock %}

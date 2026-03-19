@@ -82,6 +82,7 @@ urlpatterns = [
         views.label_batch_print,
         name="label_batch_print",
     ),
+    path("<int:workspace_id>/labels/batch/<int:batch_id>/print/full/", views.label_batch_print_full, name="label_batch_print_full"),
     path(
         "workspaces/<int:workspace_id>/labels/batch/<int:batch_id>/export/",
         views.label_batch_export_csv,

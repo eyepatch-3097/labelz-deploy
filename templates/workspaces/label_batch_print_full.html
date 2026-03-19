@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Print Batch #{{ batch.id }}</title>
+
+  <style>
+    html, body{
+      margin:0;
+      padding:0;
+      background:#fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    #pagesViewport{
+      background:#fff;
+      padding:0;
+      overflow:visible;
+    }
+
+    #pagesWrap{
+      transform:none !important;
+      transform-origin: top left;
+    }
+
+    .paper{
+      background:#fff;
+      position:relative;
+      margin:0;
+      page-break-after: always;
+      break-after: page;
+      box-shadow:none;
+    }
+
+    .grid{
+      position:absolute;
+      display:grid;
+    }
+
+    .label{
+      width: calc(var(--label-w-mm) * 1mm);
+      height: calc(var(--label-h-mm) * 1mm);
+      background: var(--label-bg);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .pl-el{ position:absolute; overflow:hidden; }
+    .pl-txt{
+      width:100%; height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
+      padding:
+        calc(6 * var(--mm-per-px) * 1mm)
+        calc(8 * var(--mm-per-px) * 1mm);
+      gap: calc(4 * var(--mm-per-px) * 1mm);
+      overflow:hidden;
+    }
+    .pl-txt.center{ align-items:center; justify-content:center; font-weight:700; opacity:.65; }
+    .pl-lbl{ opacity:.9; font-size:0.85em; line-height:1.1; }
+    .pl-val{ line-height:1.1; word-break:break-word; }
+
+    .pl-img{ width:100%; height:100%; display:block; }
+    .pl-img.contain{ object-fit:contain; }
+    .pl-img.cover{ object-fit:cover; }
+
+    .pl-shape{ width:100%; height:100%; }
+    .pl-shape-CIRCLE{ border-radius:9999px; }
+    .pl-shape-TRIANGLE{ clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+    .pl-shape-STAR{ clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+    #statusBar{
+      padding:12px 16px;
+      font-size:13px;
+      color:#4b5563;
+      border-bottom:1px solid #e5e7eb;
+    }
+
+    @media print{
+      @page{ margin: 0mm !important; }
+
+      html, body{
+        margin:0 !important;
+        padding:0 !important;
+        background:#fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      #statusBar{
+        display:none !important;
+      }
+
+      #pagesViewport{
+        padding:0 !important;
+        overflow:visible !important;
+      }
+
+      #pagesWrap{
+        transform:none !important;
+      }
+
+      .paper{
+        box-shadow:none !important;
+        margin:0 !important;
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+  </style>
+
+  <style id="pageStyle"></style>
+</head>
+<body>
+  <div id="statusBar">
+    Preparing {{ total_labels }} labels for print preview…
+  </div>
+
+  <div id="pagesViewport">
+    <div id="pagesWrap"></div>
+  </div>
+
+  <div id="allLabels" style="display:none;">
+    {% for L in labels %}
+      <div class="label"
+           data-idx="{{ L.index }}"
+           style="--label-w-mm: {{ label_w_mm }}; --label-h-mm: {{ label_h_mm }}; --label-bg: {{ canvas_bg_color }};">
+        {% include "workspaces/_label_print_label.html" with items=L.items mm_per_px=mm_per_px %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    const PAGE_SIZES = {{ page_sizes_json|safe }};
+    const defaults = {{ defaults|safe }};
+
+    const labelW = {{ label_w_mm|floatformat:4 }};
+    const labelH = {{ label_h_mm|floatformat:4 }};
+    const allLabels = Array.from(document.querySelectorAll("#allLabels .label"));
+
+    const pagesWrap = document.getElementById("pagesWrap");
+    const pageStyle = document.getElementById("pageStyle");
+
+    function getPageWH(){
+      let w, h;
+
+      if ((defaults.stock_type || "SHEET") === "ROLL"){
+        return { w: labelW, h: labelH };
+      }
+
+      const sizeKey = defaults.page_size || "A4";
+
+      if (sizeKey === "CUSTOM"){
+        w = parseFloat(defaults.custom_w_mm || 210);
+        h = parseFloat(defaults.custom_h_mm || 297);
+      } else {
+        w = PAGE_SIZES[sizeKey].w;
+        h = PAGE_SIZES[sizeKey].h;
+      }
+
+      if ((defaults.orientation || "PORTRAIT") === "LANDSCAPE"){
+        return { w: h, h: w };
+      }
+      return { w, h };
+    }
+
+    function updatePageCss(w, h){
+      pageStyle.textContent = `@page{ size: ${w}mm ${h}mm; margin: 0mm; }`;
+    }
+
+    function clearPages(){
+      pagesWrap.innerHTML = "";
+    }
+
+    function paginate(){
+      clearPages();
+
+      const { w: pageW, h: pageH } = getPageWH();
+      updatePageCss(pageW, pageH);
+
+      const isRoll = (defaults.stock_type || "SHEET") === "ROLL";
+      const cols = isRoll ? 1 : Math.max(1, parseInt(defaults.labels_per_row || "1", 10));
+      const gx = isRoll ? 0 : Math.max(0, parseFloat(defaults.gap_x_mm || "0"));
+      const gy = isRoll ? 0 : Math.max(0, parseFloat(defaults.gap_y_mm || "0"));
+
+      const ml = Math.max(0, parseFloat(defaults.margin_left_mm || "0"));
+      const mt = Math.max(0, parseFloat(defaults.margin_top_mm || "0"));
+      const mr = Math.max(0, parseFloat(defaults.margin_right_mm || "0"));
+      const mb = Math.max(0, parseFloat(defaults.margin_bottom_mm || "0"));
+
+      const ox = Math.max(0, parseFloat(defaults.offset_x_mm || "0"));
+      const oy = Math.max(0, parseFloat(defaults.offset_y_mm || "0"));
+
+      const availH = pageH - mt - mb - oy;
+
+      let rows = 1;
+      if (!isRoll){
+        rows = Math.floor((availH + gy) / (labelH + gy));
+        rows = Math.max(1, rows);
+      }
+
+      const perPage = Math.max(1, cols * rows);
+      const pages = Math.ceil(allLabels.length / perPage);
+
+      let idx = 0;
+      for (let p = 0; p < pages; p++){
+        const paper = document.createElement("div");
+        paper.className = "paper";
+        paper.style.width = `calc(${pageW} * 1mm)`;
+        paper.style.height = `calc(${pageH} * 1mm)`;
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        grid.style.left = `calc(${(ml + ox)} * 1mm)`;
+        grid.style.top = `calc(${(mt + oy)} * 1mm)`;
+        grid.style.columnGap = `calc(${gx} * 1mm)`;
+        grid.style.rowGap = `calc(${gy} * 1mm)`;
+        grid.style.gridTemplateColumns = `repeat(${cols}, calc(${labelW} * 1mm))`;
+        grid.style.gridAutoRows = `calc(${labelH} * 1mm)`;
+
+        paper.appendChild(grid);
+        pagesWrap.appendChild(paper);
+
+        for (let j = 0; j < perPage && idx < allLabels.length; j++, idx++){
+          grid.appendChild(allLabels[idx]);
+        }
+      }
+    }
+
+    window.addEventListener("load", () => {
+      paginate();
+      setTimeout(() => {
+        window.print();
+      }, 350);
+    });
+
+    window.addEventListener("afterprint", () => {
+      window.close();
+    });
+  </script>
+</body>
+</html>

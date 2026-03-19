@@ -39,6 +39,220 @@ from workspaces.models import Workspace
 WIZARD_SESSION_KEY = 'workspace_wizard'
 UI_MAX_SIDE_PX = 700.0  # single source of truth
 
+
+def _get_print_settings(request, template):
+    d = template.print_defaults or {}
+
+    stock_type = (request.GET.get("stock_type") or d.get("stock_type") or "SHEET").upper()
+    orientation = (request.GET.get("orientation") or d.get("orientation") or "PORTRAIT").upper()
+    page_size = (request.GET.get("page_size") or d.get("page_size") or "A4").upper()
+
+    def f(name, default):
+        try:
+            return float(request.GET.get(name, default))
+        except Exception:
+            return float(default)
+
+    def i(name, default):
+        try:
+            return int(request.GET.get(name, default))
+        except Exception:
+            return int(default)
+
+    settings = {
+        "stock_type": stock_type,
+        "orientation": orientation,
+        "page_size": page_size,
+        "custom_w_mm": f("custom_w", d.get("custom_w_mm", 210)),
+        "custom_h_mm": f("custom_h", d.get("custom_h_mm", 297)),
+        "labels_per_row": max(1, i("labels_per_row", d.get("labels_per_row", 1))),
+        "gap_x_mm": max(0.0, f("gap_x", d.get("gap_x_mm", 3))),
+        "gap_y_mm": max(0.0, f("gap_y", d.get("gap_y_mm", 3))),
+        "margin_left_mm": max(0.0, f("m_left", d.get("margin_left_mm", 5))),
+        "margin_top_mm": max(0.0, f("m_top", d.get("margin_top_mm", 5))),
+        "margin_right_mm": max(0.0, f("m_right", d.get("margin_right_mm", 5))),
+        "margin_bottom_mm": max(0.0, f("m_bottom", d.get("margin_bottom_mm", 5))),
+        "offset_x_mm": f("off_x", d.get("offset_x_mm", 0)),
+        "offset_y_mm": f("off_y", d.get("off_y", d.get("offset_y_mm", 0))),
+    }
+    return settings
+
+def _get_page_dimensions_mm(settings):
+    page_sizes = {
+        "A4": {"w": 210.0, "h": 297.0},
+        "LETTER": {"w": 215.9, "h": 279.4},
+    }
+
+    if settings["stock_type"] == "ROLL":
+        return None, None
+
+    if settings["page_size"] == "CUSTOM":
+        w = settings["custom_w_mm"]
+        h = settings["custom_h_mm"]
+    else:
+        size = page_sizes.get(settings["page_size"], page_sizes["A4"])
+        w, h = size["w"], size["h"]
+
+    if settings["orientation"] == "LANDSCAPE":
+        w, h = h, w
+
+    return w, h
+
+
+def _compute_preview_layout(settings, label_w_mm, label_h_mm):
+    if settings["stock_type"] == "ROLL":
+        cols = 1
+        rows = 1
+        per_page = 1
+        return {
+            "page_w_mm": label_w_mm,
+            "page_h_mm": label_h_mm,
+            "cols": cols,
+            "rows": rows,
+            "per_page": per_page,
+        }
+
+    page_w, page_h = _get_page_dimensions_mm(settings)
+
+    cols = max(1, int(settings["labels_per_row"]))
+    gx = settings["gap_x_mm"]
+    gy = settings["gap_y_mm"]
+    ml = settings["margin_left_mm"]
+    mt = settings["margin_top_mm"]
+    mr = settings["margin_right_mm"]
+    mb = settings["margin_bottom_mm"]
+    ox = settings["offset_x_mm"]
+    oy = settings["offset_y_mm"]
+
+    avail_w = page_w - ml - mr - ox
+    avail_h = page_h - mt - mb - oy
+
+    rows = math.floor((avail_h + gy) / (label_h_mm + gy))
+    rows = max(1, rows)
+
+    per_page = max(1, cols * rows)
+
+    return {
+        "page_w_mm": page_w,
+        "page_h_mm": page_h,
+        "cols": cols,
+        "rows": rows,
+        "per_page": per_page,
+    }
+
+def _build_batch_label_payload(batch, items_ui, base_items_mm, start_index=None, end_index=None):
+    labels = []
+    is_multi = (batch.mode == LabelBatch.MODE_MULTI)
+
+    barcode_cache = {}
+    qr_cache = {}
+
+    def barcode_img_for(value):
+        if not value:
+            return None
+        if value not in barcode_cache:
+            barcode_cache[value] = make_barcode_png(value)
+        return barcode_cache[value]
+
+    def qr_img_for(value):
+        if not value:
+            return None
+        if value not in qr_cache:
+            qr_cache[value] = make_qr_png(value)
+        return qr_cache[value]
+
+    global_index = 0
+
+    def in_range(idx):
+        if start_index is None and end_index is None:
+            return True
+        return start_index <= idx <= end_index
+
+    if is_multi:
+        rows = list(batch.items.order_by("row_index"))
+
+        for row in rows:
+            row_values = row.field_values or {}
+            base = ((row.ean_code or "").strip()) + ((row.gs1_code or "").strip())
+            row_qty = int(getattr(row, "quantity", 1) or 1)
+            serial_digits = max(3, len(str(row_qty)))
+
+            qr_value = build_qr_payload(row.ean_code, row.gs1_code, row_values, items_ui)
+            qr_img = qr_img_for(qr_value)
+
+            for j in range(1, row_qty + 1):
+                global_index += 1
+                if not in_range(global_index):
+                    continue
+
+                serial = str(j).zfill(serial_digits)
+                barcode_value = f"{base}{serial}" if base else ""
+                barcode_img = barcode_img_for(barcode_value)
+
+                label_items = []
+                for it in base_items_mm:
+                    out = dict(it)
+                    ft = out["field_type"]
+                    key = (out.get("key") or "").strip()
+
+                    if ft == "BARCODE":
+                        out["value"] = barcode_value
+                        out["image_data_url"] = barcode_img
+                    elif ft == "QRCODE":
+                        out["value"] = qr_value
+                        out["image_data_url"] = qr_img
+                    elif ft == "STATIC_TEXT":
+                        out["value"] = out.get("static_value") or out.get("name") or ""
+                    else:
+                        out["value"] = row_values.get(key, "") if key else ""
+
+                    label_items.append(out)
+
+                labels.append({"index": global_index, "serial": serial, "items": label_items})
+
+    else:
+        user_values = batch.field_values or {}
+        base = ((batch.ean_code or "").strip()) + ((batch.gs1_code or "").strip())
+        qty = int(batch.quantity or 1)
+        serial_digits = max(3, len(str(qty)))
+
+        qr_value = build_qr_payload(batch.ean_code, batch.gs1_code, user_values, items_ui)
+        qr_img = qr_img_for(qr_value)
+
+        for i in range(1, qty + 1):
+            global_index += 1
+            if not in_range(global_index):
+                continue
+
+            serial = str(i).zfill(serial_digits)
+            barcode_value = f"{base}{serial}" if base else serial
+            barcode_img = barcode_img_for(barcode_value)
+
+            label_items = []
+            for it in base_items_mm:
+                out = dict(it)
+                ft = out["field_type"]
+                key = (out.get("key") or "").strip()
+
+                if ft == "BARCODE":
+                    out["value"] = barcode_value
+                    out["image_data_url"] = barcode_img
+                elif ft == "QRCODE":
+                    out["value"] = qr_value
+                    out["image_data_url"] = qr_img
+                elif ft == "STATIC_TEXT":
+                    out["value"] = out.get("static_value") or out.get("name") or ""
+                else:
+                    out["value"] = user_values.get(key, "") if key else ""
+
+                label_items.append(out)
+
+            labels.append({"index": global_index, "serial": serial, "items": label_items})
+
+    return labels, global_index
+
+
+
 def input_fields_from_items(items):
     input_fields = []
     for it in items or []:
@@ -2383,47 +2597,34 @@ def label_batch_print(request, workspace_id, batch_id):
     meta = stored.get("_meta") or {}
     items_ui = stored.get("items") or []
 
-    labels_payload = []
-
     width_cm = float(template.width_cm or 10)
     height_cm = float(template.height_cm or 10)
 
     ui_px_per_cm = float(meta.get("ui_px_per_cm") or get_ui_px_per_cm(width_cm, height_cm))
-    mm_per_px = 10.0 / float(ui_px_per_cm or 1.0)  # 1cm = 10mm
+    mm_per_px = 10.0 / float(ui_px_per_cm or 1.0)
 
     label_w_mm = width_cm * 10.0
     label_h_mm = height_cm * 10.0
-
     canvas_bg = (template.canvas_bg_color or "#ffffff").strip() or "#ffffff"
-    user_values = batch.field_values or {}
-
-    base = ((batch.ean_code or "").strip()) + ((batch.gs1_code or "").strip())
-    qty = int(batch.quantity or 1)
-
-    # serial padding: at least 3 digits
-    serial_digits = max(3, len(str(qty)))
 
     def norm_align(v):
         v = (v or "left").lower()
         return v if v in ("left", "center", "right") else "left"
 
-    # Convert one template item to mm-based coords + mm-based font sizing
     def item_to_mm(it):
         ft = (it.get("field_type") or "TEXT").upper()
         out = dict(it)
         out["field_type"] = ft
 
-        # coords in mm
-        out["x_mm"] = (float(out.get("x") or 0) * mm_per_px)
-        out["y_mm"] = (float(out.get("y") or 0) * mm_per_px)
+        out["x_mm"] = float(out.get("x") or 0) * mm_per_px
+        out["y_mm"] = float(out.get("y") or 0) * mm_per_px
         out["w_mm"] = max(0.1, float(out.get("width") or 1) * mm_per_px)
         out["h_mm"] = max(0.1, float(out.get("height") or 1) * mm_per_px)
 
-        # styles
         out["z_index"] = int(out.get("z_index") or 0)
         out["font_family"] = (out.get("font_family") or "Inter").strip() or "Inter"
         fs_px = float(out.get("font_size") or 14)
-        out["font_size_mm"] = max(0.5, fs_px * mm_per_px)  # mm font size
+        out["font_size_mm"] = max(0.5, fs_px * mm_per_px)
         out["font_bold"] = bool(out.get("font_bold"))
         out["font_italic"] = bool(out.get("font_italic"))
         out["font_underline"] = bool(out.get("font_underline"))
@@ -2431,7 +2632,6 @@ def label_batch_print(request, workspace_id, batch_id):
         out["text_color"] = (out.get("text_color") or "#000000").strip() or "#000000"
         out["bg_color"] = (out.get("bg_color") or "transparent").strip() or "transparent"
         out["show_label"] = bool(out.get("show_label", True))
-
         out["shape_type"] = (out.get("shape_type") or "RECT").upper()
         out["shape_color"] = (out.get("shape_color") or "#000000").strip() or "#000000"
 
@@ -2439,118 +2639,31 @@ def label_batch_print(request, workspace_id, batch_id):
 
     base_items_mm = [item_to_mm(it) for it in items_ui]
 
-    canvas_bg = (template.canvas_bg_color or "#ffffff").strip() or "#ffffff"
+    settings = _get_print_settings(request, template)
+    layout_info = _compute_preview_layout(settings, label_w_mm, label_h_mm)
 
-    is_multi = (batch.mode == LabelBatch.MODE_MULTI)
-
-    # Build labels list (each label has its own values + barcode/qr images)
-    labels = []
-
-    if is_multi:
-        rows = list(batch.items.order_by("row_index"))
-        label_index = 0
-        
-        # serial padding: at least 3 digits (based on number of rows)
-        serial_digits = max(3, len(str(qty or 1)))
-
-        for row in rows:
-            row_values = row.field_values or {}
-            base = ((row.ean_code or "").strip()) + ((row.gs1_code or "").strip())
-
-            row_qty = int(getattr(row, "quantity", 1) or 1)
-            serial_digits = max(3, len(str(row_qty)))
-            qr_value = build_qr_payload(row.ean_code, row.gs1_code, row_values, items_ui)
-            qr_img = make_qr_png(qr_value) if qr_value else None
-
-            for j in range(1, row_qty + 1):
-                label_index += 1
-                serial = str(j).zfill(serial_digits)
-
-                barcode_value = f"{base}{serial}" if base else ""
-                
-
-                barcode_img = make_barcode_png(barcode_value) if barcode_value else None
-                
-
-                label_items = []
-                for it in base_items_mm:
-                    out = dict(it)
-                    ft = out["field_type"]
-                    key = (out.get("key") or "").strip()
-
-                    if ft == "BARCODE":
-                        out["value"] = barcode_value
-                        out["image_data_url"] = barcode_img
-                    elif ft == "QRCODE":
-                        out["value"] = qr_value
-                        out["image_data_url"] = qr_img
-                    elif ft == "STATIC_TEXT":
-                        out["value"] = out.get("static_value") or out.get("name") or ""
-                    else:
-                        out["value"] = row_values.get(key, "") if key else ""
-
-                    label_items.append(out)
-
-                labels.append({"index": label_index, "serial": serial, "items": label_items})
-
+    if batch.mode == LabelBatch.MODE_MULTI:
+        total_labels = sum(int(getattr(r, "quantity", 1) or 1) for r in batch.items.all())
     else:
-        user_values = batch.field_values or {}
-        base = ((batch.ean_code or "").strip()) + ((batch.gs1_code or "").strip())
-        qty = int(batch.quantity or 1)
+        total_labels = int(batch.quantity or 1)
 
-        # serial padding: at least 3 digits
-        serial_digits = max(3, len(str(qty)))
+    total_labels = max(1, total_labels)
 
-        qr_value = build_qr_payload(batch.ean_code, batch.gs1_code, user_values, items_ui)
-        qr_img = make_qr_png(qr_value) if qr_value else None
+    preview_page = max(1, int(request.GET.get("preview_page", 1) or 1))
+    per_page = max(1, int(layout_info["per_page"] or 1))
+    total_pages = max(1, math.ceil(total_labels / per_page))
+    preview_page = min(preview_page, total_pages)
 
-        for i in range(1, qty + 1):
-            serial = str(i).zfill(serial_digits)
+    start_index = ((preview_page - 1) * per_page) + 1
+    end_index = min(total_labels, preview_page * per_page)
 
-            # In SINGLE flow EAN is mandatory, so base should exist, but keep fallback safe
-            barcode_value = f"{base}{serial}" if base else serial
-            barcode_img = make_barcode_png(barcode_value) if barcode_value else None
-            
-
-            label_items = []
-            for it in base_items_mm:
-                out = dict(it)
-                ft = out["field_type"]
-                key = (out.get("key") or "").strip()
-
-                if ft == "BARCODE":
-                    out["value"] = barcode_value
-                    out["image_data_url"] = barcode_img
-                elif ft == "QRCODE":
-                    out["value"] = qr_value
-                    out["image_data_url"] = qr_img
-                elif ft == "STATIC_TEXT":
-                    out["value"] = out.get("static_value") or out.get("name") or ""
-                else:
-                    out["value"] = user_values.get(key, "") if key else ""
-
-                label_items.append(out)
-
-            labels.append({"index": i, "serial": serial, "items": label_items})
-
-    # Print defaults (optional)
-    d = template.print_defaults or {}
-    defaults = {
-        "stock_type": d.get("stock_type", "SHEET"),  # SHEET or ROLL
-        "page_size": d.get("page_size", "A4"),       # A4, LETTER, CUSTOM
-        "orientation": d.get("orientation", "PORTRAIT"),
-        "custom_w_mm": float(d.get("custom_w_mm", 210)),
-        "custom_h_mm": float(d.get("custom_h_mm", 297)),
-        "labels_per_row": int(d.get("labels_per_row", 2)),
-        "gap_x_mm": float(d.get("gap_x_mm", 3)),
-        "gap_y_mm": float(d.get("gap_y_mm", 3)),
-        "margin_left_mm": float(d.get("margin_left_mm", 5)),
-        "margin_top_mm": float(d.get("margin_top_mm", 5)),
-        "margin_right_mm": float(d.get("margin_right_mm", 5)),
-        "margin_bottom_mm": float(d.get("margin_bottom_mm", 5)),
-        "offset_x_mm": float(d.get("offset_x_mm", 0)),
-        "offset_y_mm": float(d.get("offset_y_mm", 0)),
-    }
+    labels, _ = _build_batch_label_payload(
+        batch=batch,
+        items_ui=items_ui,
+        base_items_mm=base_items_mm,
+        start_index=start_index,
+        end_index=end_index,
+    )
 
     page_sizes = {
         "A4": {"w": 210.0, "h": 297.0},
@@ -2564,16 +2677,128 @@ def label_batch_print(request, workspace_id, batch_id):
             "workspace": workspace,
             "template": template,
             "batch": batch,
-
             "canvas_bg_color": canvas_bg,
-
             "label_w_mm": label_w_mm,
             "label_h_mm": label_h_mm,
             "mm_per_px": mm_per_px,
-
             "labels": labels,
-            "defaults": defaults,
+            "defaults": settings,
             "page_sizes_json": mark_safe(json.dumps(page_sizes)),
+
+            # preview pagination
+            "preview_page": preview_page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "total_labels": total_labels,
+            "page_label_count": len(labels),
+            "start_index": start_index,
+            "end_index": end_index,
+
+            # computed layout for current settings
+            "page_w_mm": layout_info["page_w_mm"],
+            "page_h_mm": layout_info["page_h_mm"],
+            "grid_cols": layout_info["cols"],
+            "grid_rows": layout_info["rows"],
+        },
+    )
+
+@login_required
+def label_batch_print_full(request, workspace_id, batch_id):
+    user = request.user
+    workspace = get_object_or_404(Workspace, id=workspace_id)
+    org = workspace.org
+
+    if not user.org or user.org != org:
+        messages.error(request, "You are not linked to this organisation.")
+        return redirect("dashboard")
+
+    batch = get_object_or_404(LabelBatch, id=batch_id, workspace=workspace)
+    template = batch.template
+
+    stored = load_layout_from_template(template)
+    meta = stored.get("_meta") or {}
+    items_ui = stored.get("items") or []
+
+    width_cm = float(template.width_cm or 10)
+    height_cm = float(template.height_cm or 10)
+
+    ui_px_per_cm = float(meta.get("ui_px_per_cm") or get_ui_px_per_cm(width_cm, height_cm))
+    mm_per_px = 10.0 / float(ui_px_per_cm or 1.0)
+
+    label_w_mm = width_cm * 10.0
+    label_h_mm = height_cm * 10.0
+    canvas_bg = (template.canvas_bg_color or "#ffffff").strip() or "#ffffff"
+
+    def norm_align(v):
+        v = (v or "left").lower()
+        return v if v in ("left", "center", "right") else "left"
+
+    def item_to_mm(it):
+        ft = (it.get("field_type") or "TEXT").upper()
+        out = dict(it)
+        out["field_type"] = ft
+
+        out["x_mm"] = float(out.get("x") or 0) * mm_per_px
+        out["y_mm"] = float(out.get("y") or 0) * mm_per_px
+        out["w_mm"] = max(0.1, float(out.get("width") or 1) * mm_per_px)
+        out["h_mm"] = max(0.1, float(out.get("height") or 1) * mm_per_px)
+
+        out["z_index"] = int(out.get("z_index") or 0)
+        out["font_family"] = (out.get("font_family") or "Inter").strip() or "Inter"
+        fs_px = float(out.get("font_size") or 14)
+        out["font_size_mm"] = max(0.5, fs_px * mm_per_px)
+        out["font_bold"] = bool(out.get("font_bold"))
+        out["font_italic"] = bool(out.get("font_italic"))
+        out["font_underline"] = bool(out.get("font_underline"))
+        out["text_align"] = norm_align(out.get("text_align"))
+        out["text_color"] = (out.get("text_color") or "#000000").strip() or "#000000"
+        out["bg_color"] = (out.get("bg_color") or "transparent").strip() or "transparent"
+        out["show_label"] = bool(out.get("show_label", True))
+        out["shape_type"] = (out.get("shape_type") or "RECT").upper()
+        out["shape_color"] = (out.get("shape_color") or "#000000").strip() or "#000000"
+
+        return out
+
+    base_items_mm = [item_to_mm(it) for it in items_ui]
+    settings = _get_print_settings(request, template)
+    layout_info = _compute_preview_layout(settings, label_w_mm, label_h_mm)
+
+    labels, total_labels = _build_batch_label_payload(
+        batch=batch,
+        items_ui=items_ui,
+        base_items_mm=base_items_mm,
+        start_index=None,
+        end_index=None,
+    )
+
+    page_sizes = {
+        "A4": {"w": 210.0, "h": 297.0},
+        "LETTER": {"w": 215.9, "h": 279.4},
+    }
+
+    return render(
+        request,
+        "workspaces/label_batch_print_full.html",
+        {
+            "workspace": workspace,
+            "template": template,
+            "batch": batch,
+            "canvas_bg_color": canvas_bg,
+            "label_w_mm": label_w_mm,
+            "label_h_mm": label_h_mm,
+            "mm_per_px": mm_per_px,
+            "labels": labels,
+            "defaults": settings,
+            "page_sizes_json": mark_safe(json.dumps(page_sizes)),
+            "total_labels": total_labels,
+
+            # computed layout for current settings
+            "page_w_mm": layout_info["page_w_mm"],
+            "page_h_mm": layout_info["page_h_mm"],
+            "grid_cols": layout_info["cols"],
+            "grid_rows": layout_info["rows"],
+
+            "auto_print": True,
         },
     )
 
