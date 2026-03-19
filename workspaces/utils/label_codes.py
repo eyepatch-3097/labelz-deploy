@@ -6,7 +6,7 @@ from io import BytesIO
 import barcode
 from barcode.writer import ImageWriter
 import qrcode
-from qrcode.constants import ERROR_CORRECT_H
+from qrcode.constants import ERROR_CORRECT_M
 
 
 def make_barcode_png(data: str) -> str:
