@@ -23,6 +23,18 @@
         --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    /* --- Background Particles Canvas --- */
+    #bg-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        pointer-events: none;
+        background: radial-gradient(circle at 50% 50%, #111115 0%, #0a0a0c 100%);
+    }
+
     /* --- Keyframe Animations --- */
     @keyframes icon-float {
         0%, 100% { transform: translateY(0); }
@@ -37,6 +49,7 @@
     .dashboard-container {
         max-width: 1400px;
         margin: 0 auto;
+        position: relative;
     }
 
     /* --- Header Section --- */
@@ -78,6 +91,7 @@
         align-items: center;
         gap: 16px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px);
     }
 
     .filter-group {
@@ -135,6 +149,7 @@
         transition: all 0.4s var(--ease-out);
         position: relative;
         overflow: hidden;
+        backdrop-filter: blur(5px);
     }
 
     .qa-card::after {
@@ -203,6 +218,7 @@
         position: relative;
         overflow: hidden;
         transition: all 0.4s var(--ease-out);
+        backdrop-filter: blur(5px);
     }
 
     .kpi-card:hover {
@@ -260,6 +276,7 @@
         border-radius: var(--radius-card);
         padding: 30px;
         height: 100%;
+        backdrop-filter: blur(5px);
     }
 
     .card-header-flex {
@@ -347,6 +364,7 @@
         align-items: center;
         gap: 16px;
         margin-bottom: 30px;
+        backdrop-filter: blur(10px);
     }
 
     @media (max-width: 992px) {
@@ -354,6 +372,9 @@
         .filter-bar { width: 100%; border-radius: 24px; flex-wrap: wrap; }
     }
 </style>
+
+<!-- Particle Animation Canvas -->
+<canvas id="bg-particles"></canvas>
 
 <div class="dashboard-container">
     
@@ -550,6 +571,63 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Background Particle Logic
+                const canvas = document.getElementById('bg-particles');
+                const ctx = canvas.getContext('2d');
+                let particles = [];
+                const particleCount = 40;
+
+                function resize() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+
+                window.addEventListener('resize', resize);
+                resize();
+
+                class Particle {
+                    constructor() {
+                        this.init();
+                    }
+                    init() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 1.5 + 0.5;
+                        this.speedX = (Math.random() - 0.5) * 0.2;
+                        this.speedY = (Math.random() - 0.5) * 0.2;
+                        this.color = Math.random() > 0.5 ? '#a769ed' : '#3b82f6';
+                        this.opacity = Math.random() * 0.3 + 0.1;
+                    }
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+                        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                            this.init();
+                        }
+                    }
+                    draw() {
+                        ctx.globalAlpha = this.opacity;
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+
+                function animateParticles() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => {
+                        p.update();
+                        p.draw();
+                    });
+                    requestAnimationFrame(animateParticles);
+                }
+                animateParticles();
+
                 // Initialize Tooltips
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
                 var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -572,12 +650,12 @@
                 const el = document.getElementById("labelsChart");
                 
                 if (el && labels.length > 0) {
-                    const ctx = el.getContext('2d');
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    const ctxChart = el.getContext('2d');
+                    const gradient = ctxChart.createLinearGradient(0, 0, 0, 400);
                     gradient.addColorStop(0, 'rgba(167, 105, 237, 0.25)');
                     gradient.addColorStop(1, 'rgba(167, 105, 237, 0)');
 
-                    new Chart(ctx, {
+                    new Chart(ctxChart, {
                         type: "line",
                         data: {
                             labels: labels,
