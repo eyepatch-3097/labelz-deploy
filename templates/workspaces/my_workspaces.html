@@ -26,90 +26,204 @@
     .workspace-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 24px;
+        gap: 30px 24px; /* Extra vertical gap for folder tabs */
+        padding-top: 10px;
     }
 
-    /* Workspace Card */
+    /* --- FOLDER CARD DESIGN --- */
+    .folder-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s var(--ease-elastic);
+    }
+
+    /* The Folder Tab */
+    .folder-tab {
+        align-self: flex-start;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-bottom: none;
+        padding: 8px 20px;
+        border-radius: 16px 16px 0 0;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--color-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 2;
+        transition: all 0.4s var(--ease-elastic);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: -1px; /* Connect seamlessly to the card below */
+    }
+
+    /* Workspace Card (Body of the folder) */
     .workspace-card {
         background: var(--color-surface);
         border: 1px solid var(--color-border);
-        border-radius: var(--radius-card);
+        border-radius: 0 24px 24px 24px; /* Square top-left to connect with tab */
         padding: 24px;
-        transition: all 0.3s var(--ease-elastic);
         display: flex;
         flex-direction: column;
         height: 100%;
         position: relative;
-        overflow: hidden;
+        z-index: 1;
+        transition: all 0.4s var(--ease-elastic);
     }
 
-    .workspace-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--color-primary);
-        box-shadow: var(--shadow-glow);
+    /* Vibrant Multicolor Gradient Border (Hidden by default) */
+    .workspace-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 0 24px 24px 24px;
+        padding: 2px;
+        background: linear-gradient(135deg, #FF007A, #A769ED, #00F0FF); /* Ultra vibrant gradient */
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-elastic);
+        pointer-events: none;
+        z-index: 5;
     }
 
+    /* --- HOVER STATES --- */
+    .folder-wrapper:hover {
+        transform: translateY(-8px);
+    }
+
+    .folder-wrapper:hover .folder-tab {
+        background: #1a1a1a;
+        color: #fff;
+        border-color: #FF007A; /* Glows pink to match the gradient start */
+        box-shadow: 0 -4px 15px rgba(255, 0, 122, 0.3);
+    }
+
+    .folder-wrapper:hover .workspace-card {
+        background: #1a1a1a;
+        border-color: transparent;
+        /* Massive vibrant multicolor drop shadow */
+        box-shadow: 
+            -15px 10px 40px rgba(255, 0, 122, 0.25),   /* Vibrant Pink */
+            0 15px 40px rgba(167, 105, 237, 0.25),     /* Purple */
+            15px 10px 40px rgba(0, 240, 255, 0.25);    /* Cyan */
+    }
+    
+    .folder-wrapper:hover .workspace-card::before {
+        opacity: 1;
+    }
+
+    /* Card Content */
     .ws-header {
         margin-bottom: 12px;
     }
 
     .ws-name {
-        font-size: 1.25rem;
-        font-weight: 700;
+        font-size: 1.3rem;
+        font-weight: 800;
         color: #fff;
         text-decoration: none;
         transition: color 0.2s;
         display: block;
         margin-bottom: 4px;
+        position: relative;
+        z-index: 2;
     }
-    .ws-name:hover { color: var(--color-primary); }
+    .folder-wrapper:hover .ws-name { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
     .ws-desc {
         color: var(--color-muted);
         font-size: 0.9rem;
         line-height: 1.5;
         margin-bottom: 16px;
-        flex-grow: 1; /* Pushes footer down */
+        flex-grow: 1;
+        position: relative;
+        z-index: 2;
     }
 
     .ws-meta {
         font-size: 0.8rem;
-        color: #666;
+        color: #888;
         margin-bottom: 20px;
         font-family: monospace;
-        background: rgba(255,255,255,0.03);
-        padding: 8px;
+        background: rgba(0,0,0,0.3);
+        padding: 10px;
         border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+        position: relative;
+        z-index: 2;
     }
 
     /* Action Buttons Row */
     .ws-actions {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        gap: 10px;
-        border-top: 1px solid var(--color-border);
+        gap: 12px;
+        border-top: 1px solid rgba(255,255,255,0.1);
         padding-top: 16px;
         margin-top: auto;
+        position: relative;
+        z-index: 6; /* Sit above the gradient border */
     }
 
     .action-btn {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid transparent;
-        color: var(--color-text);
         border-radius: 12px;
-        height: 44px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        transition: all 0.2s;
-        font-size: 1.1rem;
+        transition: all 0.3s var(--ease-elastic);
+        font-size: 1.2rem;
     }
 
-    /* Specific Action Colors */
-    .btn-design:hover { background: rgba(167, 105, 237, 0.2); color: var(--color-primary); border-color: var(--color-primary); }
-    .btn-generate:hover { background: rgba(255, 125, 0, 0.2); color: var(--color-accent-orange); border-color: var(--color-accent-orange); }
-    .btn-history:hover { background: rgba(194, 224, 255, 0.2); color: var(--color-accent-blue); border-color: var(--color-accent-blue); }
+    /* Distinct, Vibrant Action Colors */
+    
+    /* 1. Design (Pink/Purple) */
+    .btn-design {
+        background: rgba(255, 0, 122, 0.15);
+        color: #FF66B2;
+        border: 1px solid rgba(255, 0, 122, 0.3);
+    }
+    .btn-design:hover { 
+        background: #FF007A; 
+        color: #fff; 
+        box-shadow: 0 0 20px #FF007A;
+        border-color: #FF007A;
+        transform: translateY(-3px);
+    }
+
+    /* 2. Generate (Orange) */
+    .btn-generate {
+        background: rgba(255, 125, 0, 0.15);
+        color: #FFB366;
+        border: 1px solid rgba(255, 125, 0, 0.3);
+    }
+    .btn-generate:hover { 
+        background: #FF7D00; 
+        color: #fff; 
+        box-shadow: 0 0 20px #FF7D00;
+        border-color: #FF7D00;
+        transform: translateY(-3px);
+    }
+
+    /* 3. History (Cyan) */
+    .btn-history {
+        background: rgba(0, 240, 255, 0.15);
+        color: #80FAFF;
+        border: 1px solid rgba(0, 240, 255, 0.3);
+    }
+    .btn-history:hover { 
+        background: #00F0FF; 
+        color: #000; 
+        box-shadow: 0 0 20px #00F0FF;
+        border-color: #00F0FF;
+        transform: translateY(-3px);
+    }
 
     /* Empty State */
     .empty-state {
@@ -144,33 +258,38 @@
     {% if workspaces %}
         <div class="workspace-grid">
             {% for ws in workspaces %}
-            <div class="workspace-card">
-                <div class="ws-header">
-                    <a href="{% url 'my_workspaces' %}" class="ws-name">{{ ws.name }}</a>
+            <div class="folder-wrapper">
+                <div class="folder-tab">
+                    <i class="fa-regular fa-folder-open"></i> Workspace
                 </div>
-                
-                <div class="ws-desc">
-                    {{ ws.description|default:"No description provided."|truncatechars:100 }}
-                </div>
+                <div class="workspace-card">
+                    <div class="ws-header">
+                        <a href="{% url 'my_workspace_detail' ws.id %}" class="ws-name">{{ ws.name }}</a>
+                    </div>
+                    
+                    <div class="ws-desc">
+                        {{ ws.description|default:"No description provided."|truncatechars:100 }}
+                    </div>
 
-                <div class="ws-meta">
-                    <i class="fa-solid fa-fingerprint me-1"></i> ID: {{ ws.workspace_code }}<br>
-                    <i class="fa-regular fa-calendar me-1"></i> {{ ws.created_at|date:"M d, Y" }}
-                </div>
+                    <div class="ws-meta">
+                        <i class="fa-solid fa-fingerprint me-1"></i> ID: {{ ws.workspace_code }}<br>
+                        <i class="fa-regular fa-calendar me-1"></i> {{ ws.created_at|date:"M d, Y" }}
+                    </div>
 
-                <div class="ws-actions">
-                    <a href="{% url 'label_template_list' ws.id %}" class="action-btn btn-design" 
-                       data-bs-toggle="tooltip" data-bs-placement="top" title="Design Labels">
-                        <i class="fa-solid fa-pen-ruler"></i>
-                    </a>
-                    <a href="{% url 'label_generate_start' ws.id %}" class="action-btn btn-generate"
-                       data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Labels">
-                        <i class="fa-solid fa-print"></i>
-                    </a>
-                    <a href="{% url 'label_batch_history' ws.id %}" class="action-btn btn-history"
-                       data-bs-toggle="tooltip" data-bs-placement="top" title="Label History">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </a>
+                    <div class="ws-actions">
+                        <a href="{% url 'label_template_list' ws.id %}" class="action-btn btn-design" 
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="Design Labels">
+                            <i class="fa-solid fa-pen-ruler"></i>
+                        </a>
+                        <a href="{% url 'label_generate_start' ws.id %}" class="action-btn btn-generate"
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Labels">
+                            <i class="fa-solid fa-print"></i>
+                        </a>
+                        <a href="{% url 'label_batch_history' ws.id %}" class="action-btn btn-history"
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="Label History">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endfor %}

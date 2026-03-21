@@ -173,7 +173,8 @@ LOGOUT_REDIRECT_URL = 'login'
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False  # Set to True in production
+SESSION_COOKIE_SECURE = False  # Set to True in production
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

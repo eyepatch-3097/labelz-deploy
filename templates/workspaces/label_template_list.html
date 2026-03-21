@@ -28,7 +28,7 @@
         border: 1px solid var(--color-border);
         border-radius: var(--radius-card);
         padding: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
     }
     
     .form-label {
@@ -55,115 +55,182 @@
         outline: none;
     }
 
-    /* Template Grid */
+    /* --- VIBRANT 3D TEMPLATE GRID --- */
     .template-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 30px;
     }
 
-    /* Template Card */
+    /* Base Card Style (Uniform Dark Theme) */
     .template-card {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-card);
-        padding: 24px;
-        transition: all 0.3s var(--ease-elastic);
+        border-radius: 24px;
+        padding: 32px;
+        min-height: 280px;
         display: flex;
         flex-direction: column;
-        height: 100%;
+        justify-content: space-between;
         position: relative;
-    }
-
-    .template-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--color-primary);
-        box-shadow: var(--shadow-glow);
+        overflow: hidden;
+        color: #fff;
+        text-decoration: none;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        z-index: 1;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        
+        /* Unified Dark Theme */
+        background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);
     }
     
-    /* Base Template Highlight */
-    .template-card.is-base {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 15px rgba(167, 105, 237, 0.1);
+    /* Glowing Hover State */
+    .template-card:hover {
+        transform: translateY(-8px);
+        filter: brightness(1.1);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.3);
     }
 
-    .tpl-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
+    /* --- 3D BACKGROUND ICON GENERATOR --- */
+    .tpl-bg-image {
+        position: absolute;
+        right: -30px;
+        bottom: -30px;
+        font-size: 12rem;
+        color: #fff;
+        opacity: 0.1;
+        pointer-events: none;
+        z-index: 1;
+        transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        transform: rotate(-15deg);
+    }
+    
+    .template-card:hover .tpl-bg-image {
+        transform: rotate(0deg) scale(1.1) translate(-10px, -10px);
+        opacity: 0.25;
+        /* Simulates 3D rendering pop */
+        text-shadow: 
+            3px 3px 0px rgba(0,0,0,0.2),
+            15px 15px 30px rgba(0,0,0,0.4),
+            -2px -2px 0px rgba(255,255,255,0.1);
+    }
+
+    /* Icon mapping based on exact category value */
+    .template-card .tpl-bg-image::before { content: "\f02b"; font-family: "Font Awesome 6 Free"; font-weight: 900; } /* Default: tag */
+    .template-card[data-category="APPAREL"] .tpl-bg-image::before { content: "\f553"; } 
+    .template-card[data-category="FOOTWEAR"] .tpl-bg-image::before { content: "\f54b"; } 
+    .template-card[data-category="CANDLES"] .tpl-bg-image::before { content: "\f4df"; } 
+    .template-card[data-category="IDOLS"] .tpl-bg-image::before { content: "\f66f"; } 
+    .template-card[data-category="HOME_DECOR"] .tpl-bg-image::before { content: "\f4b8"; } 
+    .template-card[data-category="HOME_FURNISHING"] .tpl-bg-image::before { content: "\f236"; } 
+    .template-card[data-category="FMCG"] .tpl-bg-image::before { content: "\f2e7"; } 
+    .template-card[data-category="ELECTRONICS"] .tpl-bg-image::before { content: "\f390"; } 
+    .template-card[data-category="JEWELLERY"] .tpl-bg-image::before { content: "\f3a5"; } 
+    .template-card[data-category="BEAUTY"] .tpl-bg-image::before { content: "\f5d0"; } 
+    .template-card[data-category="EQUIPMENTS"] .tpl-bg-image::before { content: "\f0ad"; } 
+    .template-card[data-category="SUPPLIES"] .tpl-bg-image::before { content: "\f466"; } 
+
+    /* --- TYPOGRAPHY INSIDE CARD --- */
+    .tpl-content {
+        position: relative;
+        z-index: 2;
+        max-width: 80%;
+    }
+
+    .badge-base {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 800;
+        background: #fff;
+        color: #000;
+        padding: 6px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     .tpl-name {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 4px;
-    }
-
-    .tpl-badge {
-        font-size: 0.7rem;
+        font-size: 2rem;
         font-weight: 800;
-        text-transform: uppercase;
-        padding: 4px 8px;
-        border-radius: 6px;
-        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        line-height: 1.1;
     }
-    .badge-base { background: rgba(167, 105, 237, 0.2); color: var(--color-primary); border: 1px solid rgba(167, 105, 237, 0.3); }
-    .badge-cat { background: rgba(255,255,255,0.05); color: var(--color-muted); border: 1px solid var(--color-border); }
 
-    .tpl-desc {
-        color: var(--color-muted);
-        font-size: 0.9rem;
-        line-height: 1.5;
+    .tpl-category-label {
+        font-size: 1rem;
+        opacity: 0.8;
+        font-weight: 600;
         margin-bottom: 16px;
-        flex-grow: 1;
     }
 
     .tpl-meta {
-        font-size: 0.8rem;
-        color: #888;
-        margin-bottom: 20px;
-        font-family: monospace;
-        background: rgba(0,0,0,0.3);
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid var(--color-border);
-    }
-
-    /* Action Buttons */
-    .tpl-actions {
+        font-size: 1rem;
+        font-weight: 700;
+        opacity: 0.9;
         display: flex;
-        gap: 10px;
-        border-top: 1px solid var(--color-border);
-        padding-top: 16px;
-        margin-top: auto;
-    }
-
-    .action-btn {
-        flex: 1;
-        padding: 8px 0;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.2s;
-        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        border: 1px solid transparent;
+        gap: 10px;
+        margin-top: 16px;
+    }
+    
+    /* --- CSS ORIENTATION ICONS --- */
+    .orientation-icon {
+        border: 2.5px solid currentColor;
+        border-radius: 6px;
+        display: inline-block;
+        opacity: 0.9;
+    }
+    .orientation-icon.landscape { width: 28px; height: 18px; }
+    .orientation-icon.portrait { width: 18px; height: 28px; }
+    .orientation-icon.square { width: 22px; height: 22px; }
+
+    /* --- BORDERED ACTION BUTTONS --- */
+    .tpl-actions {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
     }
 
-    .btn-edit { background: rgba(167, 105, 237, 0.1); color: var(--color-primary); border-color: rgba(167, 105, 237, 0.2); }
-    .btn-edit:hover { background: rgba(167, 105, 237, 0.25); color: #fff; }
-
-    .btn-duplicate { background: rgba(255,255,255,0.05); color: var(--color-text); border-color: var(--color-border); }
-    .btn-duplicate:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
-
-    .btn-delete { background: transparent; color: #ff5555; border: 1px solid rgba(255, 85, 85, 0.2); }
-    .btn-delete:hover { background: rgba(255, 85, 85, 0.1); color: #ff7777; border-color: #ff5555; }
+    .action-link {
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 30px;
+        cursor: pointer;
+    }
+    
+    .action-link:hover {
+        background: rgba(255,255,255,0.15);
+        border-color: #fff;
+        transform: translateY(-2px);
+    }
+    
+    .action-link.delete {
+        border-color: rgba(255, 85, 85, 0.3);
+        color: #ffb3b3;
+    }
+    
+    .action-link.delete:hover {
+        background: rgba(255, 85, 85, 0.2);
+        border-color: #ff5555;
+        color: #fff;
+    }
 
     /* Recommended Section */
     .rec-section {
@@ -199,6 +266,8 @@
     .table-dark-custom tr td:last-child { border-right: 1px solid var(--color-border); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
     
     .table-dark-custom tr:hover td { background: var(--color-surface-light); }
+    
+    .badge-cat { background: rgba(255,255,255,0.05); color: var(--color-muted); border: 1px solid var(--color-border); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; }
 
 </style>
 
@@ -213,8 +282,8 @@
             </p>
         </div>
         <div class="d-flex gap-3">
-            <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-ghost">
-                <i class="fa-solid fa-arrow-left me-2"></i> Back to Workspaces
+            <a href="{% url 'my_workspace_detail' workspace.id %}" class="btn btn-custom btn-ghost">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back to Workspace
             </a>
         </div>
     </div>
@@ -255,39 +324,46 @@
     {% if templates %}
         <div class="template-grid">
             {% for tpl in templates %}
-                <div class="template-card {% if tpl.is_base %}is-base{% endif %}">
-                    <div class="tpl-header">
-                        <div>
-                            <div class="tpl-name">{{ tpl.name }}</div>
-                            {% if tpl.is_base %}
-                                <span class="tpl-badge badge-base">BASE TEMPLATE</span>
+                <!-- Data-category applies theme color & bg icon -->
+                <div class="template-card" data-category="{{ tpl.category|default:'default' }}">
+                    <div class="tpl-bg-image"></div>
+                    
+                    <div class="tpl-content">
+                        {% if tpl.is_base %}
+                            <span class="badge-base">BASE TEMPLATE</span>
+                        {% endif %}
+                        <h3 class="tpl-name">{{ tpl.name }}</h3>
+                        
+                        <div class="tpl-category-label">{{ tpl.get_category_display|default:"General" }}</div>
+
+                        <div class="tpl-meta">
+                            <!-- CSS Orientation Icon Logic -->
+                            {% if tpl.width_cm > tpl.height_cm %}
+                                <div class="orientation-icon landscape" title="Landscape"></div>
+                            {% elif tpl.width_cm < tpl.height_cm %}
+                                <div class="orientation-icon portrait" title="Portrait"></div>
+                            {% else %}
+                                <div class="orientation-icon square" title="Square"></div>
                             {% endif %}
+                            
+                            <span>{{ tpl.width_cm }} × {{ tpl.height_cm }} cm</span>
+                            <span style="opacity:0.5; margin: 0 4px;">|</span>
+                            <span>{{ tpl.dpi }} DPI</span>
                         </div>
-                        <span class="tpl-badge badge-cat">{{ tpl.get_category_display }}</span>
-                    </div>
-
-                    <div class="tpl-desc">
-                        {{ tpl.description|default:"No description provided."|truncatechars:80 }}
-                    </div>
-
-                    <div class="tpl-meta">
-                        <div><i class="fa-solid fa-ruler-combined me-2"></i> {{ tpl.width_cm }} × {{ tpl.height_cm }} cm</div>
-                        <div style="margin-top:4px;"><i class="fa-solid fa-expand me-2"></i> {{ tpl.dpi }} DPI</div>
-                        <div style="margin-top:4px; opacity:0.7;">ID: {{ tpl.template_code }}</div>
                     </div>
 
                     <div class="tpl-actions">
-                        <a href="{% url 'label_template_edit' tpl.id %}" class="action-btn btn-edit">
-                            <i class="fa-solid fa-pen"></i> Edit
+                        <a href="{% url 'label_template_edit' tpl.id %}" class="action-link">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Edit
                         </a>
-                        <a href="{% url 'label_template_duplicate' tpl.id %}" class="action-btn btn-duplicate">
+                        <a href="{% url 'label_template_duplicate' tpl.id %}" class="action-link" title="Copy">
                             <i class="fa-regular fa-copy"></i> Copy
                         </a>
                         {% if not tpl.is_base %}
-                            <form method="post" action="{% url 'label_template_delete' tpl.id %}" style="flex:1; display:flex;">
+                            <form method="post" action="{% url 'label_template_delete' tpl.id %}" class="m-0 p-0 d-flex">
                                 {% csrf_token %}
-                                <button type="submit" class="action-btn btn-delete w-100" onclick="return confirm('Delete this template? This cannot be undone.');">
-                                    <i class="fa-solid fa-trash"></i>
+                                <button type="submit" class="action-link delete" title="Delete" onclick="return confirm('Delete this template? This cannot be undone.');">
+                                    <i class="fa-solid fa-trash"></i> Delete
                                 </button>
                             </form>
                         {% endif %}
@@ -326,7 +402,7 @@
                             <tr>
                                 <td class="fw-bold text-white">{{ gt.name }}</td>
                                 <td class="text-muted">{{ gt.description|default:"—"|truncatechars:60 }}</td>
-                                <td><span class="tpl-badge badge-cat">{{ gt.get_category_display }}</span></td>
+                                <td><span class="badge-cat">{{ gt.get_category_display }}</span></td>
                                 <td class="text-muted small">
                                     {% if gt.created_by %}
                                         <i class="fa-regular fa-user me-1"></i> {{ gt.created_by.email|truncatechars:20 }}
