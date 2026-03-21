@@ -6,6 +6,13 @@
 <style>
     /* --- LABEL GENERATION START STYLES --- */
     
+    .split-layout {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 40px;
+        align-items: start;
+    }
+
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -23,8 +30,8 @@
         line-height: 1.1;
     }
 
-    /* Selection Card Container */
-    .selection-card {
+    /* Form Card Container (Left) */
+    .form-card {
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-card);
@@ -82,6 +89,7 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
+        height: 100%;
     }
     
     .mode-option:hover {
@@ -139,14 +147,160 @@
         border-top: 1px solid var(--color-border);
     }
 
+    /* --- INFO CARD & NEW ANIMATIONS (RIGHT SIDE) --- */
+    .info-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(167, 105, 237, 0.05) 100%);
+        border: 1px solid rgba(167, 105, 237, 0.1);
+        border-radius: var(--radius-card);
+        padding: 40px 30px;
+        position: sticky;
+        top: 120px;
+    }
+
+    .info-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 30px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .scenario-box {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .scenario-title {
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+
+    .scenario-box.single .scenario-title {
+        color: var(--color-primary);
+        background: rgba(167, 105, 237, 0.1);
+        border: 1px solid rgba(167, 105, 237, 0.2);
+    }
+
+    .scenario-box.bulk .scenario-title {
+        color: var(--color-accent-orange);
+        background: rgba(255, 125, 0, 0.1);
+        border: 1px solid rgba(255, 125, 0, 0.2);
+    }
+
+    /* --- V2 SVG BRANCHING ANIMATION --- */
+    .scenario-anim-v2 {
+        display: flex;
+        align-items: stretch;
+        height: 120px;
+        padding: 0 0 10px 0;
+        position: relative;
+    }
+    
+    .sa-col {
+        display: flex;
+        flex-direction: column;
+        z-index: 2;
+    }
+    .sa-col.justify-content-center { justify-content: center; }
+    .sa-col.justify-content-between { justify-content: space-between; }
+
+    .anim-icon-wrap {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff;
+        transition: all 0.3s;
+    }
+    .anim-icon-wrap:not(.sm) {
+        width: 50px; height: 50px; border-radius: 12px; font-size: 1.3rem;
+    }
+    .anim-icon-wrap.sm {
+        width: 32px; height: 32px; border-radius: 8px; font-size: 0.85rem;
+    }
+    
+    .anim-icon-wrap.primary { 
+        border-color: rgba(167, 105, 237, 0.4); 
+        box-shadow: 0 0 10px rgba(167,105,237,0.1); 
+    }
+    .anim-icon-wrap.primary i { color: var(--color-primary); }
+
+    .anim-icon-wrap.orange { 
+        border-color: rgba(255, 125, 0, 0.4); 
+        box-shadow: 0 0 10px rgba(255,125,0,0.1); 
+    }
+    .anim-icon-wrap.orange i { color: var(--color-accent-orange); }
+
+    .sa-lines {
+        flex-grow: 1;
+        position: relative;
+        margin: 0 15px;
+    }
+    
+    .branch-svg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        overflow: visible;
+    }
+    .path-line {
+        fill: none;
+        stroke: rgba(255,255,255,0.15);
+        stroke-width: 2;
+    }
+    .path-dot.primary { fill: var(--color-primary); filter: drop-shadow(0 0 5px var(--color-primary)); }
+    .path-dot.orange { fill: var(--color-accent-orange); filter: drop-shadow(0 0 5px var(--color-accent-orange)); }
+
+    /* Pop Animations synchronized with SVG animateMotion (2s duration) */
+    .anim-pop-1 { animation: pulse-pop 2s infinite cubic-bezier(0.4, 0, 0.2, 1); }
+    .anim-pop-2 { animation: pulse-pop 2s infinite cubic-bezier(0.4, 0, 0.2, 1) 0.3s; }
+    .anim-pop-3 { animation: pulse-pop 2s infinite cubic-bezier(0.4, 0, 0.2, 1) 0.6s; }
+
+    /* Apply primary/orange specific pops */
+    .scenario-box.single .anim-pop-1, .scenario-box.single .anim-pop-2, .scenario-box.single .anim-pop-3 {
+        animation-name: pulse-pop-primary;
+    }
+    .scenario-box.bulk .anim-pop-1, .scenario-box.bulk .anim-pop-2, .scenario-box.bulk .anim-pop-3 {
+        animation-name: pulse-pop-orange;
+    }
+
+    @keyframes pulse-pop-primary {
+        0%, 85% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+        95% { transform: scale(1.15); border-color: var(--color-primary); box-shadow: 0 0 15px var(--color-primary); }
+        100% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+    }
+    
+    @keyframes pulse-pop-orange {
+        0%, 85% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+        95% { transform: scale(1.15); border-color: var(--color-accent-orange); box-shadow: 0 0 15px var(--color-accent-orange); }
+        100% { transform: scale(1); box-shadow: 0 0 0 transparent; }
+    }
+
+    @media (max-width: 992px) {
+        .split-layout { grid-template-columns: 1fr; }
+        .info-card { display: none; }
+    }
     @media (max-width: 768px) {
         .mode-grid { grid-template-columns: 1fr; }
     }
 
 </style>
 
-<div class="row justify-content-center">
-  <div class="col-lg-8" style="max-width: 900px;">
+<div class="container-fluid" style="max-width: 1200px;">
     
     <!-- Header -->
     <div class="page-header">
@@ -156,76 +310,160 @@
           Workspace: <strong class="text-white">{{ workspace.name }}</strong>
         </p>
       </div>
-      <a href="{% url 'my_workspaces' %}" class="btn btn-custom btn-ghost">
+      <a href="{% url 'my_workspace_detail' workspace.id %}" class="btn btn-custom btn-ghost">
         <i class="fa-solid fa-arrow-left me-2"></i> Back to Workspace
       </a>
     </div>
 
-    <form method="post" class="selection-card">
-      {% csrf_token %}
-      
-      <!-- Template Selection -->
-      <div class="mb-5">
-        <label class="form-label">
-            1. Select Template
-            <i class="fa-solid fa-circle-info ms-2" style="font-size:0.8em; cursor:help;" data-bs-toggle="tooltip" title="Choose the design layout you want to use for this batch."></i>
-        </label>
+    <div class="split-layout">
         
-        {% if templates %}
-            <select name="template_id" class="form-select-dark" required>
-                <option value="" disabled selected>-- Choose a design template --</option>
-                {% for t in templates %}
-                    <option value="{{ t.id }}">
-                        {{ t.name }} ({{ t.width_cm }}x{{ t.height_cm }}cm)
-                    </option>
-                {% endfor %}
-            </select>
-        {% else %}
-            <div class="alert alert-warning d-flex align-items-center mb-0" style="background:rgba(255, 125, 0, 0.1); border-color:rgba(255, 125, 0, 0.2); color:var(--color-accent-orange);">
-                <i class="fa-solid fa-triangle-exclamation me-3"></i>
-                <div>
-                    No templates found. <a href="{% url 'label_template_create' workspace.id %}" class="fw-bold text-white text-decoration-underline">Create one first</a>.
-                </div>
-            </div>
-        {% endif %}
-      </div>
-
-      <!-- Mode Selection -->
-      <div class="mb-2">
-        <label class="form-label">2. Generation Mode</label>
-        
-        <div class="mode-grid">
-            <!-- Single Mode -->
-            <label style="cursor:pointer;">
-                <input type="radio" name="mode" value="SINGLE" class="mode-input" checked>
-                <div class="mode-option">
-                    <i class="fa-regular fa-file mode-icon"></i>
-                    <div class="mode-title">Single SKU</div>
-                    <div class="mode-desc">Generate labels for a single product. Good for quick prints or testing designs.</div>
-                </div>
+        <!-- LEFT: FORM -->
+        <form method="post" class="form-card">
+          {% csrf_token %}
+          
+          <!-- Template Selection -->
+          <div class="mb-5">
+            <label class="form-label">
+                1. Select Template
+                <i class="fa-solid fa-circle-info ms-2" style="font-size:0.8em; cursor:help;" data-bs-toggle="tooltip" title="Choose the design layout you want to use for this batch."></i>
             </label>
             
-            <!-- Multi/Bulk Mode -->
-            <label style="cursor:pointer;">
-                <input type="radio" name="mode" value="MULTI" class="mode-input">
-                <div class="mode-option">
-                    <i class="fa-solid fa-layer-group mode-icon"></i>
-                    <div class="mode-title">Multiple SKUs (Bulk)</div>
-                    <div class="mode-desc">Upload a CSV/Excel file to generate 1000s of unique labels in one go.</div>
+            {% if templates %}
+                <select name="template_id" class="form-select-dark" required>
+                    <option value="" disabled selected>-- Choose a design template --</option>
+                    {% for t in templates %}
+                        <option value="{{ t.id }}">
+                            {{ t.name }} ({{ t.width_cm }}x{{ t.height_cm }}cm)
+                        </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <div class="alert alert-warning d-flex align-items-center mb-0" style="background:rgba(255, 125, 0, 0.1); border-color:rgba(255, 125, 0, 0.2); color:var(--color-accent-orange);">
+                    <i class="fa-solid fa-triangle-exclamation me-3"></i>
+                    <div>
+                        No templates found. <a href="{% url 'label_template_create' workspace.id %}" class="fw-bold text-white text-decoration-underline">Create one first</a>.
+                    </div>
                 </div>
-            </label>
+            {% endif %}
+          </div>
+
+          <!-- Mode Selection -->
+          <div class="mb-2">
+            <label class="form-label">2. Generation Mode</label>
+            
+            <div class="mode-grid">
+                <!-- Single Mode -->
+                <label style="cursor:pointer; display:block; height:100%;">
+                    <input type="radio" name="mode" value="SINGLE" class="mode-input" checked>
+                    <div class="mode-option">
+                        <i class="fa-regular fa-file mode-icon"></i>
+                        <div class="mode-title">Single SKU</div>
+                        <div class="mode-desc">Generate labels for a single product. Good for quick prints or testing designs.</div>
+                    </div>
+                </label>
+                
+                <!-- Multi/Bulk Mode -->
+                <label style="cursor:pointer; display:block; height:100%;">
+                    <input type="radio" name="mode" value="MULTI" class="mode-input">
+                    <div class="mode-option">
+                        <i class="fa-solid fa-layer-group mode-icon"></i>
+                        <div class="mode-title">Multiple SKUs (Bulk)</div>
+                        <div class="mode-desc">Upload a CSV/Excel file to generate 1000s of unique labels in one go.</div>
+                    </div>
+                </label>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn btn-custom btn-primary-glow px-5 py-3" {% if not templates %}disabled{% endif %}>
+                Next Step <i class="fa-solid fa-arrow-right ms-2"></i>
+            </button>
+          </div>
+
+        </form>
+
+        <!-- RIGHT: VISUAL EXPLANATION -->
+        <div class="info-card">
+            <h3 class="info-title">
+                <i class="fa-solid fa-code-branch text-primary"></i> Which mode fits you?
+            </h3>
+
+            <!-- Single SKU Scenario (Branching out) -->
+            <div class="scenario-box single">
+                <div class="scenario-title">1 SKU = Single</div>
+                
+                <div class="scenario-anim-v2">
+                    <!-- Source: 1 Big Product -->
+                    <div class="sa-col justify-content-center">
+                        <div class="anim-icon-wrap primary"><i class="fa-solid fa-box"></i></div>
+                    </div>
+                    <!-- Connecting SVG Lines -->
+                    <div class="sa-lines">
+                         <svg class="branch-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M 0,50 C 40,50 60,13 100,13" class="path-line" />
+                            <path d="M 0,50 L 100,50" class="path-line" />
+                            <path d="M 0,50 C 40,50 60,87 100,87" class="path-line" />
+                            
+                            <!-- Animated Dots -->
+                            <circle r="4" class="path-dot primary"><animateMotion dur="2s" begin="0s" repeatCount="indefinite" path="M 0,50 C 40,50 60,13 100,13" /></circle>
+                            <circle r="4" class="path-dot primary"><animateMotion dur="2s" begin="0.3s" repeatCount="indefinite" path="M 0,50 L 100,50" /></circle>
+                            <circle r="4" class="path-dot primary"><animateMotion dur="2s" begin="0.6s" repeatCount="indefinite" path="M 0,50 C 40,50 60,87 100,87" /></circle>
+                        </svg>
+                    </div>
+                    <!-- Targets: 3 Identical Labels -->
+                    <div class="sa-col justify-content-between">
+                        <div class="anim-icon-wrap primary sm anim-pop-1"><i class="fa-solid fa-tag"></i></div>
+                        <div class="anim-icon-wrap primary sm anim-pop-2"><i class="fa-solid fa-tag"></i></div>
+                        <div class="anim-icon-wrap primary sm anim-pop-3"><i class="fa-solid fa-tag"></i></div>
+                    </div>
+                </div>
+                
+                <p class="small text mt-2 mb-0">
+                    If you have <strong>one SKU</strong> (whether you need 1 label or 500 identical copies of it), choose <strong>Single</strong>.
+                </p>
+            </div>
+
+            <!-- Multiple SKU Scenario (Distinct Lines) -->
+            <div class="scenario-box bulk">
+                <div class="scenario-title">Multiple SKUs = Bulk</div>
+                
+                <div class="scenario-anim-v2">
+                    <!-- Source: 3 Different Products -->
+                    <div class="sa-col justify-content-between">
+                        <div class="anim-icon-wrap orange sm"><i class="fa-solid fa-box"></i></div>
+                        <div class="anim-icon-wrap orange sm"><i class="fa-solid fa-shirt"></i></div>
+                        <div class="anim-icon-wrap orange sm"><i class="fa-solid fa-mug-hot"></i></div>
+                    </div>
+                    <!-- Connecting SVG Lines -->
+                    <div class="sa-lines">
+                         <svg class="branch-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M 0,13 L 100,13" class="path-line" />
+                            <path d="M 0,50 L 100,50" class="path-line" />
+                            <path d="M 0,87 L 100,87" class="path-line" />
+                            
+                            <!-- Animated Dots -->
+                            <circle r="4" class="path-dot orange"><animateMotion dur="2s" begin="0s" repeatCount="indefinite" path="M 0,13 L 100,13" /></circle>
+                            <circle r="4" class="path-dot orange"><animateMotion dur="2s" begin="0.3s" repeatCount="indefinite" path="M 0,50 L 100,50" /></circle>
+                            <circle r="4" class="path-dot orange"><animateMotion dur="2s" begin="0.6s" repeatCount="indefinite" path="M 0,87 L 100,87" /></circle>
+                        </svg>
+                    </div>
+                    <!-- Targets: 3 Different Labels -->
+                    <div class="sa-col justify-content-between">
+                        <div class="anim-icon-wrap orange sm anim-pop-1"><i class="fa-solid fa-tag"></i></div>
+                        <div class="anim-icon-wrap orange sm anim-pop-2"><i class="fa-solid fa-barcode"></i></div>
+                        <div class="anim-icon-wrap orange sm anim-pop-3"><i class="fa-solid fa-qrcode"></i></div>
+                    </div>
+                </div>
+                
+                <p class="small text mt-2 mb-0">
+                    If you have <strong>multiple different SKUs</strong> (each needing their own unique label data), use a spreadsheet and choose <strong>Multiple (Bulk)</strong>.
+                </p>
+            </div>
+
         </div>
-      </div>
 
-      <!-- Actions -->
-      <div class="form-actions">
-        <button type="submit" class="btn btn-custom btn-primary-glow px-5 py-3" {% if not templates %}disabled{% endif %}>
-            Next Step <i class="fa-solid fa-arrow-right ms-2"></i>
-        </button>
-      </div>
-
-    </form>
-  </div>
+    </div>
 </div>
 {% endblock %}
 
