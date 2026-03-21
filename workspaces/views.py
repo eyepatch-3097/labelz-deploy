@@ -40,6 +40,18 @@ WIZARD_SESSION_KEY = 'workspace_wizard'
 UI_MAX_SIDE_PX = 700.0  # single source of truth
 
 
+def _org_suffix4(org) -> str:
+    raw = str(getattr(org, "id", "") or "")
+    return raw[-4:].zfill(4)
+
+
+def _build_barcode_base(org, batch, ean: str, gs1: str) -> str:
+    ean = (ean or "").strip()
+    gs1 = (gs1 or "").strip()
+    org_suffix = _org_suffix4(org)
+    batch_part = str(getattr(batch, "id", "") or "")
+    return f"{ean}{gs1}{org_suffix}{batch_part}"
+
 def _get_print_settings(request, template):
     d = template.print_defaults or {}
 
@@ -171,22 +183,41 @@ def _build_batch_label_payload(batch, items_ui, base_items_mm, start_index=None,
     if is_multi:
         rows = list(batch.items.order_by("row_index"))
 
+        sku_totals = {}
+        for row in rows:
+            sku_key = (
+                (row.ean_code or "").strip(),
+                (row.gs1_code or "").strip(),
+            )
+            sku_totals[sku_key] = sku_totals.get(sku_key, 0) + int(getattr(row, "quantity", 1) or 1)
+
+        sku_counters = {}
+
         for row in rows:
             row_values = row.field_values or {}
-            base = ((row.ean_code or "").strip()) + ((row.gs1_code or "").strip())
+            ean = (row.ean_code or "").strip()
+            gs1 = (row.gs1_code or "").strip()
+            sku_key = (ean, gs1)
+
             row_qty = int(getattr(row, "quantity", 1) or 1)
-            serial_digits = max(3, len(str(row_qty)))
+            total_for_sku = sku_totals.get(sku_key, row_qty)
+            serial_digits = max(3, len(str(total_for_sku)))
 
             qr_value = build_qr_payload(row.ean_code, row.gs1_code, row_values, items_ui)
             qr_img = qr_img_for(qr_value)
 
-            for j in range(1, row_qty + 1):
+            barcode_base = _build_barcode_base(batch.workspace.org, batch, ean, gs1)
+
+            for _ in range(row_qty):
                 global_index += 1
+                sku_counters[sku_key] = sku_counters.get(sku_key, 0) + 1
+                serial_num = sku_counters[sku_key]
+                serial = str(serial_num).zfill(serial_digits)
+
                 if not in_range(global_index):
                     continue
 
-                serial = str(j).zfill(serial_digits)
-                barcode_value = f"{base}{serial}" if base else ""
+                barcode_value = f"{barcode_base}{serial}" if barcode_base else ""
                 barcode_img = barcode_img_for(barcode_value)
 
                 label_items = []
@@ -212,7 +243,7 @@ def _build_batch_label_payload(batch, items_ui, base_items_mm, start_index=None,
 
     else:
         user_values = batch.field_values or {}
-        base = ((batch.ean_code or "").strip()) + ((batch.gs1_code or "").strip())
+        barcode_base = _build_barcode_base(batch.workspace.org, batch, batch.ean_code, batch.gs1_code)
         qty = int(batch.quantity or 1)
         serial_digits = max(3, len(str(qty)))
 
@@ -225,7 +256,7 @@ def _build_batch_label_payload(batch, items_ui, base_items_mm, start_index=None,
                 continue
 
             serial = str(i).zfill(serial_digits)
-            barcode_value = f"{base}{serial}" if base else serial
+            barcode_value = f"{barcode_base}{serial}" if barcode_base else serial
             barcode_img = barcode_img_for(barcode_value)
 
             label_items = []
@@ -2365,8 +2396,8 @@ def label_generate_single(request, workspace_id, template_id):
         errors = []
         if not ean_code:
             errors.append("EAN code is mandatory.")
-        if quantity < 1 or quantity > 500:
-            errors.append("Quantity must be between 1 and 500.")
+        if quantity < 1 or quantity > 2000:
+            errors.append("Quantity must be between 1 and 2000.")
 
         remaining = get_labels_remaining(workspace.org)
         if remaining is not None and quantity > remaining:
@@ -2497,10 +2528,10 @@ def label_generate_single_preview(request, workspace_id, batch_id):
         serial = "001"
 
     # ✅ IMPORTANT: base must come from the chosen data (row or batch)
-    base = f"{ean}{gs1}".strip()
+    barcode_base = _build_barcode_base(workspace.org, batch, ean, gs1)
 
     # If you want serial always appended (like print), keep this:
-    barcode_value = f"{base}{serial}" if base else ""
+    barcode_value = f"{barcode_base}{serial}" if barcode_base else ""
     qr_value = build_qr_payload(ean, gs1, user_values, items)
 
     barcode_img = make_barcode_png(barcode_value) if barcode_value else None
@@ -2867,28 +2898,43 @@ def label_batch_export_csv(request, workspace_id, batch_id):
         return max(3, len(str(max(1, int(n or 1)))))
 
     if batch.mode == LabelBatch.MODE_MULTI:
-        # MULTI: expand each imported row by its own quantity
         label_index_global = 0
+        rows_qs = list(batch.items.order_by("row_index"))
 
-        for row in batch.items.order_by("row_index"):
+        sku_totals = {}
+        for row in rows_qs:
+            sku_key = (
+                (row.ean_code or "").strip(),
+                (row.gs1_code or "").strip(),
+            )
+            sku_totals[sku_key] = sku_totals.get(sku_key, 0) + int(getattr(row, "quantity", 1) or 1)
+
+        sku_counters = {}
+
+        for row in rows_qs:
             row_i = int(getattr(row, "row_index", 1) or 1)
             row_qty = int(getattr(row, "quantity", 1) or 1)
             row_qty = max(1, row_qty)
 
             ean = (row.ean_code or "").strip()
             gs1 = (row.gs1_code or "").strip()
-            base = f"{ean}{gs1}".strip()
+            sku_key = (ean, gs1)
 
             fv = row.field_values or {}
 
-            sd = serial_digits_for(row_qty)
+            total_for_sku = sku_totals.get(sku_key, row_qty)
+            sd = max(3, len(str(total_for_sku)))
 
-            for j in range(1, row_qty + 1):
+            barcode_base = _build_barcode_base(workspace.org, batch, ean, gs1)
+
+            for _ in range(row_qty):
                 label_index_global += 1
-                row_serial = str(j).zfill(sd)
+                sku_counters[sku_key] = sku_counters.get(sku_key, 0) + 1
+                serial_num = sku_counters[sku_key]
+                row_serial = str(serial_num).zfill(sd)
 
-                barcode_value = f"{base}{row_serial}" if base else ""
-                qr_value = barcode_value  # keep same as print logic
+                barcode_value = f"{barcode_base}{row_serial}" if barcode_base else ""
+                qr_value = barcode_value
 
                 out = {
                     "Label Index": label_index_global,
@@ -2904,7 +2950,6 @@ def label_batch_export_csv(request, workspace_id, batch_id):
                 if has_qr:
                     out["QR Encoded"] = qr_value
 
-                # variable columns
                 for k in var_keys:
                     col = key_to_name.get(k, k)
                     out[col] = (fv.get(k, "") or "")
@@ -2918,7 +2963,7 @@ def label_batch_export_csv(request, workspace_id, batch_id):
 
         ean = (batch.ean_code or "").strip()
         gs1 = (batch.gs1_code or "").strip()
-        base = f"{ean}{gs1}".strip()
+        barcode_base = _build_barcode_base(workspace.org, batch, ean, gs1)
 
         fv = batch.field_values or {}
 
@@ -2927,7 +2972,7 @@ def label_batch_export_csv(request, workspace_id, batch_id):
         for i in range(1, qty + 1):
             row_serial = str(i).zfill(sd)
 
-            barcode_value = f"{base}{row_serial}" if base else ""
+            barcode_value = f"{barcode_base}{row_serial}" if barcode_base else ""
             qr_value = barcode_value
 
             out = {
@@ -3048,6 +3093,10 @@ def label_generate_multi(request, workspace_id, template_id):
         with transaction.atomic():
 
             total_qty = sum(int(r.get("quantity") or 1) for r in normalized_rows)
+            if total_qty < 1 or total_qty > 2000:
+                messages.error(request, "Total quantity across the uploaded file must be between 1 and 2000.")
+                return redirect("label_generate_multi", workspace_id=workspace.id, template_id=template.id)
+
             remaining = get_labels_remaining(workspace.org)
             if remaining is not None and total_qty > remaining:
                 return limit_redirect(

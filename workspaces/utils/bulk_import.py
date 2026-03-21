@@ -12,7 +12,7 @@ REQUIRED_COL = "EAN_CODE"
 OPTIONAL_COL = "GS1_CODE"
 QTY_COL = "QUANTITY"
 MIN_QTY = 1
-MAX_QTY = 100
+
 
 
 def norm_header(h: str) -> str:
@@ -166,11 +166,11 @@ def validate_and_normalize_rows(
             try:
                 qty = int(qty_raw)
             except ValueError:
-                errors.append(f"Row {idx}: QUANTITY must be a whole number (1–{MAX_QTY}).")
+                errors.append(f"Row {idx}: QUANTITY must be a whole number ({MIN_QTY} or more).")
                 continue
 
-        if qty < MIN_QTY or qty > MAX_QTY:
-            errors.append(f"Row {idx}: QUANTITY must be between {MIN_QTY} and {MAX_QTY}.")
+        if qty < MIN_QTY:
+            errors.append(f"Row {idx}: QUANTITY must be at least {MIN_QTY}.")
             continue
 
 
