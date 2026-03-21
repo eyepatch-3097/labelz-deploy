@@ -384,7 +384,7 @@
             <div class="qa-icon"><i class="fa-solid fa-bolt"></i></div>
             <div class="w-100">
                 <div class="qa-title">Generate Labels <i class="fa-solid fa-arrow-right opacity-50 fs-6"></i></div>
-                <p class="qa-desc">Pick a workspace + template and start generating.</p>
+                <p class="qa-desc">Pick your workspace, template & start generating labels.</p>
             </div>
         </a>
 
@@ -392,7 +392,7 @@
             <div class="qa-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
             <div class="w-100">
                 <div class="qa-title">Label History <i class="fa-solid fa-arrow-right opacity-50 fs-6"></i></div>
-                <p class="qa-desc">See org-wide label generation activity logs.</p>
+                <p class="qa-desc">See your organisation's label generation history.</p>
             </div>
         </a>
 
@@ -408,13 +408,13 @@
     <!-- Dashboard Header -->
     <header class="dashboard-header">
         <div>
-            <h1 class="page-title">Operational Insights</h1>
+            <h1 class="page-title">Your Labelz Insights</h1>
             <div class="org-subtitle">
                 {% if user.org %}
                     <i class="fa-regular fa-building text-primary"></i> 
                     <strong>{{ user.org.name }}</strong>
                 {% else %}
-                    <span class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> No organisation linked</span>
+                    <span class="text"><i class="fa-solid fa-triangle-exclamation"></i> No organisation linked</span>
                 {% endif %}
             </div>
         </div>
@@ -476,7 +476,7 @@
                     <div class="kpi-value">{{ workspace_count }}</div>
                     <div class="kpi-footer">
                         {% if selected_workspace == "all" %}
-                            <i class="fa-solid fa-globe"></i> All Accessible
+                            <i class="fa-solid fa-globe"></i> All Accessible Workspaces
                         {% else %}
                             <i class="fa-solid fa-filter"></i> Filtered View
                         {% endif %}
