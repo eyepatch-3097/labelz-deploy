@@ -22,7 +22,7 @@
     
     <!-- ICONS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <link rel="icon" href="https://res.cloudinary.com/do7w7isgi/image/upload/v1769081437/barcode_1_qvrlgj.png" type="image/x-icon">
+     <link rel="icon" href="https://res.cloudinary.com/dh5cxzkuy/image/upload/v1776541120/labelzlogo_vcynwc.png" type="image/x-icon">
     <style>
         /* --- DESIGN SYSTEM TOKENS (v5.0 - Dark Mode & Gradients) --- */
         :root {
@@ -775,6 +775,73 @@
         }
         .feature-list i { color: var(--color-primary); font-size: 1rem; }
 
+        /* --- PRICING TOGGLE --- */
+        .pricing-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 40px;
+        }
+        .toggle-label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--color-muted);
+            transition: color 0.3s;
+        }
+        .toggle-label.active {
+            color: var(--color-secondary);
+        }
+        .toggle-badge {
+            background: rgba(167, 105, 237, 0.15);
+            color: var(--color-accent-lavender);
+            border: 1px solid rgba(167, 105, 237, 0.3);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--color-border);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .toggle-switch input:checked + .toggle-track {
+            background: var(--color-primary);
+        }
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s var(--ease-elastic);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .toggle-switch input:checked + .toggle-track::after {
+            transform: translateX(24px);
+        }
+
         /* --- FORM --- */
         .lead-form {
             max-width: 500px;
@@ -1399,12 +1466,24 @@
                 <span class="section-tag">Plans</span>
                 <h2 class="section-title">Simple, transparent pricing.</h2>
             </div>
+
+            <!-- Billing Toggle -->
+            <div class="pricing-toggle-wrapper">
+                <span class="toggle-label active" id="label-monthly">Monthly</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="billing-toggle">
+                    <span class="toggle-track"></span>
+                </label>
+                <span class="toggle-label" id="label-annual">Annual <span class="toggle-badge">Save ~57%</span></span>
+            </div>
             
             <div class="pricing-grid">
                 <!-- Starter -->
                 <div class="card price-card">
                     <h3>Starter</h3>
-                    <div class="price-amount">$29<span class="price-sub">/mo</span></div>
+                    <div class="price-amount">
+                        <span id="price-starter">$29</span><span class="price-sub" id="period-starter">/mo</span>
+                    </div>
                     <ul class="feature-list">
                         <li><i class="fa-solid fa-check"></i> 1 Workspace</li>
                         <li><i class="fa-solid fa-check"></i> 3,000 Labels/mo</li>
@@ -1418,7 +1497,9 @@
                 <div class="card price-card featured">
                     <div class="popular-badge">MOST POPULAR</div>
                     <h3>Scale</h3>
-                    <div class="price-amount" style="color:var(--color-accent-orange);">$69<span class="price-sub">/mo</span></div>
+                    <div class="price-amount" style="color:var(--color-accent-orange);">
+                        <span id="price-pro">$69</span><span class="price-sub" id="period-pro">/mo</span>
+                    </div>
                     <ul class="feature-list">
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> <strong>Unlimited Workspaces</strong></li>
                         <li><i class="fa-solid fa-check" style="color:var(--color-accent-orange)"></i> <strong>30,000 Labels/mo</strong></li>
@@ -1430,6 +1511,31 @@
             </div>
         </div>
     </section>
+
+    <script>
+        (function() {
+            const toggle = document.getElementById('billing-toggle');
+            const priceStarter = document.getElementById('price-starter');
+            const periodStarter = document.getElementById('period-starter');
+            const pricePro = document.getElementById('price-pro');
+            const periodPro = document.getElementById('period-pro');
+            const labelMonthly = document.getElementById('label-monthly');
+            const labelAnnual = document.getElementById('label-annual');
+
+            toggle.addEventListener('change', function() {
+                const isAnnual = this.checked;
+
+                priceStarter.textContent = isAnnual ? '$149' : '$29';
+                periodStarter.textContent = isAnnual ? '/yr' : '/mo';
+
+                pricePro.textContent = isAnnual ? '$449' : '$69';
+                periodPro.textContent = isAnnual ? '/yr' : '/mo';
+
+                labelMonthly.classList.toggle('active', !isAnnual);
+                labelAnnual.classList.toggle('active', isAnnual);
+            });
+        })();
+    </script>
 
     <!-- LEAD FORM -->
     <section id="contact">
