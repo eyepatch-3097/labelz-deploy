@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labelz | Making Asset Labelling Simple</title>
+    <meta name="description" content="One platform to design, serialize, and print-ready all your product labels. No expensive licensing. No clunky software.">
+    
+    <!-- BRAND FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --color-primary: #A769ED;
+            --color-secondary: #FFFFFF;
+            --color-accent-blue: #C2E0FF;
+            --color-accent-orange: #FF7D00;
+            --color-accent-green: #2ecc71;
+            
+            --color-bg: #050505;
+            --color-surface: #111111;
+            --color-text: #E0E0E0;
+            --color-muted: #9CA3AF;
+            --color-border: #333333;
+            
+            --font-main: "Zalando Sans", sans-serif;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --shadow-glow: 0 0 40px rgba(167, 105, 237, 0.2);
+            --ease-elastic: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
+        body { font-family: var(--font-main); background-color: var(--color-bg); color: var(--color-text); line-height: 1.5; overflow-x: hidden; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+        section { padding: 80px 0; position: relative; }
+
+        /* --- BUTTONS --- */
+        .btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px; border-radius: var(--radius-full); font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s var(--ease-elastic); border: 1px solid transparent; text-decoration: none; position: relative; z-index: 2; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: linear-gradient(135deg, var(--color-primary), #8E4EC6); color: #fff; box-shadow: 0 4px 20px rgba(167, 105, 237, 0.4); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-dark { background: rgba(255,255,255,0.1); color: #fff; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-dark:hover { background: rgba(255,255,255,0.2); }
+        .btn-orange { background: linear-gradient(135deg, var(--color-accent-orange), #FF5500); color: #fff; box-shadow: 0 4px 20px rgba(255, 125, 0, 0.4); }
+
+        /* --- HEADER --- */
+        header { position: fixed; top: 0; left: 0; right: 0; background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(16px); z-index: 1000; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--color-secondary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo i { color: var(--color-primary); font-size: 1.6rem; text-shadow: 0 0 10px rgba(167, 105, 237, 0.5); }
+        
+        .menu-toggle { display: none; background: none; border: none; color: var(--color-secondary); font-size: 1.5rem; cursor: pointer; z-index: 1001; }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { text-decoration: none; color: var(--color-muted); font-weight: 600; transition: color 0.2s; display: flex; align-items: center; gap: 6px; font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--color-secondary); }
+
+        /* --- HERO SECTION --- */
+        .hero { padding-top: 140px; padding-bottom: 60px; position: relative; }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+        .blob { position: absolute; filter: blur(80px); opacity: 0.3; animation: pulse-blob 10s infinite alternate; border-radius: 50%; }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--color-primary); }
+        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: #222255; animation-delay: -5s; }
+        @keyframes pulse-blob { 0% { transform: scale(1); opacity: 0.2; } 100% { transform: scale(1.1); opacity: 0.4; } }
+
+        .event-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 125, 0, 0.15); color: var(--color-accent-orange); padding: 8px 16px; border-radius: 50px; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(255, 125, 0, 0.3); margin-bottom: 24px; animation: bounce-in 1s cubic-bezier(0.25, 1, 0.5, 1); }
+        .event-badge i { font-size: 1.1rem; }
+
+        .hero-title { font-size: 4.5rem; font-weight: 900; line-height: 1.05; margin-bottom: 24px; color: var(--color-secondary); letter-spacing: -1.5px; }
+        .hero-title span { background: linear-gradient(135deg, var(--color-accent-orange), var(--color-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-desc { font-size: 1.3rem; color: var(--color-muted); margin-bottom: 40px; max-width: 600px; line-height: 1.6; }
+
+        /* --- 3D FEATURE GRID --- */
+        .feature-grid-3d {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        .card-3d {
+            border-radius: 20px;
+            padding: 40px 30px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            transition: all 0.4s var(--ease-elastic);
+            z-index: 1;
+        }
+
+        .card-3d:hover {
+            transform: translateY(-8px);
+            filter: brightness(1.1);
+        }
+
+        /* 3D Card Themes */
+        .card-dark-blue { background: linear-gradient(135deg, #1c2b3d, #111d2e); box-shadow: 0 15px 35px rgba(28, 43, 61, 0.3); }
+        .card-light-blue { background: linear-gradient(135deg, #8ab5c9, #6a95a9); box-shadow: 0 15px 35px rgba(106, 149, 169, 0.3); }
+        .card-green { background: linear-gradient(135deg, #74d693, #4ab06b); box-shadow: 0 15px 35px rgba(74, 176, 107, 0.3); }
+        .card-dark-green { background: linear-gradient(135deg, #24342f, #15221d); box-shadow: 0 15px 35px rgba(36, 52, 47, 0.3); }
+
+        /* 3D Background Icons */
+        .icon-3d {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-15deg);
+            font-size: 11rem;
+            color: #fff;
+            opacity: 0.85;
+            text-shadow: 4px 4px 0px rgba(0,0,0,0.1), 12px 12px 20px rgba(0,0,0,0.25), -1px -1px 0px rgba(255,255,255,0.4);
+            pointer-events: none;
+            z-index: 1;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .card-3d:hover .icon-3d { transform: translateY(-50%) rotate(0deg) scale(1.1); }
+
+        .card-3d-content { position: relative; z-index: 2; max-width: 65%; }
+        .card-3d-title { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 8px; }
+        .card-3d-desc { font-size: 0.95rem; color: rgba(255,255,255,0.8); font-weight: 500; }
+        
+        .card-3d-action {
+            position: relative;
+            z-index: 2;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+        .card-3d:hover .card-3d-action { color: #fff; }
+        .card-3d-action i { transition: transform 0.3s; }
+        .card-3d:hover .card-3d-action i { transform: translate(4px, -4px); }
+
+        /* --- VISUAL BRANCHING / WORKFLOW --- */
+        .workflow-section { background: radial-gradient(circle at 50% 50%, #110515 0%, var(--color-bg) 100%); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+        .section-header { text-align: center; max-width: 700px; margin: 0 auto 50px; }
+        .section-title { font-size: 2.8rem; font-weight: 900; margin-bottom: 16px; color: #fff; }
+
+        .promo-wrapper {
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+            box-shadow: 0 20px 80px -10px rgba(167, 105, 237, 0.2);
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            background: #000;
+        }
+        
+        .promo-wrapper video {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* --- PRICING --- */
+        .pricing-section { text-align: center; }
+        .pricing-card { background: linear-gradient(180deg, #160f24 0%, var(--color-surface) 100%); border: 1px solid var(--color-primary); border-radius: var(--radius-lg); padding: 50px 40px; max-width: 500px; margin: 0 auto; box-shadow: var(--shadow-glow); }
+        .price-amount { font-size: 4rem; font-weight: 900; color: #fff; margin: 20px 0; line-height: 1; }
+        .price-amount span { font-size: 1.2rem; color: var(--color-muted); font-weight: 600; }
+        .pricing-features { list-style: none; padding: 0; margin: 30px 0; text-align: left; }
+        .pricing-features li { margin-bottom: 16px; font-size: 1.1rem; color: var(--color-text); display: flex; align-items: center; gap: 12px; font-weight: 500; }
+        .pricing-features i { color: var(--color-accent-green); font-size: 1.2rem; }
+
+        /* --- MOBILE --- */
+        @media (max-width: 900px) {
+            .hero-title { font-size: 3rem; }
+            .feature-grid-3d { grid-template-columns: 1fr; }
+            .card-3d { min-height: 200px; padding: 30px 20px; }
+            .icon-3d { font-size: 8rem; right: -10px; }
+            
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .nav-links.active { display: flex; }
+            .menu-toggle { display: block; order: 2; }
+            .nav-cta { display: none; }
+            .logo { order: 1; }
+        }
+
+        @keyframes bounce-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header>
+        <div class="container nav-inner">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-barcode"></i> Labelz
+            </a>
+            <button class="menu-toggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#workflow">Workflow</a>
+                <a href="#pricing">Pricing</a>
+            </nav>
+            <a href="http://127.0.0.1:8000/dashboard" class="btn btn-primary nav-cta" style="padding: 10px 24px;">Login / Sign Up</a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <canvas id="particles-js"></canvas>
+        </div>
+        <div class="container">
+            <div class="event-badge">
+                <i class="fa-solid fa-handshake"></i> Welcome PRC 2026 Attendees
+            </div>
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="hero-title">Making Asset <br><span>Labelling Simple.</span></h1>
+                    <p class="hero-desc">
+                        One platform to design, serialize, and print-ready all your product labels. No expensive licensing. No clunky software. Just results in seconds.
+                    </p>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <a href="http://127.0.0.1:8000/dashboard" class="btn btn-primary">Start Free Trial <i class="fa-solid fa-arrow-right"></i></a>
+                        <a href="#workflow" class="btn btn-dark">See How it Works</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D FEATURE GRID -->
+            <div id="features" class="feature-grid-3d">
+                <!-- Card 1: UOM Accuracy -->
+                <a href="#" class="card-3d card-dark-blue">
+                    <div class="icon-3d"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="card-3d-content">
+                        <div class="card-3d-title">100% UOM Accuracy</div>
+                        <div class="card-3d-desc">Precision tracking down to the lowest unit of measure.</div>
+                    </div>
+                    <div class="card-3d-action">Learn More <i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                </a>
+
+                <!-- Card 2: No Ghost Inventory -->
+                <a href="#" class="card-3d card-light-blue">
+                    <div class="icon-3d"><i class="fa-solid fa-ghost"></i></div>
+                    <div class="card-3d-content">
+                        <div class="card-3d-title">No Ghost Inventory</div>
+                        <div class="card-3d-desc">Ensure what’s on the label matches what’s on the shelf.</div>
+                    </div>
+                    <div class="card-3d-action">Learn More <i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                </a>
+
+                <!-- Card 3: Bulk Generation -->
+                <a href="#" class="card-3d card-green">
+                    <div class="icon-3d"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="card-3d-content">
+                        <div class="card-3d-title">0.05s Per Label</div>
+                        <div class="card-3d-desc">Bulk generate thousands of serialized barcodes instantly via CSV.</div>
+                    </div>
+                    <div class="card-3d-action">Learn More <i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                </a>
+
+                <!-- Card 4: Export Everywhere -->
+                <a href="#" class="card-3d card-dark-green">
+                    <div class="icon-3d"><i class="fa-solid fa-network-wired"></i></div>
+                    <div class="card-3d-content">
+                        <div class="card-3d-title">Export Everywhere</div>
+                        <div class="card-3d-desc">Connects seamlessly with Spreadsheets, ERPs, CRMs & APIs.</div>
+                    </div>
+                    <div class="card-3d-action">Learn More <i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- WORKFLOW / WHICH MODE FITS YOU -->
+    <section id="workflow" class="workflow-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">One platform for every label need.</h2>
+                <p style="color:var(--color-muted); font-size: 1.2rem;">Design, Generate, Analyze. See how Labelz fits your operations.</p>
+            </div>
+
+            <div class="promo-wrapper">
+                <video width="100%" controls muted autoplay loop playsinline>
+                    <source src="https://res.cloudinary.com/dh5cxzkuy/video/upload/v1776540614/labelcraft-promo_a5ctdt.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Pay-as-you-go SaaS</h2>
+                <p style="color:var(--color-muted); font-size: 1.1rem;">No expensive enterprise licensing. Start scaling today.</p>
+            </div>
+            
+            <div class="pricing-card">
+                <div style="display:inline-block; background:rgba(167, 105, 237, 0.15); color:var(--color-primary); padding: 6px 16px; border-radius: 20px; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; margin-bottom: 20px; border: 1px solid rgba(167,105,237,0.3);">Launch Offer</div>
+                <h3 style="font-size: 2rem; color: #fff;">Starter Plan</h3>
+                <div class="price-amount">$29<span> / mo</span></div>
+                
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check-circle"></i> Design Once, Use Anytime</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Unique Serialization</li>
+                    <li><i class="fa-solid fa-check-circle"></i> 3,000 Labels / Month</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Annual plans available</li>
+                </ul>
+
+                <a href="http://127.0.0.1:8000/dashboard" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px; font-size: 1.2rem; padding: 16px;">Create Account</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background: #020202; padding: 40px 0; border-top: 1px solid var(--color-border); text-align: center;">
+        <div class="container">
+            <div class="logo" style="justify-content: center; margin-bottom: 16px;">
+                <i class="fa-solid fa-barcode"></i> Labelz
+            </div>
+            <p style="color:var(--color-muted); font-size: 0.9rem;">
+                Making serialization simple for the next generation of brands.<br>
+                © 2026 Labelz Live Inc. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Mobile Menu Toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = menuToggle.querySelector('i');
+            if (navLinks.classList.contains('active')) {
+                icon.classList.replace('fa-bars', 'fa-xmark');
+            } else {
+                icon.classList.replace('fa-xmark', 'fa-bars');
+            }
+        });
+
+        // Particle Engine for Hero
+        const canvas = document.getElementById('particles-js');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            
+            function resize() {
+                if(!canvas.parentElement) return;
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            window.addEventListener('resize', resize);
+            
+            class Particle {
+                constructor() { this.reset(); }
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = (Math.random() - 0.5) * 0.5;
+                    this.size = Math.random() * 3 + 1;
+                    const colors = ['#A769ED', '#C2E0FF', '#FF7D00'];
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.alpha = Math.random() * 0.5 + 0.1;
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy;
+                    if(this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+                }
+                draw() {
+                    ctx.globalAlpha = this.alpha;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                }
+            }
+
+            function init() {
+                resize();
+                particles = [];
+                for(let i=0; i<60; i++) particles.push(new Particle());
+                animate();
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                
+                ctx.lineWidth = 0.5;
+                for(let i=0; i<particles.length; i++) {
+                    for(let j=i+1; j<particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if(dist < 100) {
+                            ctx.strokeStyle = particles[i].color; 
+                            ctx.globalAlpha = 0.15 * (1 - dist/100);
+                            ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            init();
+        }
+    </script>
+</body>
+</html>
