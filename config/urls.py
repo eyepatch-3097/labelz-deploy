@@ -62,6 +62,9 @@ def security(request):
 def about(request):
     return render(request, "about.html")
 
+def prc(request):
+    return render(request, "welcome-to-labelz-prc.html")
+
 def _parse_date(s: str):
     """
     Accepts 'YYYY-MM-DD'. Returns aware datetime at start of day in current TZ.
@@ -235,6 +238,7 @@ urlpatterns = [
     path("terms/", terms, name="terms"),
     path("security/", security, name="security"),
     path("about/", about, name="about"),
+    path("welcome-to-labelz-prc/", prc, name="prc"),
     path("accounts/", include("accounts.urls")),
     path("workspaces/", include("workspaces.urls")),
     path("cms/", include("cms.urls")),
